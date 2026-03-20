@@ -11,19 +11,26 @@ const useWindowSize = () => {
     return isMobile;
 };
 
+const naazhigaiInfo = {
+    title: "Understanding Naazhigai",
+    content: "Naazhigai is an ancient Tamil unit of time. Unlike the standard 24-hour system, a traditional day is divided into 60 equal parts called Naazhigais. Each Naazhigai lasts exactly 24 minutes, offering a unique perspective on temporal flow that serves as the foundation for the Naazhigai Clock project."
+};
+
 const myBooks = [
     {
         title: "The Boy Who Wished to Meet His Mother",
         link: "https://www.goodreads.com/book/show/244579846-the-boy-who-wished-to-meet-his-mother",
         description: "When the wishes made by a widowed writer and his son on a shooting star come true, the resulting magical adventure changes their strained relationship forever.",
         borderColor: "#d4af37",
+        image: "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1764440370i/244579846.jpg",
         tags: ["Fiction", "Fantasy", "Cozy"]
     },
     {
-        title: "Six Hours To Doomsday: A Time Travel Conspiracy",
+        title: "Six Hours To Doomsday",
         link:"https://www.goodreads.com/book/show/227760936-six-hours-to-doomsday",
         description: "From Earth to Moon, Mars and Neptune, the story unfolds in a fast-paced, non-linear fashion to explore the thrilling adventures involving a cunning spy with a personal vendetta, an ambitious emperor with a political agenda, and a group of humans battling for their planet’s survival.",
         borderColor: "#d4af37",
+        image:"https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1738902728i/227760936.jpg",
         tags: ["Sci-Fi", "Time Travel", "Thriller"]
     }
 ];
@@ -47,16 +54,24 @@ const BookCard = ({ book, isMobile }) => {
         position: 'relative'
     };
 
-    const coverStyle = {
+    const coverContainerStyle = {
         width: isMobile ? '100%' : '180px',
-        height: isMobile ? '220px' : 'auto',
+        height: isMobile ? '280px' : '260px',
         backgroundColor: '#111',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        position: 'relative',
         flexShrink: 0,
+        overflow: 'hidden',
         borderLeft: isMobile ? 'none' : `4px solid ${book.borderColor}`,
         borderBottom: isMobile ? `4px solid ${book.borderColor}` : 'none',
+    };
+
+    const imageStyle = {
+        width: '100%',
+        height: '100%',
+        objectFit: 'fill', // Ensures the book cover fills the space beautifully
+        opacity: isHovered ? 0.9 : 0.7,
+        transition: 'all 0.4s ease',
+        transform: isHovered ? 'scale(1.05)' : 'scale(1)',
     };
 
     return (
@@ -68,10 +83,12 @@ const BookCard = ({ book, isMobile }) => {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <div style={coverStyle}>
-                <div style={styles.coverArt}>
-                    <span style={styles.verticalTitle}>{isMobile ? 'BOOK' : 'SPINE'}</span>
-                </div>
+            <div style={coverContainerStyle}>
+                <img
+                    src={book.image}
+                    alt={book.title}
+                    style={imageStyle}
+                />
             </div>
             <div style={styles.bookInfo}>
                 <h3 style={styles.bookTitle}>{book.title}</h3>
@@ -123,7 +140,6 @@ const styles = {
             backgroundColor: '#050505',
             color: '#e0e0e0',
             minHeight: '100vh', // Ensures it covers the screen but can grow
-            width: '100%',
             padding: '120px 20px 80px', // Extra bottom padding so the last book isn't cramped
             display: 'flex',
             flexDirection: 'column',
@@ -134,7 +150,7 @@ const styles = {
     hero: {
         maxWidth: '800px',
         textAlign: 'center',
-        marginBottom: '60px',
+        marginBottom: '20px',
     },
     name: {
         fontSize: '2.5rem',
@@ -149,7 +165,7 @@ const styles = {
         fontSize: '0.7rem',
         letterSpacing: '2px',
         borderRadius: '2px',
-        marginBottom: '20px',
+        marginBottom: '10px',
         color: '#d4af37', // Gold accent
         border: '1px solid #333'
     },
@@ -222,10 +238,15 @@ const styles = {
         letterSpacing: '1px'
     },
     description: {
-        lineHeight: '1.6',
+        lineHeight: '1.5',
         color: '#aaa',
         fontSize: '0.95rem',
-        marginBottom: '20px'
+        marginBottom: '10px',
+        // --- ADD THESE FOR ELLIPSIS ---
+        display: '-webkit-box',
+        WebkitLineClamp: 2,       /* Number of lines to show before truncating */
+        WebkitBoxOrient: 'vertical',
+        overflow: 'hidden',
     },
     tagContainer: { display: 'flex', gap: '8px', marginBottom: '25px' },
     tag: {

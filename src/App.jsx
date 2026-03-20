@@ -10,7 +10,7 @@ const App = () => {
             <nav style={navStyle}>
                 <NavItem to="/" label="Developer Portfolio"/>
                 <NavItem to="/books" label="Books"/>
-                <NavItem to="/clock" label="Sixty Hour Clock" borderColor="#00FF41"/>
+                <NavItem to="/clock" label="The 24-Minute Hour" borderColor="#00FF41"/>
             </nav>
 
             <Routes>

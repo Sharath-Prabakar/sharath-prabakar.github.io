@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
+const naazhigaiDescription = {
+    title: "THE 24-Minute Hour",
+    text: "Naazhigai (நாழிகை) is an ancient Tamil time-measuring unit equal to 24 minutes, with 60 naazhigai making up a full 24-hour day. It was used to track time through water-based instruments in early Tamil culture, representing a 6-degree rotational segment of the earth, often used by traditional astronomers."
+};
 // Define our Themes with CSS Variables
 const themes = {
     matrix: {
@@ -130,8 +134,32 @@ const MultiThemeClock = () => {
         <div style={appContainerStyle}>
             <ThemeSwitcher />
 
-            <div style={{ letterSpacing: '3px', marginBottom: '10px', opacity: 0.8 }}>
-                NAAZHIGAI
+            <div style={{
+                maxWidth: '600px',
+                marginBottom: '40px',
+                padding: '20px',
+                textAlign: 'center',
+                // Responsive width for mobile
+                width: '90%'
+            }}>
+                <h2 style={{
+                    fontSize: '1.5rem',
+                    color: 'var(--text-main)',
+                    letterSpacing: '4px',
+                    marginBottom: '10px'
+                }}>
+                    {naazhigaiDescription.title}
+                </h2>
+                <p style={{
+                    fontSize: '1rem',
+                    lineHeight: '1.6',
+                    color: 'var(--text-main)',
+                    opacity: 0.8,
+                    margin: 0,
+                    fontFamily: 'var(--font-family)'
+                }}>
+                    {naazhigaiDescription.text}
+                </p>
             </div>
 
             <div style={timeDisplayStyle}>

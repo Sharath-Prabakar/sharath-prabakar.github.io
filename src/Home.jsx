@@ -1,5 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import gccAppLogo from './assets/GCC_App_Logo.png';
+import sixtyHourLogo from './assets/SixtyHour_Logo.png';
+
+
 
 const Home = () => {
     return (
@@ -31,15 +35,15 @@ const Home = () => {
                 <div style={styles.grid}>
                     <ProjectCard
                         title="Global Coin Collections"
-                        icon="🪙"
+                        icon={gccAppLogo}
                         iconColor="#d4af37"
                         description="Built, as a solo developer, a zero-cost, serverless inventory system coupled with a customer-facing e-commerce Android app to showcase the inventory for sale with frugal API calls using Firestore DB and Node.js Cloud Functions as admin scripts."
                         tag="Android / Java"
                         link="https://play.google.com/store/apps/details?id=com.thadaladi.globalcoincollections"
                     />
                     <ProjectCard
-                        title="Naazhigai Clock"
-                        icon="⌚"
+                        title="The 24-Minute Hour"
+                        icon={sixtyHourLogo}
                         iconColor="#00FF41"
                         description="A web-based custom time system featuring 60-hour days. Built with React and themed with Matrix/Cyberpunk aesthetics."
                         tag="React"
@@ -80,6 +84,12 @@ const ProjectCard = ({ title, icon, description, tag, iconColor, link }) => {
         gap: '15px',
         marginBottom: '15px'
     };
+    const imageStyle = {
+        display:'flex',
+        objectFit: 'fill',
+        width:'40px',
+        height:'40px',
+    };
 
     const arrowStyle = {
         position: 'absolute',
@@ -102,14 +112,11 @@ const ProjectCard = ({ title, icon, description, tag, iconColor, link }) => {
             onMouseLeave={() => setIsHovered(false)}
         >
             <div style={headerStyle}>
-                <div style={{
-                    fontSize: '2rem',
-                    color: iconColor,
-                    transition: 'transform 0.3s ease',
-                    transform: isHovered ? 'scale(1.1)' : 'scale(1)'
-                }}>
-                    {icon}
-                </div>
+                <img
+                    src={icon}
+                    alt="App Logo"
+                    style={imageStyle}
+                />
                 <h3 style={{ margin: 0, letterSpacing: '1px' }}>{title}</h3>
             </div>
 
@@ -148,6 +155,7 @@ const styles = {
         letterSpacing: '5px',
         textAlign: 'center',
         color: '#fff',
+        marginBottom: '10px',
     },
     grid: {
         display: 'grid',
@@ -165,7 +173,7 @@ const styles = {
         backgroundColor: '#333',
         fontSize: '0.8rem',
         borderRadius: '20px',
-        marginBottom: '20px',
+        marginBottom: '10px',
         color: "#d4af37",
     },
     bio: {
