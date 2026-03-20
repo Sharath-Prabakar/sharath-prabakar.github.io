@@ -79,9 +79,11 @@ const MultiThemeClock = () => {
     };
 
     const timeDisplayStyle = {
-        fontSize: '6rem',
+        fontSize: 'clamp(3rem, 18vw, 6rem)', // Massive on desktop, fits on mobile
         border: '3px solid var(--border-color)',
-        padding: '20px 40px',
+        padding: '10px 20px', // Reduced padding for mobile
+        width: 'fit-content',
+        textAlign: 'center',
         boxShadow: '0 0 15px var(--shadow-color), inset 0 0 10px var(--shadow-color)',
         textShadow: '0 0 10px var(--text-glow)',
         borderRadius: '12px',
@@ -92,11 +94,14 @@ const MultiThemeClock = () => {
     const ThemeSwitcher = () => (
         <div style={{
             position: 'absolute',
-            bottom: '30px', // Anchored to the bottom
-            alignItems: 'center',
+            bottom: '40px',
+            left: '50%',
+            transform: 'translateX(-50%)', // Centered for mobile
             display: 'flex',
-            gap: '15px',
-            zIndex: 1001
+            flexWrap: 'wrap', // Allow wrapping
+            justifyContent: 'center',
+            gap: '10px',
+            width: '90%'
         }}>
             {Object.keys(themes).map((key) => (
                 <button

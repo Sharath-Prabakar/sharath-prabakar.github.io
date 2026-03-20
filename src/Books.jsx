@@ -1,34 +1,100 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+
+// Custom hook to handle responsive re-renders
+const useWindowSize = () => {
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+    return isMobile;
+};
 
 const myBooks = [
     {
         title: "The Boy Who Wished to Meet His Mother",
         link: "https://www.goodreads.com/book/show/244579846-the-boy-who-wished-to-meet-his-mother",
         description: "When the wishes made by a widowed writer and his son on a shooting star come true, the resulting magical adventure changes their strained relationship forever.",
-        coverColor: "#1a1a1a",
-        borderColor: "#d4af37", // Gold accent to match the coin project
+        borderColor: "#d4af37",
         tags: ["Fiction", "Fantasy", "Cozy"]
     },
     {
         title: "Six Hours To Doomsday: A Time Travel Conspiracy",
         link:"https://www.goodreads.com/book/show/227760936-six-hours-to-doomsday",
         description: "From Earth to Moon, Mars and Neptune, the story unfolds in a fast-paced, non-linear fashion to explore the thrilling adventures involving a cunning spy with a personal vendetta, an ambitious emperor with a political agenda, and a group of humans battling for their planet’s survival.",
-        coverColor: "#1a1a1a",
-        borderColor: "#d4af37", // Gold accent to match the coin project
+        borderColor: "#d4af37",
         tags: ["Sci-Fi", "Time Travel", "Thriller"]
     }
-
 ];
 
+const BookCard = ({ book, isMobile }) => {
+    const [isHovered, setIsHovered] = useState(false);
+
+    const cardStyle = {
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        backgroundColor: '#0c0c0c',
+        border: `1px solid ${isHovered ? '#444' : '#1a1a1a'}`,
+        borderRadius: '8px',
+        overflow: 'hidden',
+        textDecoration: 'none',
+        color: 'inherit',
+        transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+        transform: isHovered && !isMobile ? 'translateY(-8px)' : 'translateY(0)',
+        boxShadow: isHovered ? '0 15px 30px rgba(0,0,0,0.6)' : '0 4px 10px rgba(0,0,0,0.3)',
+        cursor: 'pointer',
+        position: 'relative'
+    };
+
+    const coverStyle = {
+        width: isMobile ? '100%' : '180px',
+        height: isMobile ? '220px' : 'auto',
+        backgroundColor: '#111',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        borderLeft: isMobile ? 'none' : `4px solid ${book.borderColor}`,
+        borderBottom: isMobile ? `4px solid ${book.borderColor}` : 'none',
+    };
+
+    return (
+        <a
+            href={book.link}
+            target="_blank"
+            rel="noreferrer"
+            style={cardStyle}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            <div style={coverStyle}>
+                <div style={styles.coverArt}>
+                    <span style={styles.verticalTitle}>{isMobile ? 'BOOK' : 'SPINE'}</span>
+                </div>
+            </div>
+            <div style={styles.bookInfo}>
+                <h3 style={styles.bookTitle}>{book.title}</h3>
+                <p style={styles.description}>{book.description}</p>
+                <div style={styles.tagContainer}>
+                    {book.tags.map(tag => <span key={tag} style={styles.tag}>{tag}</span>)}
+                </div>
+                <div style={styles.link}>VIEW ON GOODREADS {isHovered ? '→' : ''}</div>
+            </div>
+        </a>
+    );
+};
+
 const Books = () => {
+    const isMobile = useWindowSize();
+
     return (
         <div style={styles.container}>
             <header style={styles.hero}>
-                <h1 style={styles.name}>AUTHOR PROFILE</h1>
+                <h1 style={{...styles.name, fontSize: isMobile ? '2rem' : '2.5rem'}}>AUTHOR PROFILE</h1>
                 <div style={styles.badge}>SCI-FI & FANTASY</div>
                 <p style={styles.bio}>
-                    After wavering for a few years, Sharath Prabakar took a sabbatical in 2025 to complete the 'Six Hours To Doomsday' novella, inspired by a recurring alien invasion dream.
-                    You can find him writing code or reading the classics when he’s not working on the sequel.
+                    After wavering for a few years, Sharath Prabakar took a sabbatical in 2025 to complete the 'Six Hours To Doomsday' novella, inspired by a recurring alien invasion dream. You can find him writing code or reading the classics when he’s not working on the sequel.
                 </p>
                 <a
                     href="https://www.goodreads.com/author/show/54655809.Sharath_Prabakar"
@@ -44,30 +110,7 @@ const Books = () => {
                 <h2 style={styles.sectionTitle}>Published Titles</h2>
                 <div style={styles.shelf}>
                     {myBooks.map((book, index) => (
-                        <div key={index} style={styles.bookCard}>
-                            <div style={{...styles.bookCover, borderLeft: `4px solid ${book.borderColor}`}}>
-                                <div style={styles.coverArt}>
-                                    {/* This placeholder mimics a clean, minimalist book spine */}
-                                    <span style={styles.verticalTitle}>{book.title}</span>
-                                </div>
-                            </div>
-
-                            <div style={styles.bookInfo}>
-                                <h3 style={styles.bookTitle}>{book.title}</h3>
-                                <p style={styles.description}>{book.description}</p>
-                                <div style={styles.tagContainer}>
-                                    {book.tags.map(tag => <span key={tag} style={styles.tag}>{tag}</span>)}
-                                </div>
-                                <a
-                                    href={book.link}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    style={styles.link}
-                                >
-                                    VIEW ON GOODREADS
-                                </a>
-                            </div>
-                        </div>
+                        <BookCard key={index} book={book} isMobile={isMobile} />
                     ))}
                 </div>
             </section>
@@ -135,19 +178,19 @@ const styles = {
     },
     bookCard: {
         display: 'flex',
+        flexDirection: window.innerWidth < 768 ? 'column' : 'row', // Quick responsive check
         backgroundColor: '#0c0c0c',
         border: '1px solid #1a1a1a',
         borderRadius: '4px',
         overflow: 'hidden',
-        transition: 'border-color 0.3s ease',
     },
     bookCover: {
-        width: '180px',
+        width: window.innerWidth < 768 ? '100%' : '180px', // Full width on mobile
+        height: window.innerWidth < 768 ? '200px' : 'auto',
         backgroundColor: '#111',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        flexShrink: 0,
     },
     coverArt: {
         height: '80%',
