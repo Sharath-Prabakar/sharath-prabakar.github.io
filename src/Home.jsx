@@ -38,14 +38,14 @@ const Home = () => {
                         icon={gccAppLogo}
                         iconColor="#d4af37"
                         description="Built, as a solo developer, a zero-cost, serverless inventory system coupled with a customer-facing e-commerce Android app to showcase the inventory for sale with frugal API calls using Firestore DB and Node.js Cloud Functions as admin scripts."
-                        tag="Android / Java"
+                        tag="Android / Firebase"
                         link="https://play.google.com/store/apps/details?id=com.thadaladi.globalcoincollections"
                     />
                     <ProjectCard
                         title="The 24-Minute Hour"
                         icon={sixtyHourLogo}
                         iconColor="#00FF41"
-                        description="A web-based custom time system featuring 60-hour days. Built with React and themed with Matrix/Cyberpunk aesthetics."
+                        description="A web-based custom time system featuring 24-minute hours & 60-hour days. Built with React and themed with Matrix/Cyberpunk aesthetics."
                         tag="React"
                         link="/clock"
                     />

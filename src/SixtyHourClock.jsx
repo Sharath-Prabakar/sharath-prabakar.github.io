@@ -74,7 +74,6 @@ const MultiThemeClock = () => {
         height: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
         alignItems: 'center',
         paddingTop: '60px', // Offset for the fixed Navbar
         boxSizing: 'border-box',
@@ -105,7 +104,8 @@ const MultiThemeClock = () => {
             flexWrap: 'wrap', // Allow wrapping
             justifyContent: 'center',
             gap: '10px',
-            width: '90%'
+            width: '90%',
+            marginTop:'10px'
         }}>
             {Object.keys(themes).map((key) => (
                 <button
@@ -166,7 +166,7 @@ const MultiThemeClock = () => {
                 {format(time.h)}:{format(time.m)}:{format(time.s)}
             </div>
 
-            <div style={{ opacity: 0.7, fontSize: '1.2rem', marginTop: '10px' }}>
+            <div style={{ opacity: 0.7, fontSize: '1.2rem', marginTop: '10px', marginBottom: '10px' }}>
                 DAY CYCLE PROGRESS: {((((time.h * 24) +time.m) / 1440) * 100).toFixed(1)}%
             </div>
         </div>
