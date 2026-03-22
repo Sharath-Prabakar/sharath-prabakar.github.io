@@ -44,7 +44,7 @@ const Home = () => {
                     <ProjectCard
                         title="The 24-Minute Hour"
                         icon={sixtyHourLogo}
-                        iconColor="#00FF41"
+                        iconColor="#d4af37"
                         description="A web-based custom time system featuring 24-minute hours & 60-hour days. Built with React and themed with Matrix/Cyberpunk aesthetics."
                         tag="React"
                         link="/clock"

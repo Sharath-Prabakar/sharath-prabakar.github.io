@@ -69,7 +69,6 @@ const BookCard = ({ book, isMobile }) => {
         width: '100%',
         height: '100%',
         objectFit: 'fill', // Ensures the book cover fills the space beautifully
-        opacity: isHovered ? 0.9 : 0.7,
         transition: 'all 0.4s ease',
         transform: isHovered ? 'scale(1.05)' : 'scale(1)',
     };
