@@ -18,13 +18,13 @@ Welcome to the source code for my professional portfolio. This site serves as a 
 
 ## 🛠 Featured Projects
 
-### 📖 [Bookshelf Tracker](https://sharath-prabakar.github.io/books)
+### 📖 Bookshelf Tracker
 A real-time "Currently Reading" tracker that bridges my Goodreads profile with my portfolio.
 * **Tech:** Spring Boot backend hosted on Google Cloud Run. 
 * API Link - https://portfolio-backend-669981435320.us-central1.run.app/api/books/currently-reading-latest
 * **Feature:** Scrapes Goodreads RSS data and serves it via a REST API to a custom React grid.
 
-### 🕒 [The 24-Minute Hour](https://sharath-prabakar.github.io/clock)
+### 🕒 The 24-Minute Hour
 A digital implementation of the traditional Tamil time-keeping system.
 * **Logic:** Converts 24-hour Gregorian time into 60 *Naazhigai* units (1 unit = 24 mins).
 * **Impact:** Modernizes ancient time-tracking through a minimalist web interface.
