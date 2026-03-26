@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const naazhigaiDescription = {
-    title: "THE 24-Minute Hour",
+    title: "The 24-Minute Hour",
     text: "Naazhigai (நாழிகை) is an ancient Tamil time-measuring unit equal to 24 minutes, with 60 naazhigai making up a full 24-hour day. It was used to track time through water-based instruments in early Tamil culture, representing a 6-degree rotational segment of the earth, often used by traditional astronomers."
 };
 // Define our Themes with CSS Variables
