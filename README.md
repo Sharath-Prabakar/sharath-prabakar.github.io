@@ -5,7 +5,7 @@ I'm a software developer with 5+ years of experience in Android & AEM. This site
 
 Welcome to the source code for my professional portfolio. This site serves as a central hub for my technical projects, literary works, and experimental systems.
 
-[Live Site](https://sharath-prabakar.github.io/)
+[Live Site](https://sharath-prabakar.github.io/) - https://sharath-prabakar.github.io
 
 ---
 
