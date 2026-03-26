@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './books.css';
 
 // Custom hook to handle responsive re-renders
 const useWindowSize = () => {
@@ -9,11 +10,6 @@ const useWindowSize = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
     return isMobile;
-};
-
-const naazhigaiInfo = {
-    title: "Understanding Naazhigai",
-    content: "Naazhigai is an ancient Tamil unit of time. Unlike the standard 24-hour system, a traditional day is divided into 60 equal parts called Naazhigais. Each Naazhigai lasts exactly 24 minutes, offering a unique perspective on temporal flow that serves as the foundation for the Naazhigai Clock project."
 };
 
 const myBooks = [
@@ -103,6 +99,48 @@ const BookCard = ({ book, isMobile }) => {
 
 const Books = () => {
     const isMobile = useWindowSize();
+    const [currentlyReading, setCurrentlyReading] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [lastUpdated, setLastUpdated] = useState(null);
+
+    // Helper to format the ISO string from Java
+    const formatDate = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return date.toLocaleString('en-IN', {
+            day: 'numeric',
+            month: 'short',
+            year:'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const fetchBooks = (isManualSync = false) => {
+        setRefreshing(true);
+        const endpoint = isManualSync ? "/api/books/currently-reading-latest" : "/api/books/currently-reading";
+
+        fetch(`http://localhost:8080${endpoint}`)
+            .then(res => res.json())
+            .then(data => {
+                setCurrentlyReading(data);
+                // Get the timestamp from the first book (most recent)
+                if (data.length > 0) {
+                    setLastUpdated(data[0].refreshAt);
+                }
+                setLoading(false);
+                setRefreshing(false);
+            })
+            .catch(() => {
+                setLoading(false);
+                setRefreshing(false);
+            });
+    };
+
+    useEffect(() => {
+        fetchBooks(false); // Initial load from DB
+    }, []);
 
     return (
         <div style={styles.container}>
@@ -130,6 +168,49 @@ const Books = () => {
                     ))}
                 </div>
             </section>
+
+            {/* Dynamic Section: Currently Reading */}
+
+            {!loading && (
+                <section style={styles.projectSection}>
+                    <div style={styles.headerRow}>
+                        <h2 style={styles.sectionTitle}>Currently Reading</h2>
+
+                        <div style={styles.actionGroup}>
+                            {lastUpdated && (
+                                <span style={styles.timestamp}>
+                    Last synced: {formatDate(lastUpdated)}
+                </span>
+                            )}
+                            <button
+                                onClick={() => fetchBooks(true)}
+                                disabled={refreshing}
+                                style={{
+                                    ...styles.refreshButton,
+                                    opacity: refreshing ? 0.5 : 1
+                                }}
+                            >
+                                {refreshing ? "SYNCING..." : "REFRESH NOW"}
+                            </button>
+                        </div>
+                    </div>
+                    <div style={styles.readingGrid}>
+                        {currentlyReading.map((book, i) => (
+
+                            <a key={i} href={book.link} target="_blank" rel="noreferrer" className="currReadCards" style={styles.miniCard}>
+                                <div style={styles.miniCoverHolder}>
+                                    <img src={book.imageUrl} alt={book.title} style={styles.miniCover} />
+                                </div>
+                                <div style={styles.miniMeta}>
+                                    <div style={styles.miniTitle}>{book.title}</div>
+                                    <div style={styles.miniAuthor}>{book.author}</div>
+                                </div>
+                            </a>
+                        ))}
+                    </div>
+                </section>
+            )}
+
         </div>
     );
 };
@@ -176,20 +257,13 @@ const styles = {
     projectSection: {
         width: '100%',
         maxWidth: '900px',
+        marginTop: '20px',
     },
-    sectionTitle: {
-        borderBottom: '1px solid #222',
-        paddingBottom: '10px',
-        marginBottom: '40px',
-        fontSize: '1.2rem',
-        letterSpacing: '3px',
-        color: '#888',
-        textTransform: 'uppercase'
-    },
+
     shelf: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '40px'
+        gap: '20px'
     },
     bookCard: {
         display: 'flex',
@@ -262,6 +336,49 @@ const styles = {
         fontSize: '0.8rem',
         fontWeight: 'bold',
         letterSpacing: '2px'
+    },
+    //Styles for Currently Reading
+    readingGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '25px' },
+    miniCard: { textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column' },
+    miniCoverHolder: { aspectRatio: '2/3', backgroundColor: '#111', borderRadius: '4px', overflow: 'hidden', boxShadow: '0 10px 20px rgba(0,0,0,0.3)' },
+    miniCover: { width: '100%', height: '100%', objectFit: 'cover' },
+    miniMeta: { marginTop: '10px', textAlign: 'center' },
+    miniTitle: { fontSize: '0.85rem', color: '#fff', fontWeight: '600', whiteSpace: 'nowrap',overflow: 'hidden', textOverflow: 'ellipsis' },
+    miniAuthor: { fontSize: '0.7rem', color: '#666', marginTop: '2px' },
+    headerRow: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center', // Centers button and title vertically
+    },
+    sectionTitle: {
+        paddingBottom: '10px',
+        marginBottom: '10px',
+        fontSize: '1.2rem',
+        letterSpacing: '3px',
+        color: '#888',
+        textTransform: 'uppercase'
+    },
+    actionGroup: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '15px' // Space between timestamp and button
+    },
+    timestamp: {
+        fontSize: '0.6rem',
+        color: '#666', // Very subtle so it doesn't compete with the button
+        letterSpacing: '1px',
+        textTransform: 'uppercase'
+    },
+    refreshButton: {
+        backgroundColor: 'transparent',
+        border: '1px solid #d4af37',
+        color: '#d4af37',
+        fontSize: '0.65rem',
+        padding: '4px 10px',
+        borderRadius: '2px',
+        letterSpacing: '1px',
+        transition: 'all 0.3s ease',
+        cursor: 'pointer'
     }
 };
 
