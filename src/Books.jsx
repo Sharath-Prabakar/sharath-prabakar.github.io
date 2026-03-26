@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './books.css';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 // Custom hook to handle responsive re-renders
 const useWindowSize = () => {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -121,7 +122,7 @@ const Books = () => {
         setRefreshing(true);
         const endpoint = isManualSync ? "/api/books/currently-reading-latest" : "/api/books/currently-reading";
 
-        fetch(`https://portfolio-backend-669981435320.us-central1.run.app${endpoint}`)
+        fetch(`${API_BASE_URL}${endpoint}`)
             .then(res => res.json())
             .then(data => {
                 setCurrentlyReading(data);
