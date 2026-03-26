@@ -121,7 +121,7 @@ const Books = () => {
         setRefreshing(true);
         const endpoint = isManualSync ? "/api/books/currently-reading-latest" : "/api/books/currently-reading";
 
-        fetch(`http://localhost:8080${endpoint}`)
+        fetch(`https://portfolio-backend-669981435320.us-central1.run.app${endpoint}`)
             .then(res => res.json())
             .then(data => {
                 setCurrentlyReading(data);
