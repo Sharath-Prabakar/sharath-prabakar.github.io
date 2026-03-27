@@ -13,6 +13,15 @@ const useWindowSize = () => {
     return isMobile;
 };
 
+const LoadingPopup = ({ message }) => (
+    <div style={styles.overlay}>
+        <div style={styles.popup}>
+            <div className="spinner"></div>
+            <p style={styles.loadingText}>{message}</p>
+        </div>
+    </div>
+);
+
 const myBooks = [
     {
         title: "The Boy Who Wished to Meet His Mother",
@@ -104,6 +113,7 @@ const Books = () => {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [lastUpdated, setLastUpdated] = useState(null);
+    const [loadingMessage, setLoadingMessage] = useState("");
 
     // Helper to format the ISO string from Java
     const formatDate = (dateString) => {
@@ -120,6 +130,23 @@ const Books = () => {
 
     const fetchBooks = (isManualSync = false) => {
         setRefreshing(true);
+
+        const messages = [
+            "Warming up the Spring Boot Instance...",
+            "Establishing connection to MongoDB...",
+            "Fetching latest library data...",
+            "Loading my bookshelf...",
+            "Placing the books in order..."
+        ];
+
+        let msgIndex = 0;
+        setLoadingMessage(messages[0]);
+
+        const interval = setInterval(() => {
+            msgIndex = (msgIndex + 1) % messages.length;
+            setLoadingMessage(messages[msgIndex]);
+        }, 3000);
+
         const endpoint = isManualSync ? "/api/books/currently-reading-latest" : "/api/books/currently-reading";
 
         fetch(`${API_BASE_URL}${endpoint}`)
@@ -130,10 +157,12 @@ const Books = () => {
                 if (data.length > 0) {
                     setLastUpdated(data[0].refreshAt);
                 }
+                clearInterval(interval); // Stop the text cycling
                 setLoading(false);
                 setRefreshing(false);
             })
             .catch(() => {
+                clearInterval(interval); // Stop the text cycling
                 setLoading(false);
                 setRefreshing(false);
             });
@@ -145,6 +174,7 @@ const Books = () => {
 
     return (
         <div style={styles.container}>
+            {loading && <LoadingPopup message={loadingMessage} />}
             <header style={styles.hero}>
                 <h1 style={{...styles.name, fontSize: isMobile ? '2rem' : '2.5rem'}}>AUTHOR PROFILE</h1>
                 <div style={styles.badge}>SCI-FI & FANTASY</div>
@@ -172,7 +202,7 @@ const Books = () => {
 
             {/* Dynamic Section: Currently Reading */}
 
-            {!loading && (
+            {(currentlyReading.length > 0 || !loading) && (
                 <section style={styles.projectSection}>
                     <div style={styles.headerRow}>
                         <h2 style={styles.sectionTitle}>Currently Reading</h2>
@@ -380,6 +410,33 @@ const styles = {
         letterSpacing: '1px',
         transition: 'all 0.3s ease',
         cursor: 'pointer'
+    },
+    //Loading popup
+    overlay: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        backdropFilter: 'blur(5px)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,
+    },
+    popup: {
+        textAlign: 'center',
+        padding: '40px',
+        border: '1px solid #333',
+        backgroundColor: '#0a0a0a',
+    },
+    loadingText: {
+        color: '#d4af37', // Gold accent
+        marginTop: '20px',
+        fontSize: '0.8rem',
+        letterSpacing: '2px',
+        textTransform: 'uppercase',
     }
 };
 
