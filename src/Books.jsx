@@ -132,10 +132,8 @@ const Books = () => {
         setRefreshing(true);
 
         const messages = [
-            "Warming up the Spring Boot Instance...",
-            "Establishing connection to MongoDB...",
-            "Fetching latest library data...",
             "Loading my bookshelf...",
+            "Fetching latest library data...",
             "Placing the books in order..."
         ];
 

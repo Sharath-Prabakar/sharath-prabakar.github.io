@@ -12,7 +12,8 @@ Welcome to the source code for my professional portfolio. This site serves as a 
 ### Core Stack (Learning):
 * **Frontend:** React.js, Tailwind CSS, Vite
 * **Backend:** Java (Spring Boot), Jsoup (Web Scraping)
-* **Cloud & DevOps:** Google Cloud Run, Artifact Registry, GitHub Pages
+* **Database** MongoDB
+* **Cloud & DevOps:** Google Cloud Run, GitHub Pages & Triggers
 
 ---
 
