@@ -1,0 +1,95 @@
+.scrum-container {
+    background-color: #050505;
+    min-height: 100vh;
+    padding: 120px 20px 60px; /* Aligned with Home.jsx */
+    color: #e0e0e0;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+.scrum-title {
+    font-size: clamp(2rem, 8vw, 3.5rem);
+    letter-spacing: 5px;
+    text-align: center;
+    color: #fff;
+    margin-top: 0;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+}
+
+.scrum-board {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.column {
+    flex: 1;
+    background-color: #111;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
+.column h2 {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #d4af37;
+    border-bottom: 1px solid #333;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+}
+
+.task-card {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.3s ease;
+}
+
+.task-card:hover {
+    transform: translateY(-5px);
+    border-color: #444;
+}
+
+.task-card h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.task-card p {
+    font-size: 0.9rem;
+    color: #bbb;
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+.task-card .assignee {
+    font-size: 0.7rem;
+    background-color: #222;
+    padding: 3px 8px;
+    border-radius: 4px;
+    color: #888;
+    display: inline-block;
+}
+
+.empty-msg {
+    color: #666;
+    text-align: center;
+    font-style: italic;
+    font-size: 0.9rem;
+    margin-top: 20px;
+}

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import SixtyHourClock from './SixtyHourClock'; // We'll move your clock code here
 import Home from './Home';
 import Books from './Books';
+import Scrum from './Scrum'; // Import your new Scrum component
 import { NavLink } from 'react-router-dom';
 
 const App = () => {
@@ -11,12 +12,14 @@ const App = () => {
             <nav style={navStyle}>
                 <NavItem to="/" label="Developer Portfolio"/>
                 <NavItem to="/books" label="Books"/>
+                <NavItem to="/scrum" label="Scrum Board" />
                 <NavItem to="/clock" label="The 24-Minute Hour" borderColor="#00FF41"/>
             </nav>
 
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/books" element={<Books />} />
+                <Route path="/scrum" element={<Scrum />} />
                 <Route path="/clock" element={<SixtyHourClock />} />
             </Routes>
         </Router>
