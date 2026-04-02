@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './scrum.css';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 const Scrum = () => {
     const [tasks, setTasks] = useState([]);
@@ -9,7 +10,7 @@ const Scrum = () => {
     useEffect(() => {
         const fetchTasks = async () => {
             try {
-                const response = await fetch('http://localhost:8080/api/tasks');
+                const response = await fetch(`${API_BASE_URL}/api/tasks`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
