@@ -86,10 +86,115 @@
     display: inline-block;
 }
 
+.project-badge {
+    font-size: 0.7rem;
+    background-color: #1e3a5f;
+    padding: 3px 8px;
+    border-radius: 4px;
+    color: #8ab4f8;
+    display: inline-block;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
 .empty-msg {
     color: #666;
     text-align: center;
     font-style: italic;
     font-size: 0.9rem;
     margin-top: 20px;
+}
+
+/* Backlog Section */
+.backlog-section {
+    width: 100%;
+    max-width: 1200px;
+    margin: 40px auto 0;
+    background-color: #111;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.backlog-section h2 {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #d4af37;
+    border-bottom: 1px solid #333;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+}
+
+.backlog-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.backlog-row {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    cursor: grab;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.backlog-row:active {
+    cursor: grabbing;
+    transform: scale(0.99);
+}
+
+.backlog-row:hover {
+    border-color: #444;
+    transform: translateY(-2px);
+}
+
+.backlog-row-title-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.backlog-row-title {
+    flex: none;
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.backlog-row-desc {
+    flex: 2;
+    color: #bbb;
+    font-size: 0.9rem;
+    padding: 0 20px;
+    line-height: 1.4;
+}
+
+.backlog-row-assignee {
+    font-size: 0.7rem;
+    background-color: #222;
+    padding: 3px 8px;
+    border-radius: 4px;
+    color: #888;
+    white-space: nowrap;
+}
+
+.priority-high {
+    border-left: 4px solid #ff4d4f !important;
+}
+
+.priority-medium {
+    border-left: 4px solid #faad14 !important;
+}
+
+.priority-low {
+    border-left: 4px solid #52c41a !important;
 }
