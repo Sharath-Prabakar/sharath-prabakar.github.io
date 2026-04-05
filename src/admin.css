@@ -231,35 +231,38 @@ option {
     font-size: 0.9rem;
 }
 
-.color-picker-container {
-    display: flex;
-    gap: 15px;
-    align-items: center;
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    margin-top: 10px;
 }
 
-.color-picker-input {
-    padding: 0;
-    width: 60px;
-    height: 50px;
-    border-radius: 10px;
+.color-square {
+    width: 35px;
+    height: 35px;
+    border-radius: 6px;
     cursor: pointer;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    background: transparent;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
-.color-picker-input::-webkit-color-swatch-wrapper {
-    padding: 0;
+.color-square:hover {
+    transform: scale(1.15);
+    z-index: 10;
 }
 
-.color-picker-input::-webkit-color-swatch {
-    border: none;
-    border-radius: 8px;
+.color-square.selected {
+    border-color: #d4af37;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+    transform: scale(1.1);
 }
 
-.color-text-input {
-    flex: 1;
-    font-family: 'Inter', monospace;
-    text-transform: uppercase;
+@media (max-width: 600px) {
+    .color-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
 }
 
 /* Link Project to Tasks CSS */

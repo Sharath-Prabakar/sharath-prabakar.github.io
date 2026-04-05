@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import './admin.css';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-//const API_BASE_URL = "http://localhost:8080";
+
+const PROJECT_COLORS = [
+    "#007788", "#DDAA33", "#9966AA", "#666666", "#0047AB", "#014421", "#9B111E",
+    "#DAA520", "#A1008F", "#D15F5F", "#007F5F", "#1ABC9C", "#8B4513", "#2F4F4F"
+];
 
 const Admin = () => {
     const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -9,7 +13,9 @@ const Admin = () => {
         title: '',
         description: '',
         priority: 'MEDIUM',
-        project: ''
+        project: '',
+        assignee: 'AI Agent',
+        projectColorCode: '#d4af37'
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -34,6 +40,22 @@ const Admin = () => {
     const [selectedProjectId, setSelectedProjectId] = useState('');
     const [selectedTaskIds, setSelectedTaskIds] = useState([]);
     const [isTaskDropdownOpen, setIsTaskDropdownOpen] = useState(false);
+
+    const fetchProjects = async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/projects`);
+            if (res.ok) {
+                const projects = await res.json();
+                setAllProjects(projects);
+            }
+        } catch (err) {
+            console.error("Failed to fetch projects", err);
+        }
+    };
+
+    React.useEffect(() => {
+        fetchProjects();
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -71,7 +93,8 @@ const Admin = () => {
             }
 
             setProjectSuccess('Project created successfully!');
-            setProjectFormData(JSON.stringify(projectFormData));
+            setProjectFormData({ projectName: '', projectColorCode: '#d4af37' });
+            fetchProjects(); // Refresh project list after creation
             setTimeout(() => {
                 setIsProjectPopupOpen(false);
                 setProjectSuccess('');
@@ -100,7 +123,6 @@ const Admin = () => {
             const tasks = await taskRes.json();
             setAllProjects(projects);
             setAllTasks(tasks);
-            console.log(tasks)
         } catch (err) {
             setLinkError('Failed to load projects/tasks');
         } finally {
@@ -146,25 +168,61 @@ const Admin = () => {
         setError('');
         setSuccess('');
 
+        // Find the selected project object
+        // The project field in formData currently holds the projectName due to the dropdown value
+        const selectedProject = allProjects.find(p => p.projectName === formData.project);
+
+        if (!selectedProject) {
+            setError('Please select a valid project');
+            setLoading(false);
+            return;
+        }
+
+        // Calculate the next order based on total tasks across all projects
+        let totalCount = 0;
+        allProjects.forEach(proj => {
+            if (proj.tasks) totalCount += proj.tasks.length;
+        });
+        const newOrder = totalCount + 1;
+
         try {
+            // 1. Create the Task
             const response = await fetch(`${API_BASE_URL}/api/tasks`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...formData,
+                    order: newOrder,
+                    projectColorCode: selectedProject.projectColorCode,
                     status: 'BACKLOG',
-                    assignee: 'Unassigned'
+                    project: selectedProject.projectName // Ensure ID is stored as requested earlier
                 })
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to create task');
-            }
+            if (!response.ok) throw new Error('Failed to create task');
+            const newTask = await response.json();
+            const newTaskId = newTask.id || newTask._id;
 
-            setSuccess('Task created successfully!');
-            setFormData({ title: '', description: '', priority: 'MEDIUM', project: '' });
+            // 2. Link the Task to the Project
+            const projId = selectedProject.id || selectedProject._id;
+            const projectResponse = await fetch(`${API_BASE_URL}/api/projects/${projId}/tasks`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify([newTaskId])
+            });
+
+            if (!projectResponse.ok) throw new Error('Failed to link task to project');
+
+            setSuccess('Task created and linked successfully!');
+            setFormData({
+                title: '',
+                description: '',
+                priority: 'MEDIUM',
+                project: '',
+                assignee: 'AI Agent',
+                projectColorCode: '#d4af37'
+            });
+            //fetchProjects(); // Refresh projects to get updated task lists
             setTimeout(() => {
                 setIsPopupOpen(false);
                 setSuccess('');
@@ -197,7 +255,7 @@ const Admin = () => {
             </div>
 
             {isPopupOpen && (
-                <div className="popup-overlay" onClick={() => setIsPopupOpen(false)}>
+                <div className="popup-overlay">
                     <div className="popup-content" onClick={(e) => e.stopPropagation()}>
                         <button className="close-btn" onClick={() => setIsPopupOpen(false)}>×</button>
                         <h2>New Task Details</h2>
@@ -242,14 +300,30 @@ const Admin = () => {
 
                                 <div className="form-group">
                                     <label>Project</label>
-                                    <input
-                                        type="text"
+                                    <select
                                         name="project"
                                         value={formData.project}
                                         onChange={handleChange}
                                         required
-                                        placeholder="E.g., Frontend Revamp"
-                                    />
+                                    >
+                                        <option value="">-- Select Project --</option>
+                                        {allProjects.map(proj => (
+                                            <option key={proj.id || proj._id} value={proj.projectName}>{proj.projectName}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Assignee</label>
+                                    <select
+                                        name="assignee"
+                                        value={formData.assignee}
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        <option value="AI Agent">AI Agent</option>
+                                        <option value="Sharath">Sharath</option>
+                                    </select>
                                 </div>
                             </div>
 
@@ -261,7 +335,7 @@ const Admin = () => {
                 </div>
             )}
             {isProjectPopupOpen && (
-                <div className="popup-overlay" onClick={() => setIsProjectPopupOpen(false)}>
+                <div className="popup-overlay">
                     <div className="popup-content" onClick={(e) => e.stopPropagation()}>
                         <button className="close-btn" onClick={() => setIsProjectPopupOpen(false)}>×</button>
                         <h2>New Project Details</h2>
@@ -284,25 +358,16 @@ const Admin = () => {
 
                             <div className="form-group">
                                 <label>Project Color Code</label>
-                                <div className="color-picker-container">
-                                    <input
-                                        type="color"
-                                        name="projectColorCode"
-                                        value={projectFormData.projectColorCode}
-                                        onChange={handleProjectChange}
-                                        required
-                                        className="color-picker-input"
-                                    />
-                                    <input
-                                        type="text"
-                                        name="projectColorCode"
-                                        value={projectFormData.projectColorCode}
-                                        onChange={handleProjectChange}
-                                        required
-                                        className="color-text-input"
-                                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                                        placeholder="#FFFFFF"
-                                    />
+                                <div className="color-grid">
+                                    {PROJECT_COLORS.map(color => (
+                                        <div
+                                            key={color}
+                                            className={`color-square ${projectFormData.projectColorCode === color ? 'selected' : ''}`}
+                                            style={{ backgroundColor: color }}
+                                            onClick={() => setProjectFormData(prev => ({ ...prev, projectColorCode: color }))}
+                                            title={color}
+                                        />
+                                    ))}
                                 </div>
                             </div>
 
@@ -315,7 +380,7 @@ const Admin = () => {
             )}
 
             {isLinkPopupOpen && (
-                <div className="popup-overlay" onClick={() => setIsLinkPopupOpen(false)}>
+                <div className="popup-overlay">
                     <div className="popup-content link-popup" onClick={(e) => e.stopPropagation()}>
                         <button className="close-btn" onClick={() => setIsLinkPopupOpen(false)}>×</button>
                         <h2>Link Project to Tasks</h2>
@@ -336,7 +401,7 @@ const Admin = () => {
                                     >
                                         <option value="">-- Choose a Project --</option>
                                         {allProjects.map(proj => (
-                                            <option key={proj.id} value={proj.id}>{proj.projectName}</option>
+                                            <option key={proj.id || proj._id} value={proj.id || proj._id}>{proj.projectName}</option>
                                         ))}
                                     </select>
                                 </div>
