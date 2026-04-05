@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import SixtyHourClock from './SixtyHourClock'; // We'll move your clock code here
 import Home from './Home';
 import Books from './Books';
@@ -11,11 +11,10 @@ const App = () => {
     return (
         <Router>
             <nav style={navStyle}>
-                <NavItem to="/" label="Developer Portfolio"/>
-                <NavItem to="/books" label="Books"/>
+                <NavItem to="/" label="Developer Portfolio" />
+                <NavItem to="/books" label="Books" />
                 <NavItem to="/scrum" label="Scrum Board" />
-                <NavItem to="/clock" label="The 24-Minute Hour" borderColor="#00FF41"/>
-                <NavItem to="/admin" label="Admin"/>
+                <NavItem to="/clock" label="The 24-Minute Hour" borderColor="#00FF41" />
             </nav>
 
             <Routes>
