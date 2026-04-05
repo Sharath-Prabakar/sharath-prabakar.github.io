@@ -4,6 +4,7 @@ import SixtyHourClock from './SixtyHourClock'; // We'll move your clock code her
 import Home from './Home';
 import Books from './Books';
 import Scrum from './Scrum'; // Import your new Scrum component
+import Admin from './Admin';
 import { NavLink } from 'react-router-dom';
 
 const App = () => {
@@ -14,6 +15,7 @@ const App = () => {
                 <NavItem to="/books" label="Books"/>
                 <NavItem to="/scrum" label="Scrum Board" />
                 <NavItem to="/clock" label="The 24-Minute Hour" borderColor="#00FF41"/>
+                <NavItem to="/admin" label="Admin"/>
             </nav>
 
             <Routes>
@@ -21,6 +23,7 @@ const App = () => {
                 <Route path="/books" element={<Books />} />
                 <Route path="/scrum" element={<Scrum />} />
                 <Route path="/clock" element={<SixtyHourClock />} />
+                <Route path="/admin" element={<Admin />} />
             </Routes>
         </Router>
     );
