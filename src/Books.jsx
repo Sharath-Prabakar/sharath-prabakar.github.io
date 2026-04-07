@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './books.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 // Custom hook to handle responsive re-renders
 const useWindowSize = () => {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -33,10 +33,10 @@ const myBooks = [
     },
     {
         title: "Six Hours To Doomsday",
-        link:"https://www.goodreads.com/book/show/227760936-six-hours-to-doomsday",
+        link: "https://www.goodreads.com/book/show/227760936-six-hours-to-doomsday",
         description: "From Earth to Moon, Mars and Neptune, the story unfolds in a fast-paced, non-linear fashion to explore the thrilling adventures involving a cunning spy with a personal vendetta, an ambitious emperor with a political agenda, and a group of humans battling for their planet’s survival.",
         borderColor: "#d4af37",
-        image:"https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1738902728i/227760936.jpg",
+        image: "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1738902728i/227760936.jpg",
         tags: ["Sci-Fi", "Time Travel", "Thriller"]
     }
 ];
@@ -122,7 +122,7 @@ const Books = () => {
         return date.toLocaleString('en-IN', {
             day: 'numeric',
             month: 'short',
-            year:'numeric',
+            year: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
         });
@@ -174,7 +174,7 @@ const Books = () => {
         <div style={styles.container}>
             {loading && <LoadingPopup message={loadingMessage} />}
             <header style={styles.hero}>
-                <h1 style={{...styles.name, fontSize: isMobile ? '2rem' : '2.5rem'}}>AUTHOR PROFILE</h1>
+                <h1 style={{ ...styles.name, fontSize: isMobile ? '2rem' : '2.5rem' }}>AUTHOR PROFILE</h1>
                 <div style={styles.badge}>SCI-FI & FANTASY</div>
                 <p style={styles.bio}>
                     After wavering for a few years, Sharath Prabakar took a sabbatical in 2025 to complete the 'Six Hours To Doomsday' novella, inspired by a recurring alien invasion dream. You can find him writing code or reading the classics when he’s not working on the sequel.
@@ -208,8 +208,8 @@ const Books = () => {
                         <div style={styles.actionGroup}>
                             {lastUpdated && (
                                 <span style={styles.timestamp}>
-                    Last synced: {formatDate(lastUpdated)}
-                </span>
+                                    Last synced: {formatDate(lastUpdated)}
+                                </span>
                             )}
                             <button
                                 onClick={() => fetchBooks(true)}
@@ -245,17 +245,17 @@ const Books = () => {
 };
 
 const styles = {
-        container: {
-            backgroundColor: '#050505',
-            color: '#e0e0e0',
-            minHeight: '100vh', // Ensures it covers the screen but can grow
-            padding: '120px 20px 80px', // Extra bottom padding so the last book isn't cramped
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            fontFamily: '"Inter", sans-serif',
-            overflowY: 'visible', // Explicitly allow scrolling
-        },
+    container: {
+        backgroundColor: '#050505',
+        color: '#e0e0e0',
+        minHeight: '100vh', // Ensures it covers the screen but can grow
+        padding: '120px 20px 80px', // Extra bottom padding so the last book isn't cramped
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        fontFamily: '"Inter", sans-serif',
+        overflowY: 'visible', // Explicitly allow scrolling
+    },
     hero: {
         maxWidth: '800px',
         textAlign: 'center',
@@ -372,7 +372,7 @@ const styles = {
     miniCoverHolder: { aspectRatio: '2/3', backgroundColor: '#111', borderRadius: '4px', overflow: 'hidden', boxShadow: '0 10px 20px rgba(0,0,0,0.3)' },
     miniCover: { width: '100%', height: '100%', objectFit: 'cover' },
     miniMeta: { marginTop: '10px', textAlign: 'center' },
-    miniTitle: { fontSize: '0.85rem', color: '#fff', fontWeight: '600', whiteSpace: 'nowrap',overflow: 'hidden', textOverflow: 'ellipsis' },
+    miniTitle: { fontSize: '0.85rem', color: '#fff', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
     miniAuthor: { fontSize: '0.7rem', color: '#666', marginTop: '2px' },
     headerRow: {
         display: 'flex',

@@ -16,7 +16,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import './scrum.css';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function SortableBacklogRow({ task }) {
     const {
@@ -60,10 +60,20 @@ function SortableBacklogRow({ task }) {
     );
 }
 
+const LoadingPopup = ({ message }) => (
+    <div style={styles.overlay}>
+        <div style={styles.popup}>
+            <div className="spinner"></div>
+            <p style={styles.loadingText}>{message}</p>
+        </div>
+    </div>
+);
+
 const Scrum = () => {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [loadingMessage, setLoadingMessage] = useState("Incoming Tasks...");
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -71,6 +81,27 @@ const Scrum = () => {
             coordinateGetter: sortableKeyboardCoordinates,
         })
     );
+
+    useEffect(() => {
+        if (!loading) return;
+
+        const messages = [
+            "Building your workspace...",
+            "Syncing with the server...",
+            "Prioritizing the backlog...",
+            "Almost there..."
+        ];
+
+        let msgIndex = 0;
+        setLoadingMessage(messages[0]);
+
+        const interval = setInterval(() => {
+            msgIndex = (msgIndex + 1) % messages.length;
+            setLoadingMessage(messages[msgIndex]);
+        }, 2500);
+
+        return () => clearInterval(interval);
+    }, [loading]);
 
     useEffect(() => {
         const fetchTasks = async () => {
@@ -92,7 +123,11 @@ const Scrum = () => {
     }, []);
 
     if (loading) {
-        return <div className="scrum-container"><div className="empty-msg">Loading tasks...</div></div>;
+        return (
+            <div className="scrum-container">
+                <LoadingPopup message={loadingMessage} />
+            </div>
+        );
     }
 
     if (error) {
@@ -274,6 +309,35 @@ const Scrum = () => {
             </div>
         </div>
     );
+};
+
+const styles = {
+    overlay: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        backdropFilter: 'blur(5px)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,
+    },
+    popup: {
+        textAlign: 'center',
+        padding: '40px',
+        border: '1px solid #333',
+        backgroundColor: '#0a0a0a',
+    },
+    loadingText: {
+        color: '#d4af37', // Gold accent
+        marginTop: '20px',
+        fontSize: '0.8rem',
+        letterSpacing: '2px',
+        textTransform: 'uppercase',
+    }
 };
 
 export default Scrum;

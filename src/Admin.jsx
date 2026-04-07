@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './admin.css';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const PROJECT_COLORS = [
     "#007788", "#DDAA33", "#9966AA", "#666666", "#0047AB", "#014421", "#9B111E",
