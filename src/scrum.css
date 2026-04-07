@@ -1,7 +1,8 @@
 .scrum-container {
     background-color: #050505;
     min-height: 100vh;
-    padding: 120px 20px 60px; /* Aligned with Home.jsx */
+    padding: 120px 20px 60px;
+    /* Aligned with Home.jsx */
     color: #e0e0e0;
     font-family: 'Inter', sans-serif;
     display: flex;
@@ -107,7 +108,6 @@
 
 /* Backlog Section */
 .backlog-section {
-    width: 100%;
     max-width: 1200px;
     margin: 40px auto 0;
     background-color: #111;
@@ -208,6 +208,75 @@
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive Mobile Layouts */
+@media (max-width: 768px) {
+    .scrum-container {
+        padding-top: 100px;
+        /* Tighter padding for mobile */
+    }
+
+    .scrum-title {
+        font-size: 2rem;
+        margin-bottom: 20px;
+    }
+
+    /* Kanban Horizontal Scroll */
+    .scrum-board {
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 20px;
+        /* Space for scrollbar */
+        scroll-snap-type: x mandatory;
+        gap: 15px;
+    }
+
+    .column {
+        flex: 0 0 280px;
+        /* Don't grow/shrink, fixed width for horizontal scroll */
+        min-width: 280px;
+        scroll-snap-align: center;
+        min-height: 400px;
+        padding: 15px;
+    }
+
+    .column h2 {
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+    }
+
+    /* Backlog Vertical Stack */
+    .backlog-section {
+        margin-top: 20px;
+        padding: 15px;
+    }
+
+    .backlog-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 15px;
+    }
+
+    .backlog-row-title-container {
+        width: 100%;
+    }
+
+    .backlog-row-desc {
+        padding: 0;
+        width: 100%;
+        font-size: 0.85rem;
+    }
+
+    .backlog-row-assignee {
+        align-self: flex-end;
+    }
 }
