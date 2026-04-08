@@ -202,7 +202,6 @@ const Scrum = () => {
 
     return (
         <div className="scrum-container">
-            <h1 className="scrum-title">Scrum Board</h1>
             <div className="scrum-board">
                 <div className="column">
                     <h2>To Do</h2>

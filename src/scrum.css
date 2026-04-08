@@ -9,16 +9,6 @@
     flex-direction: column;
 }
 
-.scrum-title {
-    font-size: clamp(2rem, 8vw, 3.5rem);
-    letter-spacing: 5px;
-    text-align: center;
-    color: #fff;
-    margin-top: 0;
-    margin-bottom: 40px;
-    text-transform: uppercase;
-}
-
 .scrum-board {
     display: flex;
     justify-content: center;
@@ -222,11 +212,6 @@
     .scrum-container {
         padding-top: 100px;
         /* Tighter padding for mobile */
-    }
-
-    .scrum-title {
-        font-size: 2rem;
-        margin-bottom: 20px;
     }
 
     /* Kanban Horizontal Scroll */
