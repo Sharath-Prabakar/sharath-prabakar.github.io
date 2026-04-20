@@ -7,6 +7,8 @@ import {
     TouchSensor,
     useSensor,
     useSensors,
+    useDroppable,
+    useDraggable
 } from '@dnd-kit/core';
 import {
     arrayMove,
@@ -18,6 +20,14 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import './scrum.css';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+const hexToRgba = (hex, alpha) => {
+    if (!hex) return `rgba(30, 58, 95, ${alpha})`;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
 
 function SortableBacklogRow({ task }) {
     const {
@@ -36,6 +46,14 @@ function SortableBacklogRow({ task }) {
         opacity: isDragging ? 0.8 : 1,
     };
 
+    const projectStyle = {
+        backgroundColor: hexToRgba(task.projectColorCode, 0.25),
+        color: '#fff',
+        border: `1px solid ${task.projectColorCode || '#4da3ff'}`,
+        boxShadow: `0 0 12px ${hexToRgba(task.projectColorCode, 0.5)}`,
+        textShadow: `0 0 5px ${task.projectColorCode || '#4da3ff'}`
+    };
+
     return (
         <div
             ref={setNodeRef}
@@ -46,10 +64,7 @@ function SortableBacklogRow({ task }) {
         >
             <div className="backlog-row-title-container">
                 {task.project && (
-                    <span
-                        className="project-badge"
-                        style={{ backgroundColor: task.projectColorCode || '#1e3a5f', color: 'white' }}
-                    >
+                    <span className="project-badge" style={projectStyle}>
                         {task.project}
                     </span>
                 )}
@@ -57,6 +72,65 @@ function SortableBacklogRow({ task }) {
             </div>
             <div className="backlog-row-desc">{task.description}</div>
             <div className="backlog-row-assignee"><strong>Assignee:</strong> {task.assignee}</div>
+        </div>
+    );
+}
+
+function DraggableTaskCard({ task }) {
+    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+        id: task.id.toString(),
+        data: { task }
+    });
+
+    const style = {
+        transform: CSS.Translate.toString(transform),
+        zIndex: isDragging ? 10 : 1,
+        opacity: isDragging ? 0.8 : 1,
+        boxShadow: isDragging ? '0 10px 20px rgba(0,0,0,0.5)' : undefined,
+    };
+
+    const projectStyle = {
+        backgroundColor: hexToRgba(task.projectColorCode, 0.25),
+        color: '#fff',
+        border: `1px solid ${task.projectColorCode || '#4da3ff'}`,
+        boxShadow: `0 0 12px ${hexToRgba(task.projectColorCode, 0.5)}`,
+        textShadow: `0 0 5px ${task.projectColorCode || '#4da3ff'}`
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
+            className={`task-card priority-${task.priority?.toLowerCase() || 'default'}`}
+        >
+            {task.project && (
+                <span className="project-badge" style={projectStyle}>
+                    {task.project}
+                </span>
+            )}
+            <h3>{task.title}</h3>
+            <p>{task.description}</p>
+            <span className="assignee"><strong>Assignee:</strong> {task.assignee}</span>
+        </div>
+    );
+}
+
+function DroppableColumn({ id, title, tasks }) {
+    const { setNodeRef, isOver } = useDroppable({ id });
+    const style = {
+        backgroundColor: isOver ? '#151515' : undefined,
+        borderColor: isOver ? '#d4af37' : undefined,
+    };
+    return (
+        <div ref={setNodeRef} className="column" style={style}>
+            <h2>{title}</h2>
+            {tasks.length === 0 ? (
+                <p className="empty-msg">No tasks {title.toLowerCase()}.</p>
+            ) : (
+                tasks.map(task => <DraggableTaskCard key={task.id} task={task} />)
+            )}
         </div>
     );
 }
@@ -70,8 +144,49 @@ const LoadingPopup = ({ message }) => (
     </div>
 );
 
+const LogsSection = ({ logs }) => (
+    <div className="logs-container">
+        <h3>Recent Activity</h3>
+        <div className="logs-list">
+            {logs.length === 0 ? (
+                <p className="empty-msg">No recent activity.</p>
+            ) : (
+                logs.map(log => (
+                    <div key={log.id} className="log-item">
+                        <span className="log-time">
+                            {new Date(log.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {log.actionType === 'STATUS_UPDATE' ? (
+                            <span className="log-text">
+                                <strong>{log.assignee}</strong> moved <strong>{log.taskTitle}</strong> from <span className={`log-status status-${(log.fromStatus || 'BACKLOG').toLowerCase()}`}>{log.fromStatus ? log.fromStatus.replace('_', ' ') : 'Backlog'}</span> to <span className={`log-status status-${log.status?.toLowerCase()}`}>{log.status?.replace('_', ' ')}</span>
+                            </span>
+                        ) : log.actionType === 'CREATE' ? (
+                            <span className="log-text">
+                                <strong>{log.assignee}</strong> created task <strong>{log.taskTitle}</strong>
+                            </span>
+                        ) : log.actionType === 'EDIT' ? (
+                            <span className="log-text">
+                                <strong>{log.assignee}</strong> updated <strong>{log.taskTitle}</strong>: {log.description}
+                            </span>
+                        ) : log.actionType === 'DELETE' ? (
+                            <span className="log-text">
+                                <strong>{log.assignee}</strong> deleted task <strong>{log.taskTitle}</strong>
+                            </span>
+                        ) : (
+                            <span className="log-text">
+                                <strong>{log.assignee}</strong> moved <strong>{log.taskTitle}</strong> to <span className={`log-status status-${log.status?.toLowerCase()}`}>{log.status?.replace('_', ' ')}</span>
+                            </span>
+                        )}
+                    </div>
+                ))
+            )}
+        </div>
+    </div>
+);
+
 const Scrum = () => {
     const [tasks, setTasks] = useState([]);
+    const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [loadingMessage, setLoadingMessage] = useState("Incoming Tasks...");
@@ -128,7 +243,26 @@ const Scrum = () => {
             }
         };
 
+        const fetchLogs = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/logs`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setLogs(data);
+                }
+            } catch (e) {
+                console.error("Failed to fetch logs", e);
+            }
+        };
+
         fetchTasks();
+        fetchLogs();
+        // Refresh logs and board every 30 seconds
+        const interval = setInterval(() => {
+            fetchTasks();
+            fetchLogs();
+        }, 30000);
+        return () => clearInterval(interval);
     }, []);
 
     if (loading) {
@@ -196,112 +330,68 @@ const Scrum = () => {
                     console.error('Error updating task order:', err);
                     // In a production app, we would re-fetch or rollback here
                 }
+            } else {
+                // Must be a drop onto a status column
+                const activeTask = tasks.find(t => t.id.toString() === activeId);
+                const statusColumns = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
+
+                if (activeTask && statusColumns.includes(overId)) {
+                    if (activeTask.status !== overId) {
+                        // Optimistically update status
+                        setTasks(prev => prev.map(t => t.id.toString() === activeId ? { ...t, status: overId } : t));
+
+                        // Persist to backend
+                        try {
+                            const response = await fetch(`${API_BASE_URL}/api/tasks/${activeId}?updatedBy=Sharath`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ status: overId })
+                            });
+                            if (!response.ok) throw new Error('Failed to update task status');
+                        } catch (err) {
+                            console.error('Error updating task status:', err);
+                        }
+
+                        // Immediately fetch logs after update
+                        setTimeout(async () => {
+                            try {
+                                const response = await fetch(`${API_BASE_URL}/api/logs`);
+                                if (response.ok) setLogs(await response.json());
+                            } catch (e) { console.error(e); }
+                        }, 500);
+                    }
+                }
             }
         }
     };
 
     return (
-        <div className="scrum-container">
-            <div className="scrum-board">
-                <div className="column">
-                    <h2>To Do</h2>
-                    {todoTasks.length === 0 ? (
-                        <p className="empty-msg">No tasks to do.</p>
-                    ) : (
-                        todoTasks.map(task => (
-                            <div key={task.id} className={`task-card priority-${task.priority?.toLowerCase() || 'default'}`}>
-                                {task.project && (
-                                    <span
-                                        className="project-badge"
-                                        style={{ backgroundColor: task.projectColorCode || '#1e3a5f', color: 'white' }}
-                                    >
-                                        {task.project}
-                                    </span>
-                                )}
-                                <h3>{task.title}</h3>
-                                <p>{task.description}</p>
-                                <span className="assignee"><strong>Assignee:</strong> {task.assignee}</span>
-                            </div>
-                        ))
-                    )}
+        <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+        >
+            <div className="scrum-container">
+                <div className="task-counts">
+                    <span className="count-badge total">Total: {tasks.length}</span>
+                    <span className="count-badge status-todo">To Do: {todoTasks.length}</span>
+                    <span className="count-badge status-in_progress">In Progress: {inProgressTasks.length}</span>
+                    <span className="count-badge status-review">Review: {reviewTasks.length}</span>
+                    <span className="count-badge status-done">Done: {doneTasks.length}</span>
+                    <span className="count-badge status-backlog">Backlog: {backlogTasks.length}</span>
                 </div>
-                <div className="column">
-                    <h2>In-Progress</h2>
-                    {inProgressTasks.length === 0 ? (
-                        <p className="empty-msg">No tasks in progress.</p>
-                    ) : (
-                        inProgressTasks.map(task => (
-                            <div key={task.id} className={`task-card priority-${task.priority?.toLowerCase() || 'default'}`}>
-                                {task.project && (
-                                    <span
-                                        className="project-badge"
-                                        style={{ backgroundColor: task.projectColorCode || '#1e3a5f', color: 'white' }}
-                                    >
-                                        {task.project}
-                                    </span>
-                                )}
-                                <h3>{task.title}</h3>
-                                <p>{task.description}</p>
-                                <span className="assignee"><strong>Assignee:</strong> {task.assignee}</span>
-                            </div>
-                        ))
-                    )}
+                <LogsSection logs={logs} />
+                <div className="scrum-board">
+                    <DroppableColumn id="TODO" title="To Do" tasks={todoTasks} />
+                    <DroppableColumn id="IN_PROGRESS" title="In Progress" tasks={inProgressTasks} />
+                    <DroppableColumn id="REVIEW" title="Review" tasks={reviewTasks} />
+                    <DroppableColumn id="DONE" title="Done" tasks={doneTasks} />
                 </div>
-                <div className="column">
-                    <h2>Review</h2>
-                    {reviewTasks.length === 0 ? (
-                        <p className="empty-msg">No tasks in review.</p>
+                <div className="backlog-section">
+                    <h2>Backlog</h2>
+                    {backlogTasks.length === 0 ? (
+                        <p className="empty-msg">No tasks in backlog.</p>
                     ) : (
-                        reviewTasks.map(task => (
-                            <div key={task.id} className={`task-card priority-${task.priority?.toLowerCase() || 'default'}`}>
-                                {task.project && (
-                                    <span
-                                        className="project-badge"
-                                        style={{ backgroundColor: task.projectColorCode || '#1e3a5f', color: 'white' }}
-                                    >
-                                        {task.project}
-                                    </span>
-                                )}
-                                <h3>{task.title}</h3>
-                                <p>{task.description}</p>
-                                <span className="assignee"><strong>Assignee:</strong> {task.assignee}</span>
-                            </div>
-                        ))
-                    )}
-                </div>
-                <div className="column">
-                    <h2>Done</h2>
-                    {doneTasks.length === 0 ? (
-                        <p className="empty-msg">No tasks done.</p>
-                    ) : (
-                        doneTasks.map(task => (
-                            <div key={task.id} className={`task-card priority-${task.priority?.toLowerCase() || 'default'}`}>
-                                {task.project && (
-                                    <span
-                                        className="project-badge"
-                                        style={{ backgroundColor: task.projectColorCode || '#1e3a5f', color: 'white' }}
-                                    >
-                                        {task.project}
-                                    </span>
-                                )}
-                                <h3>{task.title}</h3>
-                                <p>{task.description}</p>
-                                <span className="assignee"><strong>Assignee:</strong> {task.assignee}</span>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </div>
-            <div className="backlog-section">
-                <h2>Backlog</h2>
-                {backlogTasks.length === 0 ? (
-                    <p className="empty-msg">No tasks in backlog.</p>
-                ) : (
-                    <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd}
-                    >
                         <div className="backlog-list">
                             <SortableContext
                                 items={backlogTasks.map(t => t.id.toString())}
@@ -312,10 +402,10 @@ const Scrum = () => {
                                 ))}
                             </SortableContext>
                         </div>
-                    </DndContext>
-                )}
+                    )}
+                </div>
             </div>
-        </div>
+        </DndContext>
     );
 };
 

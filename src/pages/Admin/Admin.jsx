@@ -46,13 +46,21 @@ const Admin = () => {
     // Edit Task Popup state
     const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
     const [editSelectedTaskId, setEditSelectedTaskId] = useState('');
+    const [editFilterProject, setEditFilterProject] = useState('');
     const [editFormData, setEditFormData] = useState({
         title: '', description: '', priority: 'MEDIUM',
-        project: '', assignee: 'AI Agent', status: 'BACKLOG',
+        project: '', assignee: 'AI Agent', status: 'BACKLOG', prompt: ''
     });
     const [editLoading, setEditLoading] = useState(false);
     const [editError, setEditError] = useState('');
     const [editSuccess, setEditSuccess] = useState('');
+
+    // Delete Task Popup state
+    const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
+    const [deleteSelectedTaskId, setDeleteSelectedTaskId] = useState('');
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [deleteError, setDeleteError] = useState('');
+    const [deleteSuccess, setDeleteSuccess] = useState('');
 
     const fetchProjects = async () => {
         try {
@@ -142,6 +150,7 @@ const Admin = () => {
                 project: task.project || '',
                 assignee: task.assignee || 'AI Agent',
                 status: task.status || 'BACKLOG',
+                prompt: task.prompt || '',
             });
         }
     };
@@ -154,7 +163,7 @@ const Admin = () => {
         setEditSuccess('');
         const selectedProject = allProjects.find(p => p.projectName === editFormData.project);
         try {
-            const response = await fetch(`${API_BASE_URL}/api/tasks/${editSelectedTaskId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${editSelectedTaskId}?updatedBy=Sharath`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -164,6 +173,7 @@ const Admin = () => {
             });
             if (!response.ok) throw new Error('Failed to update task');
             const updated = await response.json();
+
             setAllTasks(prev => prev.map(t => t.id === editSelectedTaskId ? updated : t));
             setEditSuccess('Task updated successfully!');
             setTimeout(() => { setIsEditPopupOpen(false); setEditSuccess(''); setEditSelectedTaskId(''); }, 1500);
@@ -171,6 +181,52 @@ const Admin = () => {
             setEditError(err.message || 'Something went wrong.');
         } finally {
             setEditLoading(false);
+        }
+    };
+
+    const handleDeleteSubmit = async (e) => {
+        e.preventDefault();
+        if (!deleteSelectedTaskId) { setDeleteError('Please select a task to delete.'); return; }
+        if (!window.confirm('Are you sure you want to delete this task?')) return;
+
+        setDeleteLoading(true);
+        setDeleteError('');
+        setDeleteSuccess('');
+
+        try {
+            const doomedTask = allTasks.find(t => t.id === deleteSelectedTaskId);
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${deleteSelectedTaskId}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) throw new Error('Failed to delete task');
+
+            if (doomedTask) {
+                await fetch(`${API_BASE_URL}/api/logs`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        taskId: doomedTask.id,
+                        taskTitle: doomedTask.title,
+                        status: doomedTask.status,
+                        assignee: 'Sharath',
+                        actionType: 'DELETE',
+                        timestamp: new Date().toISOString()
+                    })
+                });
+            }
+
+            setAllTasks(prev => prev.filter(t => t.id !== deleteSelectedTaskId));
+            setDeleteSuccess('Task deleted successfully!');
+            setTimeout(() => {
+                setIsDeletePopupOpen(false);
+                setDeleteSuccess('');
+                setDeleteSelectedTaskId('');
+            }, 1500);
+        } catch (err) {
+            setDeleteError(err.message || 'Something went wrong.');
+        } finally {
+            setDeleteLoading(false);
         }
     };
 
@@ -280,6 +336,19 @@ const Admin = () => {
 
             if (!projectResponse.ok) throw new Error('Failed to link task to project');
 
+            await fetch(`${API_BASE_URL}/api/logs`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    taskId: newTaskId,
+                    taskTitle: newTask.title,
+                    status: newTask.status,
+                    assignee: 'Sharath',
+                    actionType: 'CREATE',
+                    timestamp: new Date().toISOString()
+                })
+            });
+
             setSuccess('Task created and linked successfully!');
             setFormData({
                 title: '',
@@ -325,6 +394,10 @@ const Admin = () => {
                 <button className="create-task-btn" onClick={() => setIsEditPopupOpen(true)}>
                     <span>✎ Edit Task</span>
                 </button>
+
+                <button className="create-task-btn" onClick={() => setIsDeletePopupOpen(true)}>
+                    <span>🗑 Delete Task</span>
+                </button>
             </div>
 
             {isPopupOpen && (
@@ -337,6 +410,21 @@ const Admin = () => {
                         {success && <div className="success-message">{success}</div>}
 
                         <form onSubmit={handleSubmit}>
+                            <div className="form-group">
+                                <label>Project</label>
+                                <select
+                                    name="project"
+                                    value={formData.project}
+                                    onChange={handleChange}
+                                    required
+                                >
+                                    <option value="">-- Select Project --</option>
+                                    {allProjects.map(proj => (
+                                        <option key={proj.id || proj._id} value={proj.projectName}>{proj.projectName}</option>
+                                    ))}
+                                </select>
+                            </div>
+
                             <div className="form-group">
                                 <label>Title</label>
                                 <input
@@ -371,20 +459,7 @@ const Admin = () => {
                                     </select>
                                 </div>
 
-                                <div className="form-group">
-                                    <label>Project</label>
-                                    <select
-                                        name="project"
-                                        value={formData.project}
-                                        onChange={handleChange}
-                                        required
-                                    >
-                                        <option value="">-- Select Project --</option>
-                                        {allProjects.map(proj => (
-                                            <option key={proj.id || proj._id} value={proj.projectName}>{proj.projectName}</option>
-                                        ))}
-                                    </select>
-                                </div>
+
 
                                     <div className="form-group">
                                         <label>Assignee</label>
@@ -593,24 +668,38 @@ const Admin = () => {
                         {editSuccess && <div className="success-message">{editSuccess}</div>}
 
                         <div className="form-group">
+                            <label>Select Project to Filter</label>
+                            <select
+                                value={editFilterProject}
+                                onChange={(e) => {
+                                    setEditFilterProject(e.target.value);
+                                    setEditSelectedTaskId('');
+                                }}
+                            >
+                                <option value="">-- All Projects --</option>
+                                {allProjects.map(proj => (
+                                    <option key={proj.id || proj._id} value={proj.projectName}>{proj.projectName}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="form-group">
                             <label>Select Task to Edit</label>
                             <select
                                 value={editSelectedTaskId}
                                 onChange={(e) => handleEditTaskSelect(e.target.value)}
                             >
                                 <option value="">-- Choose a Task --</option>
-                                {allTasks.map(task => (
-                                    <option key={task.id} value={task.id}>{task.title}</option>
-                                ))}
+                                {allTasks
+                                    .filter(task => !editFilterProject || task.project === editFilterProject)
+                                    .map(task => (
+                                        <option key={task.id} value={task.id}>{task.title}</option>
+                                    ))}
                             </select>
                         </div>
 
                         {editSelectedTaskId && (
                             <form onSubmit={handleEditSubmit}>
-                                <div className="form-group">
-                                    <label>Title</label>
-                                    <input type="text" name="title" value={editFormData.title} onChange={handleEditChange} required placeholder="Task title" />
-                                </div>
                                 <div className="form-group">
                                     <label>Description</label>
                                     <textarea name="description" value={editFormData.description} onChange={handleEditChange} rows="4" placeholder="Task description" />
@@ -651,11 +740,63 @@ const Admin = () => {
                                         </select>
                                     </div>
                                 </div>
+                                {editFormData.assignee === 'AI Agent' && (
+                                    <div className="form-group">
+                                        <label>Prompt</label>
+                                        <textarea
+                                            name="prompt"
+                                            value={editFormData.prompt}
+                                            onChange={handleEditChange}
+                                            placeholder="Describe what you want AI Agent to implement..."
+                                            rows="3"
+                                        />
+                                    </div>
+                                )}
                                 <button type="submit" className="submit-btn" disabled={editLoading}>
                                     {editLoading ? 'Updating...' : 'Update Task'}
                                 </button>
                             </form>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {isDeletePopupOpen && (
+                <div className="popup-overlay">
+                    <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+                        <button className="close-btn" onClick={() => { setIsDeletePopupOpen(false); setDeleteSelectedTaskId(''); }}>×</button>
+                        <h2>Delete Task</h2>
+                        <p style={{ color: '#888', marginBottom: '20px' }}>Only tasks with status "DONE" can be deleted.</p>
+
+                        {deleteError && <div className="error-message">{deleteError}</div>}
+                        {deleteSuccess && <div className="success-message">{deleteSuccess}</div>}
+
+                        <form onSubmit={handleDeleteSubmit}>
+                            <div className="form-group">
+                                <label>Select Task to Delete</label>
+                                <select
+                                    value={deleteSelectedTaskId}
+                                    onChange={(e) => setDeleteSelectedTaskId(e.target.value)}
+                                    required
+                                >
+                                    <option value="">-- Choose a "DONE" Task --</option>
+                                    {allTasks
+                                        .filter(task => task.status === 'DONE')
+                                        .map(task => (
+                                            <option key={task.id} value={task.id}>{task.title}</option>
+                                        ))}
+                                </select>
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="submit-btn"
+                                style={{ backgroundColor: '#cc0000' }}
+                                disabled={deleteLoading || !deleteSelectedTaskId}
+                            >
+                                {deleteLoading ? 'Deleting...' : 'Delete Task Permanently'}
+                            </button>
+                        </form>
                     </div>
                 </div>
             )}
