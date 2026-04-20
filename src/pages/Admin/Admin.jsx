@@ -15,7 +15,9 @@ const Admin = () => {
         priority: 'MEDIUM',
         project: '',
         assignee: 'AI Agent',
-        projectColorCode: '#d4af37'
+        projectColorCode: '#d4af37',
+        status: 'BACKLOG',
+        prompt: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -41,6 +43,17 @@ const Admin = () => {
     const [selectedTaskIds, setSelectedTaskIds] = useState([]);
     const [isTaskDropdownOpen, setIsTaskDropdownOpen] = useState(false);
 
+    // Edit Task Popup state
+    const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
+    const [editSelectedTaskId, setEditSelectedTaskId] = useState('');
+    const [editFormData, setEditFormData] = useState({
+        title: '', description: '', priority: 'MEDIUM',
+        project: '', assignee: 'AI Agent', status: 'BACKLOG',
+    });
+    const [editLoading, setEditLoading] = useState(false);
+    const [editError, setEditError] = useState('');
+    const [editSuccess, setEditSuccess] = useState('');
+
     const fetchProjects = async () => {
         try {
             const res = await fetch(`${API_BASE_URL}/api/projects`);
@@ -55,6 +68,12 @@ const Admin = () => {
 
     React.useEffect(() => {
         fetchProjects();
+        (async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/tasks`);
+                if (res.ok) setAllTasks(await res.json());
+            } catch (e) { console.error('Failed to fetch tasks', e); }
+        })();
     }, []);
 
     const handleChange = (e) => {
@@ -104,6 +123,54 @@ const Admin = () => {
             setProjectError(err.message || 'Something went wrong while pushing data to MongoDB.');
         } finally {
             setProjectLoading(false);
+        }
+    };
+
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+        setEditFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleEditTaskSelect = (taskId) => {
+        const task = allTasks.find(t => t.id === taskId);
+        setEditSelectedTaskId(taskId);
+        if (task) {
+            setEditFormData({
+                title: task.title || '',
+                description: task.description || '',
+                priority: task.priority || 'MEDIUM',
+                project: task.project || '',
+                assignee: task.assignee || 'AI Agent',
+                status: task.status || 'BACKLOG',
+            });
+        }
+    };
+
+    const handleEditSubmit = async (e) => {
+        e.preventDefault();
+        if (!editSelectedTaskId) { setEditError('Please select a task.'); return; }
+        setEditLoading(true);
+        setEditError('');
+        setEditSuccess('');
+        const selectedProject = allProjects.find(p => p.projectName === editFormData.project);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${editSelectedTaskId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...editFormData,
+                    projectColorCode: selectedProject?.projectColorCode || ''
+                })
+            });
+            if (!response.ok) throw new Error('Failed to update task');
+            const updated = await response.json();
+            setAllTasks(prev => prev.map(t => t.id === editSelectedTaskId ? updated : t));
+            setEditSuccess('Task updated successfully!');
+            setTimeout(() => { setIsEditPopupOpen(false); setEditSuccess(''); setEditSelectedTaskId(''); }, 1500);
+        } catch (err) {
+            setEditError(err.message || 'Something went wrong.');
+        } finally {
+            setEditLoading(false);
         }
     };
 
@@ -194,7 +261,7 @@ const Admin = () => {
                     ...formData,
                     order: newOrder,
                     projectColorCode: selectedProject.projectColorCode,
-                    status: 'BACKLOG',
+                    status: formData.status,
                     project: selectedProject.projectName // Ensure ID is stored as requested earlier
                 })
             });
@@ -220,7 +287,9 @@ const Admin = () => {
                 priority: 'MEDIUM',
                 project: '',
                 assignee: 'AI Agent',
-                projectColorCode: '#d4af37'
+                projectColorCode: '#d4af37',
+                status: 'BACKLOG',
+                prompt: ''
             });
             //fetchProjects(); // Refresh projects to get updated task lists
             setTimeout(() => {
@@ -251,6 +320,10 @@ const Admin = () => {
 
                 <button className="create-task-btn" onClick={openLinkPopup}>
                     <span>+ Link Project to Tasks</span>
+                </button>
+
+                <button className="create-task-btn" onClick={() => setIsEditPopupOpen(true)}>
+                    <span>✎ Edit Task</span>
                 </button>
             </div>
 
@@ -313,19 +386,42 @@ const Admin = () => {
                                     </select>
                                 </div>
 
-                                <div className="form-group">
-                                    <label>Assignee</label>
-                                    <select
-                                        name="assignee"
-                                        value={formData.assignee}
-                                        onChange={handleChange}
-                                        required
-                                    >
-                                        <option value="AI Agent">AI Agent</option>
-                                        <option value="Sharath">Sharath</option>
-                                    </select>
+                                    <div className="form-group">
+                                        <label>Assignee</label>
+                                        <select
+                                            name="assignee"
+                                            value={formData.assignee}
+                                            onChange={handleChange}
+                                            required
+                                        >
+                                            <option value="AI Agent">AI Agent</option>
+                                            <option value="Sharath">Sharath</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Status</label>
+                                        <select name="status" value={formData.status} onChange={handleChange}>
+                                            <option value="BACKLOG">Backlog</option>
+                                            <option value="TODO">To Do</option>
+                                            <option value="IN_PROGRESS">In Progress</option>
+                                            <option value="REVIEW">Review</option>
+                                            <option value="DONE">Done</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
+
+                            {formData.assignee === 'AI Agent' && (
+                                <div className="form-group">
+                                    <label>Prompt</label>
+                                    <textarea
+                                        name="prompt"
+                                        value={formData.prompt}
+                                        onChange={handleChange}
+                                        placeholder="Describe what you want AI Agent to implement..."
+                                        rows="3"
+                                    />
+                                </div>
+                            )}
 
                             <button type="submit" className="submit-btn" disabled={loading}>
                                 {loading ? 'Creating...' : 'Submit Task'}
@@ -480,6 +576,83 @@ const Admin = () => {
 
                                 <button type="submit" className="submit-btn" disabled={linkSubmitLoading}>
                                     {linkSubmitLoading ? 'Linking...' : 'Link Tasks'}
+                                </button>
+                            </form>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {isEditPopupOpen && (
+                <div className="popup-overlay">
+                    <div className="popup-content edit-popup" onClick={(e) => e.stopPropagation()}>
+                        <button className="close-btn" onClick={() => { setIsEditPopupOpen(false); setEditSelectedTaskId(''); }}>×</button>
+                        <h2>Edit Task</h2>
+
+                        {editError && <div className="error-message">{editError}</div>}
+                        {editSuccess && <div className="success-message">{editSuccess}</div>}
+
+                        <div className="form-group">
+                            <label>Select Task to Edit</label>
+                            <select
+                                value={editSelectedTaskId}
+                                onChange={(e) => handleEditTaskSelect(e.target.value)}
+                            >
+                                <option value="">-- Choose a Task --</option>
+                                {allTasks.map(task => (
+                                    <option key={task.id} value={task.id}>{task.title}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {editSelectedTaskId && (
+                            <form onSubmit={handleEditSubmit}>
+                                <div className="form-group">
+                                    <label>Title</label>
+                                    <input type="text" name="title" value={editFormData.title} onChange={handleEditChange} required placeholder="Task title" />
+                                </div>
+                                <div className="form-group">
+                                    <label>Description</label>
+                                    <textarea name="description" value={editFormData.description} onChange={handleEditChange} rows="4" placeholder="Task description" />
+                                </div>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Priority</label>
+                                        <select name="priority" value={editFormData.priority} onChange={handleEditChange}>
+                                            <option value="HIGH">High</option>
+                                            <option value="MEDIUM">Medium</option>
+                                            <option value="LOW">Low</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Status</label>
+                                        <select name="status" value={editFormData.status} onChange={handleEditChange}>
+                                            <option value="BACKLOG">Backlog</option>
+                                            <option value="TODO">To Do</option>
+                                            <option value="IN_PROGRESS">In Progress</option>
+                                            <option value="REVIEW">Review</option>
+                                            <option value="DONE">Done</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Project</label>
+                                        <select name="project" value={editFormData.project} onChange={handleEditChange}>
+                                            <option value="">-- Select Project --</option>
+                                            {allProjects.map(proj => (
+                                                <option key={proj.id || proj._id} value={proj.projectName}>{proj.projectName}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Assignee</label>
+                                        <select name="assignee" value={editFormData.assignee} onChange={handleEditChange}>
+                                            <option value="AI Agent">AI Agent</option>
+                                            <option value="Sharath">Sharath</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" className="submit-btn" disabled={editLoading}>
+                                    {editLoading ? 'Updating...' : 'Update Task'}
                                 </button>
                             </form>
                         )}

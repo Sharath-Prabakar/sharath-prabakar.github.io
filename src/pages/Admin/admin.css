@@ -99,7 +99,9 @@
     border-radius: 20px;
     padding: 40px;
     width: 100%;
-    max-width: 550px;
+    max-width: 580px;
+    max-height: 90vh;
+    overflow-y: auto;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
     position: relative;
     transform: translateY(0);
@@ -141,10 +143,12 @@
 .form-row {
     display: flex;
     gap: 20px;
+    flex-wrap: wrap;
 }
 
 .form-row .form-group {
     flex: 1;
+    min-width: 160px;
 }
 
 label {
@@ -393,6 +397,10 @@ option {
 
 .link-popup {
     max-width: 600px;
+}
+
+.edit-popup {
+    max-width: 700px;
 }
 
 @keyframes fadeIn {

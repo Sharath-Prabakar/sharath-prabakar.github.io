@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import gccAppLogo from './assets/GCC_App_Logo.png';
-import sixtyHourLogo from './assets/SixtyHour_Logo.png';
+import gccAppLogo from '../../assets/GCC_App_Logo.png';
+import sixtyHourLogo from '../../assets/SixtyHour_Logo.png';
 
 
 
