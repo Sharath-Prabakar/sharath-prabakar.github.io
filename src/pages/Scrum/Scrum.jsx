@@ -233,9 +233,32 @@ const TaskDetailModal = ({ task, onClose }) => {
                         )}
                     </div>
                     {task.prompt && (
-                        <div className="task-modal-prompt">
-                            <span className="meta-label">AI Prompt</span>
+                        <div className="task-modal-prompt" style={{ borderTop: '1px solid #1e1e1e', marginTop: '16px', paddingTop: '16px' }}>
+                            <span className="meta-label">Prompt given:</span>
                             <p>{task.prompt}</p>
+                        </div>
+                    )}
+                    {task.aiSummary && (
+                        <div className="task-modal-prompt" style={{ borderTop: '1px solid #1e1e1e', marginTop: '16px', paddingTop: '16px' }}>
+                            <span className="meta-label">AI Summary</span>
+                            <p style={{ color: '#4da3ff', fontStyle: 'italic' }}>{task.aiSummary}</p>
+                        </div>
+                    )}
+                    {task.logs && task.logs.length > 0 && (
+                        <div className="task-modal-history">
+                            <span className="meta-label">Activity History</span>
+                            <div className="task-modal-history-list">
+                                {task.logs.map((log, idx) => (
+                                    <div key={log.id || idx} className="task-modal-history-item">
+                                        <span className="history-time">
+                                            {new Date(log.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} {new Date(log.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                        <span className="history-text">
+                                            <strong>{log.assignee}</strong> {log.actionType === 'STATUS_UPDATE' ? `moved to ${log.status?.replace('_', ' ')}` : log.actionType === 'AI_SUMMARY' ? 'added AI summary' : 'edited details'}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
@@ -244,49 +267,57 @@ const TaskDetailModal = ({ task, onClose }) => {
     );
 };
 
-const LogsSection = ({ logs }) => (
+const LogsSection = ({ logs, tasks, onOpen }) => (
     <div className="logs-container">
         <h3>Recent Activity</h3>
         <div className="logs-list">
             {logs.length === 0 ? (
                 <p className="empty-msg">No recent activity.</p>
             ) : (
-                logs.map(log => (
-                    <div key={log.id} className="log-item">
-                        <span className="log-time">
-                            {new Date(log.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                        {log.actionType === 'STATUS_UPDATE' ? (
-                            <span className="log-text">
-                                <strong>{log.assignee}</strong> moved <strong>{log.taskTitle}</strong> from <span className={`log-status status-${(log.fromStatus || 'BACKLOG').toLowerCase()}`}>{log.fromStatus ? log.fromStatus.replace('_', ' ') : 'Backlog'}</span> to <span className={`log-status status-${log.status?.toLowerCase()}`}>{log.status?.replace('_', ' ')}</span>
+                logs.slice(0, 10).map(log => {
+                    const task = tasks.find(t => t.id === log.taskId);
+                    return (
+                        <div 
+                            key={log.id} 
+                            className="log-item interactive" 
+                            onClick={() => task && onOpen(task)}
+                            title={task ? "Click to view task details" : ""}
+                        >
+                            <span className="log-time">
+                                {new Date(log.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                             </span>
-                        ) : log.actionType === 'CREATE' ? (
-                            <span className="log-text">
-                                <strong>{log.assignee}</strong> created task <strong>{log.taskTitle}</strong>
-                            </span>
-                        ) : log.actionType === 'EDIT' ? (
-                            <span className="log-text">
-                                <strong>{log.assignee}</strong> updated <strong>{log.taskTitle}</strong>: {log.description}
-                            </span>
-                        ) : log.actionType === 'DELETE' ? (
-                            <span className="log-text">
-                                <strong>{log.assignee}</strong> deleted task <strong>{log.taskTitle}</strong>
-                            </span>
-                        ) : (
-                            <span className="log-text">
-                                <strong>{log.assignee}</strong> moved <strong>{log.taskTitle}</strong> to <span className={`log-status status-${log.status?.toLowerCase()}`}>{log.status?.replace('_', ' ')}</span>
-                            </span>
-                        )}
-                    </div>
-                ))
+                            {log.actionType === 'STATUS_UPDATE' ? (
+                                <span className="log-text">
+                                    <strong>{log.assignee}</strong> moved <strong>{log.taskTitle}</strong> from <span className={`log-status status-${(log.fromStatus || 'BACKLOG').toLowerCase()}`}>{log.fromStatus ? log.fromStatus.replace('_', ' ') : 'Backlog'}</span> to <span className={`log-status status-${log.status?.toLowerCase()}`}>{log.status?.replace('_', ' ')}</span>
+                                </span>
+                            ) : log.actionType === 'CREATE' ? (
+                                <span className="log-text">
+                                    <strong>{log.assignee}</strong> created task <strong>{log.taskTitle}</strong>
+                                </span>
+                            ) : log.actionType === 'EDIT' ? (
+                                <span className="log-text">
+                                    <strong>{log.assignee}</strong> updated <strong>{log.taskTitle}</strong>: {log.description}
+                                </span>
+                            ) : log.actionType === 'DELETE' ? (
+                                <span className="log-text">
+                                    <strong>{log.assignee}</strong> deleted task <strong>{log.taskTitle}</strong>
+                                </span>
+                            ) : (
+                                <span className="log-text">
+                                    <strong>{log.assignee}</strong> moved <strong>{log.taskTitle}</strong> to <span className={`log-status status-${log.status?.toLowerCase()}`}>{log.status?.replace('_', ' ')}</span>
+                                </span>
+                            )}
+                        </div>
+                    );
+                })
             )}
         </div>
     </div>
 );
 
-const AISummarySection = ({ tasks }) => {
+const AISummarySection = ({ tasks, onOpen }) => {
     const summaryTasks = tasks
-        .filter(t => t.status === 'REVIEW' && t.aiSummary)
+        .filter(t => (t.status === 'REVIEW' || t.status === 'DONE') && t.aiSummary)
         .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
         .slice(0, 5);
 
@@ -298,7 +329,12 @@ const AISummarySection = ({ tasks }) => {
             ) : (
                 <div className="ai-summary-list">
                     {summaryTasks.map(task => (
-                        <div key={task.id} className="ai-summary-card">
+                        <div 
+                            key={task.id} 
+                            className="ai-summary-card interactive" 
+                            onClick={() => onOpen(task)}
+                            title="Click to view task details"
+                        >
                             <div className="ai-summary-card-title">{task.title}</div>
                             <div className="ai-summary-card-text">{task.aiSummary}</div>
                         </div>
@@ -550,8 +586,8 @@ const Scrum = () => {
                     <span className="count-badge status-backlog">Backlog: {backlogTasks.length}</span>
                 </div>
                 <div className="dashboard-top-section">
-                    <LogsSection logs={logs} />
-                    <AISummarySection tasks={tasks} />
+                    <AISummarySection tasks={tasks} onOpen={setSelectedTask} />
+                    <LogsSection logs={logs} tasks={tasks} onOpen={setSelectedTask} />
                 </div>
                 <div className="scrum-board">
                     <DroppableColumn id="TODO" title="To Do" tasks={todoTasks} onOpen={setSelectedTask} />

@@ -164,6 +164,7 @@
 /* Dashboard Top Section */
 .dashboard-top-section {
     display: flex;
+    width: 100%;
     max-width: 1200px;
     margin: 0 auto 30px;
     gap: 20px;
@@ -171,20 +172,20 @@
 
 /* Logs Section */
 .logs-container {
-    flex: 9;
+    flex: 1;
     background-color: #111;
     border: 1px solid #222;
     border-radius: 8px;
-    padding: 15px 20px;
+    padding: 20px;
 }
 
 /* AI Summary Section */
 .ai-summary-container {
-    flex: 4;
+    flex: 2;
     background-color: #111;
     border: 1px solid #222;
     border-radius: 8px;
-    padding: 15px 20px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -193,7 +194,7 @@
 .ai-summary-header {
     font-size: 0.9rem;
     color: #888;
-    margin-bottom: 4px;
+    margin: 0 0 12px 0;
     text-transform: uppercase;
     letter-spacing: 1.5px;
 }
@@ -203,7 +204,25 @@
     flex-direction: column;
     gap: 10px;
     flex: 1;
+    max-height: 280px;
     overflow-y: auto;
+    padding-right: 15px;
+}
+
+.ai-summary-list::-webkit-scrollbar,
+.logs-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ai-summary-list::-webkit-scrollbar-thumb,
+.logs-list::-webkit-scrollbar-thumb {
+    background: #222;
+    border-radius: 10px;
+}
+
+.ai-summary-list::-webkit-scrollbar-thumb:hover,
+.logs-list::-webkit-scrollbar-thumb:hover {
+    background: #333;
 }
 
 .ai-summary-card {
@@ -212,7 +231,17 @@
     border-radius: 4px;
     border: 1px solid #222;
     font-size: 0.85rem;
+    transition: all 0.2s ease;
 }
+
+.ai-summary-card.interactive:hover,
+.log-item.interactive:hover {
+    cursor: pointer;
+    background-color: #222;
+    border-color: #4da3ff;
+    transform: translateX(4px);
+}
+
 
 .ai-summary-card-title {
     color: #ddd;
@@ -233,7 +262,7 @@
 .logs-container h3 {
     font-size: 0.9rem;
     color: #888;
-    margin-bottom: 12px;
+    margin: 0 0 12px 0;
     text-transform: uppercase;
     letter-spacing: 1.5px;
 }
@@ -242,6 +271,9 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 15px;
 }
 
 .log-item {
@@ -253,6 +285,7 @@
     padding: 8px 15px;
     border-radius: 4px;
     border: 1px solid #222;
+    transition: all 0.2s ease;
 }
 
 .log-time {
@@ -519,6 +552,56 @@
     line-height: 1.55;
     font-style: italic;
     margin: 0;
+}
+
+/* Activity History in Modal */
+.task-modal-history {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #1e1e1e;
+}
+
+.task-modal-history-list {
+    margin-top: 10px;
+    max-height: 150px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-right: 8px;
+}
+
+.task-modal-history-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.task-modal-history-list::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+}
+
+.task-modal-history-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 10px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.history-time {
+    font-size: 0.7rem;
+    color: #555;
+    font-family: monospace;
+}
+
+.history-text {
+    color: #999;
+}
+
+.history-text strong {
+    color: #ccc;
 }
 
 /* Custom Context Menu */

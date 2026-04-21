@@ -26,7 +26,9 @@ const Admin = () => {
     const [isProjectPopupOpen, setIsProjectPopupOpen] = useState(false);
     const [projectFormData, setProjectFormData] = useState({
         projectName: '',
-        projectColorCode: '#d4af37'
+        projectColorCode: '#d4af37',
+        status: 'BRAINSTORM',
+        description: ''
     });
     const [projectLoading, setProjectLoading] = useState(false);
     const [projectError, setProjectError] = useState('');
@@ -120,7 +122,7 @@ const Admin = () => {
             }
 
             setProjectSuccess('Project created successfully!');
-            setProjectFormData({ projectName: '', projectColorCode: '#d4af37' });
+            setProjectFormData({ projectName: '', projectColorCode: '#d4af37', status: 'BRAINSTORM', description: '' });
             fetchProjects(); // Refresh project list after creation
             setTimeout(() => {
                 setIsProjectPopupOpen(false);
@@ -524,6 +526,29 @@ const Admin = () => {
                                     onChange={handleProjectChange}
                                     required
                                     placeholder="Enter project title"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Project Status</label>
+                                <select 
+                                    name="status" 
+                                    value={projectFormData.status} 
+                                    onChange={handleProjectChange}
+                                    required
+                                >
+                                    <option value="BRAINSTORM">Brainstorm</option>
+                                    <option value="IN_PROGRESS">In Progress</option>
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Project Description</label>
+                                <textarea
+                                    name="description"
+                                    value={projectFormData.description}
+                                    onChange={handleProjectChange}
+                                    placeholder="Enter project description"
+                                    rows="4"
                                 />
                             </div>
 
