@@ -7,6 +7,7 @@ import Books from './pages/Books/Books';
 import Scrum from './pages/Scrum/Scrum';
 import Admin from './pages/Admin/Admin';
 import SixtyHourClock from './pages/Clock/SixtyHourClock';
+import Playground from './pages/Playground/Playground';
 
 const App = () => {
     return (
@@ -17,6 +18,7 @@ const App = () => {
                 <Route path="/books" element={<Books />} />
                 <Route path="/scrum" element={<Scrum />} />
                 <Route path="/clock" element={<SixtyHourClock />} />
+                <Route path="/playground" element={<Playground />} />
                 <Route path="/admin" element={<Admin />} />
             </Routes>
         </Router>

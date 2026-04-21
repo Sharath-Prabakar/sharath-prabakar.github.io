@@ -64,6 +64,19 @@ const Admin = () => {
     const [deleteError, setDeleteError] = useState('');
     const [deleteSuccess, setDeleteSuccess] = useState('');
 
+    // Edit Project Popup state
+    const [isEditProjectPopupOpen, setIsEditProjectPopupOpen] = useState(false);
+    const [editProjectSelectedId, setEditProjectSelectedId] = useState('');
+    const [editProjectFormData, setEditProjectFormData] = useState({
+        projectName: '',
+        projectColorCode: '#d4af37',
+        status: 'BRAINSTORM',
+        description: ''
+    });
+    const [editProjectLoading, setEditProjectLoading] = useState(false);
+    const [editProjectError, setEditProjectError] = useState('');
+    const [editProjectSuccess, setEditProjectSuccess] = useState('');
+
     const fetchProjects = async () => {
         try {
             const res = await fetch(`${API_BASE_URL}/api/projects`);
@@ -139,6 +152,54 @@ const Admin = () => {
     const handleEditChange = (e) => {
         const { name, value } = e.target;
         setEditFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleEditProjectChange = (e) => {
+        const { name, value } = e.target;
+        setEditProjectFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleEditProjectSelect = (projectId) => {
+        const project = allProjects.find(p => p.id === projectId);
+        setEditProjectSelectedId(projectId);
+        if (project) {
+            setEditProjectFormData({
+                projectName: project.projectName || '',
+                projectColorCode: project.projectColorCode || '#d4af37',
+                status: project.status || 'BRAINSTORM',
+                description: project.description || ''
+            });
+        }
+    };
+
+    const handleEditProjectSubmit = async (e) => {
+        e.preventDefault();
+        if (!editProjectSelectedId) return;
+
+        setEditProjectLoading(true);
+        setEditProjectError('');
+        setEditProjectSuccess('');
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/projects/${editProjectSelectedId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(editProjectFormData)
+            });
+
+            if (!response.ok) throw new Error('Failed to update project');
+
+            setEditProjectSuccess('Project updated successfully!');
+            fetchProjects();
+            setTimeout(() => {
+                setIsEditProjectPopupOpen(false);
+                setEditProjectSuccess('');
+            }, 1500);
+        } catch (err) {
+            setEditProjectError(err.message);
+        } finally {
+            setEditProjectLoading(false);
+        }
     };
 
     const handleEditTaskSelect = (taskId) => {
@@ -391,6 +452,10 @@ const Admin = () => {
 
                 <button className="create-task-btn" onClick={openLinkPopup}>
                     <span>+ Link Project to Tasks</span>
+                </button>
+
+                <button className="create-task-btn" onClick={() => { setIsEditProjectPopupOpen(true); fetchProjects(); }}>
+                    <span>✎ Edit Project</span>
                 </button>
 
                 <button className="create-task-btn" onClick={() => setIsEditPopupOpen(true)}>
@@ -679,6 +744,80 @@ const Admin = () => {
                                 </button>
                             </form>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {isEditProjectPopupOpen && (
+                <div className="popup-overlay">
+                    <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+                        <button className="close-btn" onClick={() => setIsEditProjectPopupOpen(false)}>×</button>
+                        <h2>Edit Project Details</h2>
+
+                        {editProjectError && <div className="error-message">{editProjectError}</div>}
+                        {editProjectSuccess && <div className="success-message">{editProjectSuccess}</div>}
+
+                        <form onSubmit={handleEditProjectSubmit}>
+                            <div className="form-group">
+                                <label>Select Project</label>
+                                <select
+                                    value={editProjectSelectedId}
+                                    onChange={(e) => handleEditProjectSelect(e.target.value)}
+                                    required
+                                >
+                                    <option value="">-- Choose a Project --</option>
+                                    {allProjects.map(proj => (
+                                        <option key={proj.id || proj._id} value={proj.id || proj._id}>{proj.projectName}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {editProjectSelectedId && (
+                                <>
+                                    <div className="form-group">
+                                        <label>Project Status</label>
+                                        <select 
+                                            name="status" 
+                                            value={editProjectFormData.status} 
+                                            onChange={handleEditProjectChange}
+                                            required
+                                        >
+                                            <option value="BRAINSTORM">Brainstorm</option>
+                                            <option value="IN_PROGRESS">In Progress</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label>Project Description</label>
+                                        <textarea
+                                            name="description"
+                                            value={editProjectFormData.description}
+                                            onChange={handleEditProjectChange}
+                                            rows="4"
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label>Project Color Code</label>
+                                        <div className="color-grid">
+                                            {PROJECT_COLORS.map(color => (
+                                                <div
+                                                    key={color}
+                                                    className={`color-square ${editProjectFormData.projectColorCode === color ? 'selected' : ''}`}
+                                                    style={{ backgroundColor: color }}
+                                                    onClick={() => setEditProjectFormData(prev => ({ ...prev, projectColorCode: color }))}
+                                                    title={color}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" className="submit-btn" disabled={editProjectLoading}>
+                                        {editProjectLoading ? 'Updating...' : 'Update Project'}
+                                    </button>
+                                </>
+                            )}
+                        </form>
                     </div>
                 </div>
             )}

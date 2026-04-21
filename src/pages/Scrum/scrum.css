@@ -24,9 +24,32 @@
     border: 1px solid #222;
     border-radius: 8px;
     padding: 20px;
-    min-height: 500px;
     display: flex;
     flex-direction: column;
+}
+
+.tasks-list {
+    max-height: 700px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Custom Scrollbar for tasks list */
+.tasks-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tasks-list::-webkit-scrollbar-track {
+    background: #0a0a0a;
+}
+
+.tasks-list::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 10px;
+}
+
+.tasks-list::-webkit-scrollbar-thumb:hover {
+    background: #444;
 }
 
 .column h2 {

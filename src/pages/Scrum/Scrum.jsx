@@ -54,9 +54,6 @@ function BacklogRow({ task, onOpen, onContextMenu }) {
         textShadow: `0 0 5px ${task.projectColorCode || '#4da3ff'}`
     };
 
-    const pointerStart = React.useRef(null);
-    const dragOccurred = React.useRef(false);
-
     return (
         <div
             ref={setNodeRef}
@@ -64,23 +61,8 @@ function BacklogRow({ task, onOpen, onContextMenu }) {
             className={`backlog-row priority-${task.priority?.toLowerCase() || 'default'}`}
             {...attributes}
             {...listeners}
-            onPointerDown={(e) => {
-                if (e.button !== 0) return; // Only left-click for detail/drag
-                pointerStart.current = { x: e.clientX, y: e.clientY };
-                dragOccurred.current = false;
-                listeners.onPointerDown?.(e);
-            }}
-            onPointerMove={(e) => {
-                if (!pointerStart.current) return;
-                const dx = e.clientX - pointerStart.current.x;
-                const dy = e.clientY - pointerStart.current.y;
-                if (Math.sqrt(dx*dx + dy*dy) > 6) dragOccurred.current = true;
-            }}
-            onPointerUp={(e) => {
-                if (e.button !== 0) return; // Only left-click for detail
-                if (!dragOccurred.current) onOpen(task);
-                pointerStart.current = null;
-                dragOccurred.current = false;
+            onClick={(e) => {
+                onOpen(task);
             }}
             onContextMenu={(e) => onContextMenu(e, task)}
         >
@@ -119,9 +101,6 @@ function DraggableTaskCard({ task, onOpen }) {
         textShadow: `0 0 5px ${task.projectColorCode || '#4da3ff'}`
     };
 
-    const pointerStart = React.useRef(null);
-    const dragOccurred = React.useRef(false);
-
     return (
         <div
             ref={setNodeRef}
@@ -129,24 +108,7 @@ function DraggableTaskCard({ task, onOpen }) {
             {...attributes}
             {...listeners}
             className={`task-card priority-${task.priority?.toLowerCase() || 'default'}`}
-            onPointerDown={(e) => {
-                if (e.button !== 0) return; // Only left-click for detail/drag
-                pointerStart.current = { x: e.clientX, y: e.clientY };
-                dragOccurred.current = false;
-                listeners.onPointerDown?.(e);
-            }}
-            onPointerMove={(e) => {
-                if (!pointerStart.current) return;
-                const dx = e.clientX - pointerStart.current.x;
-                const dy = e.clientY - pointerStart.current.y;
-                if (Math.sqrt(dx*dx + dy*dy) > 6) dragOccurred.current = true;
-            }}
-            onPointerUp={(e) => {
-                if (e.button !== 0) return; // Only left-click for detail
-                if (!dragOccurred.current) onOpen(task);
-                pointerStart.current = null;
-                dragOccurred.current = false;
-            }}
+            onClick={() => onOpen(task)}
         >
             {task.project && (
                 <span className="project-badge" style={projectStyle}>
@@ -169,11 +131,13 @@ function DroppableColumn({ id, title, tasks, onOpen }) {
     return (
         <div ref={setNodeRef} className="column" style={style}>
             <h2>{title}</h2>
-            {tasks.length === 0 ? (
-                <p className="empty-msg">No tasks {title.toLowerCase()}.</p>
-            ) : (
-                tasks.map(task => <DraggableTaskCard key={task.id} task={task} onOpen={onOpen} />)
-            )}
+            <div className="tasks-list">
+                {tasks.length === 0 ? (
+                    <p className="empty-msg">No tasks {title.toLowerCase()}.</p>
+                ) : (
+                    tasks.map(task => <DraggableTaskCard key={task.id} task={task} onOpen={onOpen} />)
+                )}
+            </div>
         </div>
     );
 }
@@ -221,6 +185,12 @@ const TaskDetailModal = ({ task, onClose }) => {
                             <span className="meta-label">Priority</span>
                             <span className="meta-value" style={{ color: priorityColor, fontWeight: 'bold' }}>{task.priority}</span>
                         </div>
+                        {task.createdAt && (
+                            <div className="task-modal-meta-item">
+                                <span className="meta-label">Created</span>
+                                <span className="meta-value">{new Date(task.createdAt).toLocaleString('en-IN')}</span>
+                            </div>
+                        )}
                         <div className="task-modal-meta-item">
                             <span className="meta-label">Assignee</span>
                             <span className="meta-value">{task.assignee || '—'}</span>
@@ -396,7 +366,11 @@ const Scrum = () => {
     }, []);
 
     const sensors = useSensors(
-        useSensor(PointerSensor),
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5,
+            },
+        }),
         useSensor(TouchSensor, {
             // Press and hold for 250ms to start dragging
             // This allows normal scrolling on mobile

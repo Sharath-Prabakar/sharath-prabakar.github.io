@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import './home.css';
 import scrumLogo from '../../assets/agentic_ai_scrum_logo.png';
 import gccAppLogo from '../../assets/GCC_App_Logo.png';
 import sixtyHourLogo from '../../assets/SixtyHour_Logo.png';
@@ -31,7 +32,7 @@ const Home = () => {
             <section style={styles.projectSection}>
                 <h2 style={styles.sectionTitle}>Featured Projects</h2>
 
-                <div style={styles.grid}>
+                <div className="project-grid">
                     <ProjectCard
                         title="Agentic AI Scrum Board"
                         icon={scrumLogo}
@@ -189,9 +190,6 @@ const styles = {
         marginBottom: '10px',
     },
     grid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', // Changed from 300px to 280px
-        gap: '20px',
         width: '100%',
     },
     projectSection: {

@@ -8,6 +8,7 @@ const NavBar = () => {
             <NavItem to="/books" label="Books" />
             <NavItem to="/scrum" label="Scrum Board" />
             <NavItem to="/clock" label="The 24-Minute Hour" />
+            <NavItem to="/playground" label="AI Playground" />
         </nav>
     );
 };
