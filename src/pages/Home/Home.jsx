@@ -1,9 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import scrumLogo from '../../assets/agentic_ai_scrum_logo.png';
 import gccAppLogo from '../../assets/GCC_App_Logo.png';
 import sixtyHourLogo from '../../assets/SixtyHour_Logo.png';
-
-
 
 const Home = () => {
     return (
@@ -34,6 +33,14 @@ const Home = () => {
 
                 <div style={styles.grid}>
                     <ProjectCard
+                        title="Agentic AI Scrum Board"
+                        icon={scrumLogo}
+                        iconColor="#d4af37"
+                        description="AI agents in Antigravity can create and assign tasks on the scrum board, execute them by writing code and then update status automatically. Works across multiple projects simultaneously."
+                        tag="Antigravity / React / Spring Boot / MongoDB"
+                        link="/scrum"
+                    />
+                    <ProjectCard
                         title="Global Coin Collections"
                         icon={gccAppLogo}
                         iconColor="#d4af37"
@@ -53,12 +60,12 @@ const Home = () => {
             </section>
             {/* 4. FOOTER / SOURCE CODE */}
             <footer style={styles.footer}>
-                <svg 
-                    height="24" 
-                    viewBox="0 0 16 16" 
-                    version="1.1" 
-                    width="24" 
-                    aria-hidden="true" 
+                <svg
+                    height="24"
+                    viewBox="0 0 16 16"
+                    version="1.1"
+                    width="24"
+                    aria-hidden="true"
                     fill="#888"
                     style={{ marginRight: '10px' }}
                 >
@@ -66,9 +73,9 @@ const Home = () => {
                 </svg>
                 <span>
                     Source Code available at - {' '}
-                    <a 
-                        href="https://github.com/Sharath-Prabakar/sharath-prabakar.github.io" 
-                        target="_blank" 
+                    <a
+                        href="https://github.com/Sharath-Prabakar/sharath-prabakar.github.io"
+                        target="_blank"
                         rel="noopener noreferrer"
                         style={styles.footerLink}
                     >
@@ -109,10 +116,10 @@ const ProjectCard = ({ title, icon, description, tag, iconColor, link }) => {
         marginBottom: '15px'
     };
     const imageStyle = {
-        display:'flex',
+        display: 'flex',
         objectFit: 'fill',
-        width:'40px',
-        height:'40px',
+        width: '40px',
+        height: '40px',
     };
 
     const arrowStyle = {

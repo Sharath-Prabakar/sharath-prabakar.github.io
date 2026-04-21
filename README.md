@@ -30,8 +30,8 @@ A digital implementation of the traditional Tamil time-keeping system.
 * **Logic:** Converts 24-hour Gregorian time into 60 *Naazhigai* units (1 unit = 24 mins).
 * **Impact:** Modernizes ancient time-tracking through a minimalist web interface.
 
-### 📋 Scrum Board (In-progress)
-A scrum board to track ongoing projects and tasks built using AI Agents.
-* **Feature:** Tasks contain prompts or snippets that AI agents can read. They can perform in Antigravity and then update the board.
+### 📋 Agentic AI Scrum Board 
+An agentic AI scrum board to track ongoing personal projects and tasks built using AI Agents.
+* **Feature:** Tasks contain prompts that AI agents can read. They can execute the task in Antigravity and then update the board through API calls.
 * **Impact:** Single source to track multiple tasks across multiple AI agents.
 

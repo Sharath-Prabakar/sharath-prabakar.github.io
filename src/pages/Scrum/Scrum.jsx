@@ -29,7 +29,7 @@ const hexToRgba = (hex, alpha) => {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-function SortableBacklogRow({ task }) {
+function BacklogRow({ task, onOpen, onContextMenu }) {
     const {
         attributes,
         listeners,
@@ -54,6 +54,9 @@ function SortableBacklogRow({ task }) {
         textShadow: `0 0 5px ${task.projectColorCode || '#4da3ff'}`
     };
 
+    const pointerStart = React.useRef(null);
+    const dragOccurred = React.useRef(false);
+
     return (
         <div
             ref={setNodeRef}
@@ -61,6 +64,25 @@ function SortableBacklogRow({ task }) {
             className={`backlog-row priority-${task.priority?.toLowerCase() || 'default'}`}
             {...attributes}
             {...listeners}
+            onPointerDown={(e) => {
+                if (e.button !== 0) return; // Only left-click for detail/drag
+                pointerStart.current = { x: e.clientX, y: e.clientY };
+                dragOccurred.current = false;
+                listeners.onPointerDown?.(e);
+            }}
+            onPointerMove={(e) => {
+                if (!pointerStart.current) return;
+                const dx = e.clientX - pointerStart.current.x;
+                const dy = e.clientY - pointerStart.current.y;
+                if (Math.sqrt(dx*dx + dy*dy) > 6) dragOccurred.current = true;
+            }}
+            onPointerUp={(e) => {
+                if (e.button !== 0) return; // Only left-click for detail
+                if (!dragOccurred.current) onOpen(task);
+                pointerStart.current = null;
+                dragOccurred.current = false;
+            }}
+            onContextMenu={(e) => onContextMenu(e, task)}
         >
             <div className="backlog-row-title-container">
                 {task.project && (
@@ -76,7 +98,7 @@ function SortableBacklogRow({ task }) {
     );
 }
 
-function DraggableTaskCard({ task }) {
+function DraggableTaskCard({ task, onOpen }) {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: task.id.toString(),
         data: { task }
@@ -97,6 +119,9 @@ function DraggableTaskCard({ task }) {
         textShadow: `0 0 5px ${task.projectColorCode || '#4da3ff'}`
     };
 
+    const pointerStart = React.useRef(null);
+    const dragOccurred = React.useRef(false);
+
     return (
         <div
             ref={setNodeRef}
@@ -104,6 +129,24 @@ function DraggableTaskCard({ task }) {
             {...attributes}
             {...listeners}
             className={`task-card priority-${task.priority?.toLowerCase() || 'default'}`}
+            onPointerDown={(e) => {
+                if (e.button !== 0) return; // Only left-click for detail/drag
+                pointerStart.current = { x: e.clientX, y: e.clientY };
+                dragOccurred.current = false;
+                listeners.onPointerDown?.(e);
+            }}
+            onPointerMove={(e) => {
+                if (!pointerStart.current) return;
+                const dx = e.clientX - pointerStart.current.x;
+                const dy = e.clientY - pointerStart.current.y;
+                if (Math.sqrt(dx*dx + dy*dy) > 6) dragOccurred.current = true;
+            }}
+            onPointerUp={(e) => {
+                if (e.button !== 0) return; // Only left-click for detail
+                if (!dragOccurred.current) onOpen(task);
+                pointerStart.current = null;
+                dragOccurred.current = false;
+            }}
         >
             {task.project && (
                 <span className="project-badge" style={projectStyle}>
@@ -117,7 +160,7 @@ function DraggableTaskCard({ task }) {
     );
 }
 
-function DroppableColumn({ id, title, tasks }) {
+function DroppableColumn({ id, title, tasks, onOpen }) {
     const { setNodeRef, isOver } = useDroppable({ id });
     const style = {
         backgroundColor: isOver ? '#151515' : undefined,
@@ -129,7 +172,7 @@ function DroppableColumn({ id, title, tasks }) {
             {tasks.length === 0 ? (
                 <p className="empty-msg">No tasks {title.toLowerCase()}.</p>
             ) : (
-                tasks.map(task => <DraggableTaskCard key={task.id} task={task} />)
+                tasks.map(task => <DraggableTaskCard key={task.id} task={task} onOpen={onOpen} />)
             )}
         </div>
     );
@@ -143,6 +186,63 @@ const LoadingPopup = ({ message }) => (
         </div>
     </div>
 );
+
+const PRIORITY_COLORS = { HIGH: '#ff4d4f', MEDIUM: '#faad14', LOW: '#52c41a' };
+const STATUS_LABELS = { TODO: 'To Do', IN_PROGRESS: 'In Progress', REVIEW: 'Review', DONE: 'Done', BACKLOG: 'Backlog' };
+
+const TaskDetailModal = ({ task, onClose }) => {
+    if (!task) return null;
+    const priorityColor = PRIORITY_COLORS[task.priority] || '#888';
+    const projectStyle = {
+        backgroundColor: hexToRgba(task.projectColorCode, 0.25),
+        color: '#fff',
+        border: `1px solid ${task.projectColorCode || '#4da3ff'}`,
+        boxShadow: `0 0 12px ${hexToRgba(task.projectColorCode, 0.5)}`,
+        textShadow: `0 0 5px ${task.projectColorCode || '#4da3ff'}`
+    };
+    return (
+        <div className="task-modal-overlay" onClick={onClose}>
+            <div className="task-modal" onClick={e => e.stopPropagation()}>
+                <button className="task-modal-close" onClick={onClose}>✕</button>
+                <div className="task-modal-header">
+                    {task.project && <span className="project-badge" style={projectStyle}>{task.project}</span>}
+                    <h2 className="task-modal-title">{task.title}</h2>
+                </div>
+                <div className="task-modal-body">
+                    <p className="task-modal-desc">{task.description || 'No description provided.'}</p>
+                    <div className="task-modal-meta">
+                        <div className="task-modal-meta-item">
+                            <span className="meta-label">Status</span>
+                            <span className={`log-status status-${task.status?.toLowerCase()}`}>
+                                {STATUS_LABELS[task.status] || task.status}
+                            </span>
+                        </div>
+                        <div className="task-modal-meta-item">
+                            <span className="meta-label">Priority</span>
+                            <span className="meta-value" style={{ color: priorityColor, fontWeight: 'bold' }}>{task.priority}</span>
+                        </div>
+                        <div className="task-modal-meta-item">
+                            <span className="meta-label">Assignee</span>
+                            <span className="meta-value">{task.assignee || '—'}</span>
+                        </div>
+                        {task.updatedAt && (
+                            <div className="task-modal-meta-item">
+                                <span className="meta-label">Last Updated</span>
+                                <span className="meta-value">{new Date(task.updatedAt).toLocaleString('en-IN')}</span>
+                            </div>
+                        )}
+                    </div>
+                    {task.prompt && (
+                        <div className="task-modal-prompt">
+                            <span className="meta-label">AI Prompt</span>
+                            <p>{task.prompt}</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const LogsSection = ({ logs }) => (
     <div className="logs-container">
@@ -190,6 +290,49 @@ const Scrum = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [loadingMessage, setLoadingMessage] = useState("Incoming Tasks...");
+    const [selectedTask, setSelectedTask] = useState(null);
+    const [contextMenu, setContextMenu] = useState(null);
+
+    const handleContextMenu = (e, task) => {
+        e.preventDefault();
+        setContextMenu({ x: e.clientX, y: e.clientY, task });
+    };
+
+    const handleCloseContextMenu = () => {
+        setContextMenu(null);
+    };
+
+    const handleSendToTodo = async () => {
+        if (!contextMenu || !contextMenu.task) return;
+        const task = contextMenu.task;
+        handleCloseContextMenu();
+        
+        // Optimistically update
+        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: 'TODO' } : t));
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${task.id}?updatedBy=Sharath`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'TODO' })
+            });
+            if (!response.ok) throw new Error('Failed to update task status');
+            
+            setTimeout(async () => {
+                try {
+                    const logsRes = await fetch(`${API_BASE_URL}/api/logs`);
+                    if (logsRes.ok) setLogs(await logsRes.json());
+                } catch (e) {}
+            }, 500);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    useEffect(() => {
+        window.addEventListener('click', handleCloseContextMenu);
+        return () => window.removeEventListener('click', handleCloseContextMenu);
+    }, []);
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -331,7 +474,7 @@ const Scrum = () => {
                     // In a production app, we would re-fetch or rollback here
                 }
             } else {
-                // Must be a drop onto a status column
+                // Must be a drop onto a status column (from Kanban board OR from Backlog)
                 const activeTask = tasks.find(t => t.id.toString() === activeId);
                 const statusColumns = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
 
@@ -372,6 +515,7 @@ const Scrum = () => {
             onDragEnd={handleDragEnd}
         >
             <div className="scrum-container">
+                <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} />
                 <div className="task-counts">
                     <span className="count-badge total">Total: {tasks.length}</span>
                     <span className="count-badge status-todo">To Do: {todoTasks.length}</span>
@@ -382,10 +526,10 @@ const Scrum = () => {
                 </div>
                 <LogsSection logs={logs} />
                 <div className="scrum-board">
-                    <DroppableColumn id="TODO" title="To Do" tasks={todoTasks} />
-                    <DroppableColumn id="IN_PROGRESS" title="In Progress" tasks={inProgressTasks} />
-                    <DroppableColumn id="REVIEW" title="Review" tasks={reviewTasks} />
-                    <DroppableColumn id="DONE" title="Done" tasks={doneTasks} />
+                    <DroppableColumn id="TODO" title="To Do" tasks={todoTasks} onOpen={setSelectedTask} />
+                    <DroppableColumn id="IN_PROGRESS" title="In Progress" tasks={inProgressTasks} onOpen={setSelectedTask} />
+                    <DroppableColumn id="REVIEW" title="Review" tasks={reviewTasks} onOpen={setSelectedTask} />
+                    <DroppableColumn id="DONE" title="Done" tasks={doneTasks} onOpen={setSelectedTask} />
                 </div>
                 <div className="backlog-section">
                     <h2>Backlog</h2>
@@ -398,12 +542,20 @@ const Scrum = () => {
                                 strategy={verticalListSortingStrategy}
                             >
                                 {backlogTasks.map(task => (
-                                    <SortableBacklogRow key={task.id} task={task} />
+                                    <BacklogRow key={task.id} task={task} onOpen={setSelectedTask} onContextMenu={handleContextMenu} />
                                 ))}
                             </SortableContext>
                         </div>
                     )}
                 </div>
+                {contextMenu && (
+                    <div 
+                        className="custom-context-menu" 
+                        style={{ top: contextMenu.y, left: contextMenu.x }}
+                    >
+                        <button onClick={handleSendToTodo}>Send to To Do</button>
+                    </div>
+                )}
             </div>
         </DndContext>
     );
