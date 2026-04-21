@@ -284,6 +284,31 @@ const LogsSection = ({ logs }) => (
     </div>
 );
 
+const AISummarySection = ({ tasks }) => {
+    const summaryTasks = tasks
+        .filter(t => t.status === 'REVIEW' && t.aiSummary)
+        .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+        .slice(0, 5);
+
+    return (
+        <div className="ai-summary-container">
+            <h3 className="ai-summary-header">Recent AI Summaries</h3>
+            {summaryTasks.length === 0 ? (
+                <p className="empty-msg">No recent AI summaries available.</p>
+            ) : (
+                <div className="ai-summary-list">
+                    {summaryTasks.map(task => (
+                        <div key={task.id} className="ai-summary-card">
+                            <div className="ai-summary-card-title">{task.title}</div>
+                            <div className="ai-summary-card-text">{task.aiSummary}</div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
 const Scrum = () => {
     const [tasks, setTasks] = useState([]);
     const [logs, setLogs] = useState([]);
@@ -524,7 +549,10 @@ const Scrum = () => {
                     <span className="count-badge status-done">Done: {doneTasks.length}</span>
                     <span className="count-badge status-backlog">Backlog: {backlogTasks.length}</span>
                 </div>
-                <LogsSection logs={logs} />
+                <div className="dashboard-top-section">
+                    <LogsSection logs={logs} />
+                    <AISummarySection tasks={tasks} />
+                </div>
                 <div className="scrum-board">
                     <DroppableColumn id="TODO" title="To Do" tasks={todoTasks} onOpen={setSelectedTask} />
                     <DroppableColumn id="IN_PROGRESS" title="In Progress" tasks={inProgressTasks} onOpen={setSelectedTask} />

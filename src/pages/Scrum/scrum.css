@@ -161,14 +161,73 @@
     border-color: #4f46e5;
 }
 
+/* Dashboard Top Section */
+.dashboard-top-section {
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto 30px;
+    gap: 20px;
+}
+
 /* Logs Section */
 .logs-container {
-    max-width: 800px;
-    margin: 0 auto 30px;
+    flex: 9;
     background-color: #111;
     border: 1px solid #222;
     border-radius: 8px;
     padding: 15px 20px;
+}
+
+/* AI Summary Section */
+.ai-summary-container {
+    flex: 4;
+    background-color: #111;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 15px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ai-summary-header {
+    font-size: 0.9rem;
+    color: #888;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+.ai-summary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.ai-summary-card {
+    background-color: #1a1a1a;
+    padding: 10px 15px;
+    border-radius: 4px;
+    border: 1px solid #222;
+    font-size: 0.85rem;
+}
+
+.ai-summary-card-title {
+    color: #ddd;
+    font-weight: bold;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+}
+
+.ai-summary-card-text {
+    color: #aaa;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .logs-container h3 {
@@ -496,6 +555,10 @@
     .scrum-container {
         padding-top: 100px;
         /* Tighter padding for mobile */
+    }
+
+    .dashboard-top-section {
+        flex-direction: column;
     }
 
     /* Kanban Horizontal Scroll */
