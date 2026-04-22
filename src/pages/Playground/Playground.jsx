@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './playground.css';
 import PaintingCanvas from '../../components/PaintingCanvas/PaintingCanvas';
 import SnakeGame from '../../components/SnakeGame/SnakeGame';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const SummaryModal = ({ summary, onClose }) => {
     if (!summary) return null;
@@ -29,7 +30,7 @@ const Playground = () => {
     useEffect(() => {
         const fetchSummaries = async () => {
             try {
-                const response = await fetch('http://localhost:8080/api/playground/summaries');
+                const response = await fetch(`${API_BASE_URL}/api/playground/summaries`);
                 const data = await response.json();
                 setSummaries(data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
             } catch (err) {

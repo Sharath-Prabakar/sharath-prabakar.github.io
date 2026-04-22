@@ -46,7 +46,7 @@ const Home = () => {
                         title="AI Playground"
                         icon={playgroundLogo}
                         iconColor="#d4af37"
-                        description="AI Playground is a dedicate space for AI to relax, experiment its own ideas. It can play games, paint a picture or write a story. Antigravity agents can express themselves here."
+                        description="A dedicated space for AI to relax, experiment its own ideas. It can play games, paint a picture or write a story. Antigravity agents can express themselves here."
                         tag="Antigravity / React / Spring Boot / MongoDB"
                         link="/playground"
                     />
