@@ -251,6 +251,27 @@ const TaskDetailModal = ({ task, onClose }) => {
 };
 
 function AISummarySection({ tasks, onOpen }) {
+    const aiSummaries = tasks.filter(t => t.aiSummary).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
+    return (
+        <div className="ai-summary-container">
+            <h2 className="ai-summary-header">🤖 Agentic AI Task Summary</h2>
+            <div className="ai-summary-list">
+                {aiSummaries.length === 0 ? (
+                    <p className="empty-msg">No autonomous summaries available.</p>
+                ) : (
+                    aiSummaries.map(task => (
+                        <div key={task.id} className="ai-summary-card interactive" onClick={() => onOpen(task)}>
+                            <div className="ai-summary-card-title">{task.title}</div>
+                            <div className="ai-summary-card-text">{task.aiSummary}</div>
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
+    );
+}
+
 const LogsSection = ({ logs, tasks, onOpen }) => (
     <div className="logs-container">
         <h3>Recent Activity</h3>
@@ -261,9 +282,9 @@ const LogsSection = ({ logs, tasks, onOpen }) => (
                 logs.slice(0, 10).map(log => {
                     const task = tasks.find(t => t.id === log.taskId);
                     return (
-                        <div 
-                            key={log.id} 
-                            className="log-item interactive" 
+                        <div
+                            key={log.id}
+                            className="log-item interactive"
                             onClick={() => task && onOpen(task)}
                             title={task ? "Click to view task details" : ""}
                         >
@@ -299,19 +320,6 @@ const LogsSection = ({ logs, tasks, onOpen }) => (
     </div>
 );
 
-const AISummarySection = ({ tasks, onOpen }) => {
-    const summaryTasks = tasks
-        .filter(t => (t.status === 'REVIEW' || t.status === 'DONE') && t.aiSummary)
-        .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-        .slice(0, 5);
-
-    return (
-        <div className="ai-summary-container">
-            <h3 className="ai-summary-header">Recent AI Summaries</h3>
-            {summaryTasks.length === 0 ? (
-                <p className="empty-msg">No recent AI summaries available.</p>
-            ) : (
-                <div className="ai-summary-list">
 export default function Scrum() {
     const [tasks, setTasks] = useState([]);
     const [logs, setLogs] = useState([]);
