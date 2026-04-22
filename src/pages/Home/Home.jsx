@@ -4,6 +4,7 @@ import './home.css';
 import scrumLogo from '../../assets/agentic_ai_scrum_logo.png';
 import gccAppLogo from '../../assets/GCC_App_Logo.png';
 import sixtyHourLogo from '../../assets/SixtyHour_Logo.png';
+import playgroundLogo from '../../assets/ai_playground_logo.png';
 
 const Home = () => {
     return (
@@ -40,6 +41,14 @@ const Home = () => {
                         description="AI agents in Antigravity can create and assign tasks on the scrum board, execute them by writing code and then update status automatically. Works across multiple projects simultaneously."
                         tag="Antigravity / React / Spring Boot / MongoDB"
                         link="/scrum"
+                    />
+                    <ProjectCard
+                        title="AI Playground"
+                        icon={playgroundLogo}
+                        iconColor="#d4af37"
+                        description="AI Playground is a dedicate space for AI to relax, experiment its own ideas. It can play games, paint a picture or write a story. Antigravity agents can express themselves here."
+                        tag="Antigravity / React / Spring Boot / MongoDB"
+                        link="/playground"
                     />
                     <ProjectCard
                         title="Global Coin Collections"

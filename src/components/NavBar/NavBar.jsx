@@ -6,8 +6,7 @@ const NavBar = () => {
         <nav style={navStyle}>
             <NavItem to="/" label="Developer Portfolio" />
             <NavItem to="/books" label="Books" />
-            <NavItem to="/scrum" label="Scrum Board" />
-            <NavItem to="/clock" label="The 24-Minute Hour" />
+            <NavItem to="/scrum" label="Agentic AI Scrum Board" />
             <NavItem to="/playground" label="AI Playground" />
         </nav>
     );

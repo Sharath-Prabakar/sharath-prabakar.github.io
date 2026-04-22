@@ -8,7 +8,9 @@ import {
     useSensor,
     useSensors,
     useDroppable,
-    useDraggable
+    useDraggable,
+    DragOverlay,
+    defaultDropAnimationSideEffects
 } from '@dnd-kit/core';
 import {
     arrayMove,
@@ -29,7 +31,7 @@ const hexToRgba = (hex, alpha) => {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-function BacklogRow({ task, onOpen, onContextMenu }) {
+function BacklogRow({ task, onOpen, onContextMenu, isOverlay }) {
     const {
         attributes,
         listeners,
@@ -42,8 +44,9 @@ function BacklogRow({ task, onOpen, onContextMenu }) {
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        zIndex: isDragging ? 1 : 0,
-        opacity: isDragging ? 0.8 : 1,
+        opacity: isDragging && !isOverlay ? 0.3 : 1,
+        cursor: isOverlay ? 'grabbing' : 'grab',
+        zIndex: isOverlay ? 1000 : 1,
     };
 
     const projectStyle = {
@@ -58,13 +61,11 @@ function BacklogRow({ task, onOpen, onContextMenu }) {
         <div
             ref={setNodeRef}
             style={style}
-            className={`backlog-row priority-${task.priority?.toLowerCase() || 'default'}`}
+            className={`backlog-row priority-${task.priority?.toLowerCase() || 'default'} ${isOverlay ? 'overlay' : ''}`}
             {...attributes}
             {...listeners}
-            onClick={(e) => {
-                onOpen(task);
-            }}
-            onContextMenu={(e) => onContextMenu(e, task)}
+            onClick={() => !isOverlay && onOpen(task)}
+            onContextMenu={(e) => !isOverlay && onContextMenu(e, task)}
         >
             <div className="backlog-row-title-container">
                 {task.project && (
@@ -80,17 +81,26 @@ function BacklogRow({ task, onOpen, onContextMenu }) {
     );
 }
 
-function DraggableTaskCard({ task, onOpen }) {
-    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+function SortableTaskCard({ task, onOpen, isOverlay }) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({
         id: task.id.toString(),
         data: { task }
     });
 
     const style = {
         transform: CSS.Translate.toString(transform),
-        zIndex: isDragging ? 10 : 1,
-        opacity: isDragging ? 0.8 : 1,
-        boxShadow: isDragging ? '0 10px 20px rgba(0,0,0,0.5)' : undefined,
+        transition,
+        zIndex: isOverlay ? 1000 : (isDragging ? 100 : 1),
+        opacity: isDragging && !isOverlay ? 0.3 : 1,
+        boxShadow: isOverlay ? '0 20px 40px rgba(0,0,0,0.8)' : undefined,
+        cursor: isOverlay ? 'grabbing' : 'grab',
     };
 
     const projectStyle = {
@@ -107,8 +117,8 @@ function DraggableTaskCard({ task, onOpen }) {
             style={style}
             {...attributes}
             {...listeners}
-            className={`task-card priority-${task.priority?.toLowerCase() || 'default'}`}
-            onClick={() => onOpen(task)}
+            className={`task-card priority-${task.priority?.toLowerCase() || 'default'} ${isDragging && !isOverlay ? 'dragging' : ''} ${isOverlay ? 'overlay' : ''}`}
+            onClick={() => !isOverlay && onOpen(task)}
         >
             {task.project && (
                 <span className="project-badge" style={projectStyle}>
@@ -125,18 +135,23 @@ function DraggableTaskCard({ task, onOpen }) {
 function DroppableColumn({ id, title, tasks, onOpen }) {
     const { setNodeRef, isOver } = useDroppable({ id });
     const style = {
-        backgroundColor: isOver ? '#151515' : undefined,
+        backgroundColor: isOver ? 'rgba(212, 175, 55, 0.05)' : undefined,
         borderColor: isOver ? '#d4af37' : undefined,
     };
     return (
         <div ref={setNodeRef} className="column" style={style}>
             <h2>{title}</h2>
             <div className="tasks-list">
-                {tasks.length === 0 ? (
-                    <p className="empty-msg">No tasks {title.toLowerCase()}.</p>
-                ) : (
-                    tasks.map(task => <DraggableTaskCard key={task.id} task={task} onOpen={onOpen} />)
-                )}
+                <SortableContext
+                    items={tasks.map(t => t.id.toString())}
+                    strategy={verticalListSortingStrategy}
+                >
+                    {tasks.length === 0 ? (
+                        <p className="empty-msg">No tasks {title.toLowerCase()}.</p>
+                    ) : (
+                        tasks.map(task => <SortableTaskCard key={task.id} task={task} onOpen={onOpen} />)
+                    )}
+                </SortableContext>
             </div>
         </div>
     );
@@ -203,14 +218,14 @@ const TaskDetailModal = ({ task, onClose }) => {
                         )}
                     </div>
                     {task.prompt && (
-                        <div className="task-modal-prompt" style={{ borderTop: '1px solid #1e1e1e', marginTop: '16px', paddingTop: '16px' }}>
-                            <span className="meta-label">Prompt given:</span>
+                        <div className="task-modal-prompt">
+                            <span className="meta-label">Prompt / Instructions</span>
                             <p>{task.prompt}</p>
                         </div>
                     )}
                     {task.aiSummary && (
                         <div className="task-modal-prompt" style={{ borderTop: '1px solid #1e1e1e', marginTop: '16px', paddingTop: '16px' }}>
-                            <span className="meta-label">AI Summary</span>
+                            <span className="meta-label">AI Execution Summary</span>
                             <p style={{ color: '#4da3ff', fontStyle: 'italic' }}>{task.aiSummary}</p>
                         </div>
                     )}
@@ -218,13 +233,11 @@ const TaskDetailModal = ({ task, onClose }) => {
                         <div className="task-modal-history">
                             <span className="meta-label">Activity History</span>
                             <div className="task-modal-history-list">
-                                {task.logs.map((log, idx) => (
-                                    <div key={log.id || idx} className="task-modal-history-item">
-                                        <span className="history-time">
-                                            {new Date(log.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} {new Date(log.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                                        </span>
+                                {task.logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((log, idx) => (
+                                    <div key={idx} className="task-modal-history-item">
+                                        <span className="history-time">{new Date(log.timestamp).toLocaleString('en-IN')}</span>
                                         <span className="history-text">
-                                            <strong>{log.assignee}</strong> {log.actionType === 'STATUS_UPDATE' ? `moved to ${log.status?.replace('_', ' ')}` : log.actionType === 'AI_SUMMARY' ? 'added AI summary' : 'edited details'}
+                                            <strong>{log.assignee}</strong> {log.description}
                                         </span>
                                     </div>
                                 ))}
@@ -237,6 +250,7 @@ const TaskDetailModal = ({ task, onClose }) => {
     );
 };
 
+function AISummarySection({ tasks, onOpen }) {
 const LogsSection = ({ logs, tasks, onOpen }) => (
     <div className="logs-container">
         <h3>Recent Activity</h3>
@@ -298,72 +312,15 @@ const AISummarySection = ({ tasks, onOpen }) => {
                 <p className="empty-msg">No recent AI summaries available.</p>
             ) : (
                 <div className="ai-summary-list">
-                    {summaryTasks.map(task => (
-                        <div 
-                            key={task.id} 
-                            className="ai-summary-card interactive" 
-                            onClick={() => onOpen(task)}
-                            title="Click to view task details"
-                        >
-                            <div className="ai-summary-card-title">{task.title}</div>
-                            <div className="ai-summary-card-text">{task.aiSummary}</div>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-};
-
-const Scrum = () => {
+export default function Scrum() {
     const [tasks, setTasks] = useState([]);
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMessage, setLoadingMessage] = useState("Initializing...");
     const [error, setError] = useState(null);
-    const [loadingMessage, setLoadingMessage] = useState("Incoming Tasks...");
     const [selectedTask, setSelectedTask] = useState(null);
-    const [contextMenu, setContextMenu] = useState(null);
-
-    const handleContextMenu = (e, task) => {
-        e.preventDefault();
-        setContextMenu({ x: e.clientX, y: e.clientY, task });
-    };
-
-    const handleCloseContextMenu = () => {
-        setContextMenu(null);
-    };
-
-    const handleSendToTodo = async () => {
-        if (!contextMenu || !contextMenu.task) return;
-        const task = contextMenu.task;
-        handleCloseContextMenu();
-        
-        // Optimistically update
-        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: 'TODO' } : t));
-        
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/tasks/${task.id}?updatedBy=Sharath`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'TODO' })
-            });
-            if (!response.ok) throw new Error('Failed to update task status');
-            
-            setTimeout(async () => {
-                try {
-                    const logsRes = await fetch(`${API_BASE_URL}/api/logs`);
-                    if (logsRes.ok) setLogs(await logsRes.json());
-                } catch (e) {}
-            }, 500);
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    useEffect(() => {
-        window.addEventListener('click', handleCloseContextMenu);
-        return () => window.removeEventListener('click', handleCloseContextMenu);
-    }, []);
+    const [activeTask, setActiveTask] = useState(null);
+    const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, task: null });
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -371,18 +328,48 @@ const Scrum = () => {
                 distance: 5,
             },
         }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        }),
         useSensor(TouchSensor, {
-            // Press and hold for 250ms to start dragging
-            // This allows normal scrolling on mobile
             activationConstraint: {
                 delay: 250,
                 tolerance: 5,
             },
-        }),
-        useSensor(KeyboardSensor, {
-            coordinateGetter: sortableKeyboardCoordinates,
         })
     );
+
+    const handleContextMenu = (e, task) => {
+        e.preventDefault();
+        setContextMenu({
+            visible: true,
+            x: e.clientX,
+            y: e.clientY,
+            task
+        });
+    };
+
+    const closeContextMenu = () => {
+        setContextMenu({ ...contextMenu, visible: false });
+    };
+
+    const handleAssignToMe = async () => {
+        if (!contextMenu.task) return;
+        const taskId = contextMenu.task.id;
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}?updatedBy=Sharath`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ assignee: 'Sharath' })
+            });
+            if (response.ok) {
+                setTasks(prev => prev.map(t => t.id === taskId ? { ...t, assignee: 'Sharath' } : t));
+            }
+        } catch (err) {
+            console.error("Failed to assign task", err);
+        }
+        closeContextMenu();
+    };
 
     useEffect(() => {
         if (!loading) return;
@@ -409,53 +396,28 @@ const Scrum = () => {
         const fetchTasks = async () => {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/tasks`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error('Failed to fetch tasks');
                 const data = await response.json();
                 setTasks(data);
-            } catch (e) {
-                setError(e);
-            } finally {
-                setLoading(false);
-            }
+            } catch (e) { setError(e); } finally { setLoading(false); }
         };
 
         const fetchLogs = async () => {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/logs`);
-                if (response.ok) {
-                    const data = await response.json();
-                    setLogs(data);
-                }
-            } catch (e) {
-                console.error("Failed to fetch logs", e);
-            }
+                if (response.ok) setLogs(await response.json());
+            } catch (e) { console.error("Failed to fetch logs", e); }
         };
 
         fetchTasks();
         fetchLogs();
-        // Refresh logs and board every 30 seconds
-        const interval = setInterval(() => {
-            fetchTasks();
-            fetchLogs();
-        }, 30000);
+        const interval = setInterval(() => { fetchTasks(); fetchLogs(); }, 30000);
         return () => clearInterval(interval);
     }, []);
 
-    if (loading) {
-        return (
-            <div className="scrum-container">
-                <LoadingPopup message={loadingMessage} />
-            </div>
-        );
-    }
+    if (loading) return <div className="scrum-container"><LoadingPopup message={loadingMessage} /></div>;
+    if (error) return <div className="scrum-container"><div className="empty-msg">Error: {error.message}</div></div>;
 
-    if (error) {
-        return <div className="scrum-container"><div className="empty-msg">Error: {error.message}</div></div>;
-    }
-
-    // Filter tasks into columns and sort by order
     const sortedTasks = [...tasks].sort((a, b) => (a.order || 0) - (b.order || 0));
     const todoTasks = sortedTasks.filter(task => task.status === 'TODO');
     const inProgressTasks = sortedTasks.filter(task => task.status === 'IN_PROGRESS');
@@ -463,83 +425,83 @@ const Scrum = () => {
     const doneTasks = sortedTasks.filter(task => task.status === 'DONE');
     const backlogTasks = sortedTasks.filter(task => task.status === 'BACKLOG');
 
+    const handleDragStart = (event) => {
+        const { active } = event;
+        const task = tasks.find(t => t.id.toString() === active.id.toString());
+        setActiveTask(task);
+    };
+
     const handleDragEnd = async (event) => {
         const { active, over } = event;
+        setActiveTask(null);
 
         if (over && active.id !== over.id) {
             const activeId = active.id.toString();
             const overId = over.id.toString();
 
-            const oldIndex = backlogTasks.findIndex(t => t.id.toString() === activeId);
-            const newIndex = backlogTasks.findIndex(t => t.id.toString() === overId);
+            const activeTaskObj = tasks.find(t => t.id.toString() === activeId);
+            const overTaskObj = tasks.find(t => t.id.toString() === overId);
 
-            if (oldIndex !== -1 && newIndex !== -1) {
-                const reorderedBacklog = arrayMove(backlogTasks, oldIndex, newIndex);
-                const movedTaskIndex = reorderedBacklog.findIndex(t => t.id.toString() === activeId);
+            if (overTaskObj) {
+                const sameColumnTasks = sortedTasks.filter(t => t.status === overTaskObj.status);
+                const oldIndex = sameColumnTasks.findIndex(t => t.id.toString() === activeId);
+                const newIndex = sameColumnTasks.findIndex(t => t.id.toString() === overId);
+
+                const reordered = arrayMove(sameColumnTasks, oldIndex === -1 ? 0 : oldIndex, newIndex);
+                const movedTaskIndex = reordered.findIndex(t => t.id.toString() === activeId);
 
                 let newOrder;
                 if (movedTaskIndex === 0) {
-                    // Moved to top: half of the current top task's order
-                    const nextOrder = reorderedBacklog[1]?.order || 1.0;
+                    const nextOrder = reordered[1]?.order || 1.0;
                     newOrder = nextOrder / 2.0;
-                } else if (movedTaskIndex === reorderedBacklog.length - 1) {
-                    // Moved to bottom: order of current bottom task + 1
-                    const prevOrder = reorderedBacklog[movedTaskIndex - 1]?.order || 0.0;
+                } else if (movedTaskIndex === reordered.length - 1) {
+                    const prevOrder = reordered[movedTaskIndex - 1]?.order || 0.0;
                     newOrder = prevOrder + 1.0;
                 } else {
-                    // Moved in between: average of neighbors
-                    const prevOrder = reorderedBacklog[movedTaskIndex - 1].order;
-                    const nextOrder = reorderedBacklog[movedTaskIndex + 1].order;
+                    const prevOrder = reordered[movedTaskIndex - 1].order;
+                    const nextOrder = reordered[movedTaskIndex + 1].order;
                     newOrder = (prevOrder + nextOrder) / 2.0;
                 }
 
-                // Optimistically update the state locally
-                setTasks(prev => prev.map(t => t.id.toString() === activeId ? { ...t, order: newOrder } : t));
+                setTasks(prev => prev.map(t => t.id.toString() === activeId ? { ...t, order: newOrder, status: overTaskObj.status } : t));
 
-                // Persist to backend via PATCH
                 try {
-                    const response = await fetch(`${API_BASE_URL}/api/tasks/${activeId}/order`, {
+                    await fetch(`${API_BASE_URL}/api/tasks/${activeId}/order`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ order: newOrder.toString() })
                     });
-                    if (!response.ok) throw new Error('Failed to update task order');
-                } catch (err) {
-                    console.error('Error updating task order:', err);
-                    // In a production app, we would re-fetch or rollback here
-                }
+                    if (activeTaskObj.status !== overTaskObj.status) {
+                        await fetch(`${API_BASE_URL}/api/tasks/${activeId}?updatedBy=Sharath`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: overTaskObj.status })
+                        });
+                    }
+                } catch (err) { console.error(err); }
             } else {
-                // Must be a drop onto a status column (from Kanban board OR from Backlog)
-                const activeTask = tasks.find(t => t.id.toString() === activeId);
-                const statusColumns = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
-
-                if (activeTask && statusColumns.includes(overId)) {
-                    if (activeTask.status !== overId) {
-                        // Optimistically update status
+                const statusColumns = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE', 'BACKLOG'];
+                if (statusColumns.includes(overId)) {
+                    const activeTask = tasks.find(t => t.id.toString() === activeId);
+                    if (activeTask && activeTask.status !== overId) {
                         setTasks(prev => prev.map(t => t.id.toString() === activeId ? { ...t, status: overId } : t));
-
-                        // Persist to backend
                         try {
-                            const response = await fetch(`${API_BASE_URL}/api/tasks/${activeId}?updatedBy=Sharath`, {
+                            await fetch(`${API_BASE_URL}/api/tasks/${activeId}?updatedBy=Sharath`, {
                                 method: 'PATCH',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ status: overId })
                             });
-                            if (!response.ok) throw new Error('Failed to update task status');
-                        } catch (err) {
-                            console.error('Error updating task status:', err);
-                        }
-
-                        // Immediately fetch logs after update
-                        setTimeout(async () => {
-                            try {
-                                const response = await fetch(`${API_BASE_URL}/api/logs`);
-                                if (response.ok) setLogs(await response.json());
-                            } catch (e) { console.error(e); }
-                        }, 500);
+                        } catch (err) { console.error(err); }
                     }
                 }
             }
+
+            setTimeout(async () => {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/api/logs`);
+                    if (res.ok) setLogs(await res.json());
+                } catch (e) { }
+            }, 500);
         }
     };
 
@@ -547,11 +509,21 @@ const Scrum = () => {
         <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
         >
             <div className="scrum-container">
                 <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} />
-                <div className="task-counts">
+                {contextMenu.visible && (
+                    <div
+                        className="custom-context-menu"
+                        style={{ top: contextMenu.y, left: contextMenu.x }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button onClick={handleAssignToMe}>Assign to me</button>
+                    </div>
+                )}
+                <div className="task-counts" onClick={closeContextMenu}>
                     <span className="count-badge total">Total: {tasks.length}</span>
                     <span className="count-badge status-todo">To Do: {todoTasks.length}</span>
                     <span className="count-badge status-in_progress">In Progress: {inProgressTasks.length}</span>
@@ -559,17 +531,17 @@ const Scrum = () => {
                     <span className="count-badge status-done">Done: {doneTasks.length}</span>
                     <span className="count-badge status-backlog">Backlog: {backlogTasks.length}</span>
                 </div>
-                <div className="dashboard-top-section">
+                <div className="dashboard-top-section" onClick={closeContextMenu}>
                     <AISummarySection tasks={tasks} onOpen={setSelectedTask} />
                     <LogsSection logs={logs} tasks={tasks} onOpen={setSelectedTask} />
                 </div>
-                <div className="scrum-board">
+                <div className="scrum-board" onClick={closeContextMenu}>
                     <DroppableColumn id="TODO" title="To Do" tasks={todoTasks} onOpen={setSelectedTask} />
                     <DroppableColumn id="IN_PROGRESS" title="In Progress" tasks={inProgressTasks} onOpen={setSelectedTask} />
                     <DroppableColumn id="REVIEW" title="Review" tasks={reviewTasks} onOpen={setSelectedTask} />
                     <DroppableColumn id="DONE" title="Done" tasks={doneTasks} onOpen={setSelectedTask} />
                 </div>
-                <div className="backlog-section">
+                <div className="backlog-section" onClick={closeContextMenu}>
                     <h2>Backlog</h2>
                     {backlogTasks.length === 0 ? (
                         <p className="empty-msg">No tasks in backlog.</p>
@@ -586,18 +558,28 @@ const Scrum = () => {
                         </div>
                     )}
                 </div>
-                {contextMenu && (
-                    <div 
-                        className="custom-context-menu" 
-                        style={{ top: contextMenu.y, left: contextMenu.x }}
-                    >
-                        <button onClick={handleSendToTodo}>Send to To Do</button>
-                    </div>
-                )}
             </div>
+
+            <DragOverlay dropAnimation={{
+                sideEffects: defaultDropAnimationSideEffects({
+                    styles: {
+                        active: {
+                            opacity: '0.5',
+                        },
+                    },
+                }),
+            }}>
+                {activeTask ? (
+                    activeTask.status === 'BACKLOG' ? (
+                        <BacklogRow task={activeTask} isOverlay />
+                    ) : (
+                        <SortableTaskCard task={activeTask} isOverlay />
+                    )
+                ) : null}
+            </DragOverlay>
         </DndContext>
     );
-};
+}
 
 const styles = {
     overlay: {
@@ -628,4 +610,4 @@ const styles = {
     }
 };
 
-export default Scrum;
+
