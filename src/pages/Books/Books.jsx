@@ -110,6 +110,7 @@ const BookCard = ({ book, isMobile }) => {
 const Books = () => {
     const isMobile = useWindowSize();
     const [currentlyReading, setCurrentlyReading] = useState([]);
+    const [readBooks, setReadBooks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [lastUpdated, setLastUpdated] = useState(null);
@@ -145,22 +146,32 @@ const Books = () => {
             setLoadingMessage(messages[msgIndex]);
         }, 3000);
 
-        const endpoint = isManualSync ? "/api/books/currently-reading-latest" : "/api/books/currently-reading";
+        const currentEndpoint = isManualSync ? "/api/books/currently-reading-latest" : "/api/books/currently-reading";
+        const readEndpoint = isManualSync ? "/api/books/read-latest" : "/api/books/read";
 
-        fetch(`${API_BASE_URL}${endpoint}`)
-            .then(res => res.json())
-            .then(data => {
-                setCurrentlyReading(data);
+        // Fetch both shelves
+        Promise.all([
+            fetch(`${API_BASE_URL}${currentEndpoint}`).then(res => res.json()),
+            fetch(`${API_BASE_URL}${readEndpoint}`).then(res => res.json())
+        ])
+            .then(([currentData, readData]) => {
+                setCurrentlyReading(currentData);
+                setReadBooks(readData);
+
                 // Get the timestamp from the first book (most recent)
-                if (data.length > 0) {
-                    setLastUpdated(data[0].refreshAt);
+                if (currentData.length > 0) {
+                    setLastUpdated(currentData[0].refreshAt);
+                } else if (readData.length > 0) {
+                    setLastUpdated(readData[0].refreshAt);
                 }
-                clearInterval(interval); // Stop the text cycling
+
+                clearInterval(interval);
                 setLoading(false);
                 setRefreshing(false);
             })
-            .catch(() => {
-                clearInterval(interval); // Stop the text cycling
+            .catch((err) => {
+                console.error("Fetch error:", err);
+                clearInterval(interval);
                 setLoading(false);
                 setRefreshing(false);
             });
@@ -204,7 +215,6 @@ const Books = () => {
                 <section style={styles.projectSection}>
                     <div style={styles.headerRow}>
                         <h2 style={styles.sectionTitle}>Currently Reading</h2>
-
                         <div style={styles.actionGroup}>
                             {lastUpdated && (
                                 <span style={styles.timestamp}>
@@ -225,7 +235,6 @@ const Books = () => {
                     </div>
                     <div style={styles.readingGrid}>
                         {currentlyReading.map((book, i) => (
-
                             <a key={i} href={book.link} target="_blank" rel="noreferrer" className="currReadCards" style={styles.miniCard}>
                                 <div style={styles.miniCoverHolder}>
                                     <img src={book.imageUrl} alt={book.title} style={styles.miniCover} />
@@ -233,6 +242,28 @@ const Books = () => {
                                 <div style={styles.miniMeta}>
                                     <div style={styles.miniTitle}>{book.title}</div>
                                     <div style={styles.miniAuthor}>{book.author}</div>
+                                </div>
+                            </a>
+                        ))}
+                    </div>
+                </section>
+            )}
+
+
+            {/* Dynamic Section: Finished in Current Year */}
+            {readBooks.length > 0 && (
+                <section style={styles.projectSection}>
+                    <h2 style={styles.sectionTitle}>Finished in {new Date().getFullYear()}</h2>
+                    <div style={styles.readingGrid}>
+                        {readBooks.map((book, i) => (
+                            <a key={i} href={book.link} target="_blank" rel="noreferrer" className="currReadCards" style={styles.miniCard}>
+                                <div style={styles.miniCoverHolder}>
+                                    <img src={book.imageUrl} alt={book.title} style={styles.miniCover} />
+                                </div>
+                                <div style={styles.miniMeta}>
+                                    <div style={styles.miniTitle}>{book.title}</div>
+                                    <div style={styles.miniAuthor}>{book.author}</div>
+                                    <div style={styles.miniDateRead}>{book.dateRead}</div>
                                 </div>
                             </a>
                         ))}
@@ -374,6 +405,7 @@ const styles = {
     miniMeta: { marginTop: '10px', textAlign: 'center' },
     miniTitle: { fontSize: '0.85rem', color: '#fff', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
     miniAuthor: { fontSize: '0.7rem', color: '#666', marginTop: '2px' },
+    miniDateRead: { fontSize: '0.6rem', color: '#d4af37', marginTop: '5px', letterSpacing: '1px', textTransform: 'uppercase' },
     headerRow: {
         display: 'flex',
         justifyContent: 'space-between',

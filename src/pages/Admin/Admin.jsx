@@ -952,6 +952,45 @@ const Admin = () => {
                                 </select>
                             </div>
 
+                            {deleteSelectedTaskId && (() => {
+                                const task = allTasks.find(t => t.id === deleteSelectedTaskId);
+                                return task ? (
+                                    <div className="form-group existing-tasks-group" style={{ marginBottom: '20px' }}>
+                                        <label>Task Details</label>
+                                        <div className="existing-tasks-list" style={{ maxHeight: '250px', padding: '15px' }}>
+                                            <div style={{ marginBottom: '10px' }}>
+                                                <strong style={{ color: '#d4af37' }}>Description</strong>
+                                                <div style={{ color: '#ccc', marginTop: '4px' }}>{task.description || <em style={{ color: '#666' }}>No description provided.</em>}</div>
+                                            </div>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '12px', borderTop: '1px solid #222', paddingTop: '12px' }}>
+                                                <div>
+                                                    <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Project</strong>
+                                                    <div style={{ color: task.projectColorCode || '#4da3ff', marginTop: '3px' }}>{task.project || '—'}</div>
+                                                </div>
+                                                <div>
+                                                    <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Priority</strong>
+                                                    <div style={{ color: task.priority === 'HIGH' ? '#ff4d4f' : task.priority === 'MEDIUM' ? '#faad14' : '#52c41a', marginTop: '3px' }}>{task.priority || '—'}</div>
+                                                </div>
+                                                <div>
+                                                    <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Assignee</strong>
+                                                    <div style={{ color: '#ccc', marginTop: '3px' }}>{task.assignee || '—'}</div>
+                                                </div>
+                                                <div>
+                                                    <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Status</strong>
+                                                    <div style={{ color: '#00ff88', marginTop: '3px' }}>{task.status || '—'}</div>
+                                                </div>
+                                            </div>
+                                            {task.aiSummary && (
+                                                <div style={{ marginTop: '12px', borderTop: '1px solid #222', paddingTop: '12px' }}>
+                                                    <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>AI Summary</strong>
+                                                    <div style={{ color: '#4da3ff', marginTop: '4px', fontStyle: 'italic' }}>{task.aiSummary}</div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : null;
+                            })()}
+
                             <button
                                 type="submit"
                                 className="submit-btn"
