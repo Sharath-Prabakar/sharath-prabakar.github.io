@@ -81,7 +81,7 @@ function BacklogRow({ task, onOpen, onContextMenu, isOverlay }) {
     );
 }
 
-function SortableTaskCard({ task, onOpen, isOverlay }) {
+function SortableTaskCard({ task, onOpen, onContextMenu, isOverlay }) {
     const {
         attributes,
         listeners,
@@ -119,6 +119,11 @@ function SortableTaskCard({ task, onOpen, isOverlay }) {
             {...listeners}
             className={`task-card priority-${task.priority?.toLowerCase() || 'default'} ${isDragging && !isOverlay ? 'dragging' : ''} ${isOverlay ? 'overlay' : ''}`}
             onClick={() => !isOverlay && onOpen(task)}
+            onContextMenu={(e) => {
+                if (onContextMenu && !isOverlay) {
+                    onContextMenu(e, task);
+                }
+            }}
         >
             {task.project && (
                 <span className="project-badge" style={projectStyle}>
@@ -132,7 +137,7 @@ function SortableTaskCard({ task, onOpen, isOverlay }) {
     );
 }
 
-function DroppableColumn({ id, title, tasks, onOpen }) {
+function DroppableColumn({ id, title, tasks, onOpen, onContextMenu }) {
     const { setNodeRef, isOver } = useDroppable({ id });
     const style = {
         backgroundColor: isOver ? 'rgba(212, 175, 55, 0.05)' : undefined,
@@ -149,7 +154,7 @@ function DroppableColumn({ id, title, tasks, onOpen }) {
                     {tasks.length === 0 ? (
                         <p className="empty-msg">No tasks {title.toLowerCase()}.</p>
                     ) : (
-                        tasks.map(task => <SortableTaskCard key={task.id} task={task} onOpen={onOpen} />)
+                        tasks.map(task => <SortableTaskCard key={task.id} task={task} onOpen={onOpen} onContextMenu={onContextMenu} />)
                     )}
                 </SortableContext>
             </div>
@@ -260,7 +265,7 @@ function AISummarySection({ tasks, onOpen }) {
                 {aiSummaries.length === 0 ? (
                     <p className="empty-msg">No autonomous summaries available.</p>
                 ) : (
-                    aiSummaries.map(task => (
+                    aiSummaries.slice(0, 10).map(task => (
                         <div key={task.id} className="ai-summary-card interactive" onClick={() => onOpen(task)}>
                             <div className="ai-summary-card-title">{task.title}</div>
                             <div className="ai-summary-card-text">{task.aiSummary}</div>
@@ -288,9 +293,14 @@ const LogsSection = ({ logs, tasks, onOpen }) => (
                             onClick={() => task && onOpen(task)}
                             title={task ? "Click to view task details" : ""}
                         >
-                            <span className="log-time">
-                                {new Date(log.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                            </span>
+                            <div className="log-time-wrapper">
+                                <span className="log-time">
+                                    {new Date(log.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                                <span className="log-date">
+                                    {new Date(log.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                                </span>
+                            </div>
                             {log.actionType === 'STATUS_UPDATE' ? (
                                 <span className="log-text">
                                     <strong>{log.assignee}</strong> moved <strong>{log.taskTitle}</strong> from <span className={`log-status status-${(log.fromStatus || 'BACKLOG').toLowerCase()}`}>{log.fromStatus ? log.fromStatus.replace('_', ' ') : 'Backlog'}</span> to <span className={`log-status status-${log.status?.toLowerCase()}`}>{log.status?.replace('_', ' ')}</span>
@@ -320,6 +330,61 @@ const LogsSection = ({ logs, tasks, onOpen }) => (
     </div>
 );
 
+const LoginPopup = ({ onLogin, onGuest }) => {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [loginError, setLoginError] = useState('');
+
+    const handleLogin = (e) => {
+        e.preventDefault();
+        if (username === 'admin' && password === 'admin') {
+            onLogin();
+        } else {
+            setLoginError('Invalid credentials. Try again.');
+        }
+    };
+
+    return (
+        <div className="auth-overlay">
+            <div className="auth-popup">
+                <div className="auth-header">
+                    <h2 className="auth-title">🔐 Scrum Board</h2>
+                    <p className="auth-subtitle">Authenticate to manage tasks</p>
+                </div>
+                <form onSubmit={handleLogin} className="auth-form">
+                    {loginError && <div className="auth-error">{loginError}</div>}
+                    <div className="auth-field">
+                        <label>Username</label>
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => { setUsername(e.target.value); setLoginError(''); }}
+                            placeholder="Enter username"
+                            autoFocus
+                        />
+                    </div>
+                    <div className="auth-field">
+                        <label>Password</label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => { setPassword(e.target.value); setLoginError(''); }}
+                            placeholder="Enter password"
+                        />
+                    </div>
+                    <button type="submit" className="auth-login-btn">Login</button>
+                </form>
+                <div className="auth-divider">
+                    <span>or</span>
+                </div>
+                <button className="auth-guest-btn" onClick={onGuest}>
+                    👁 View as Guest
+                </button>
+            </div>
+        </div>
+    );
+};
+
 export default function Scrum() {
     const [tasks, setTasks] = useState([]);
     const [logs, setLogs] = useState([]);
@@ -329,6 +394,8 @@ export default function Scrum() {
     const [selectedTask, setSelectedTask] = useState(null);
     const [activeTask, setActiveTask] = useState(null);
     const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, task: null });
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isGuest, setIsGuest] = useState(false);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -359,6 +426,25 @@ export default function Scrum() {
 
     const closeContextMenu = () => {
         setContextMenu({ ...contextMenu, visible: false });
+    };
+
+    const handleDeleteTask = async () => {
+        const taskId = contextMenu.task?.id;
+        if (!taskId) return;
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
+                method: 'DELETE',
+            });
+            if (response.ok) {
+                setTasks(prev => prev.filter(t => t.id !== taskId));
+                setContextMenu({ visible: false, x: 0, y: 0, task: null });
+            } else {
+                console.error('Failed to delete task');
+            }
+        } catch (error) {
+            console.error('Error deleting task:', error);
+        }
     };
 
     const handleAssignToMe = async () => {
@@ -422,6 +508,10 @@ export default function Scrum() {
         const interval = setInterval(() => { fetchTasks(); fetchLogs(); }, 30000);
         return () => clearInterval(interval);
     }, []);
+
+    if (!isAuthenticated && !isGuest) {
+        return <LoginPopup onLogin={() => setIsAuthenticated(true)} onGuest={() => setIsGuest(true)} />;
+    }
 
     if (loading) return <div className="scrum-container"><LoadingPopup message={loadingMessage} /></div>;
     if (error) return <div className="scrum-container"><div className="empty-msg">Error: {error.message}</div></div>;
@@ -515,10 +605,10 @@ export default function Scrum() {
 
     return (
         <DndContext
-            sensors={sensors}
+            sensors={isGuest ? [] : sensors}
             collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
+            onDragStart={isGuest ? undefined : handleDragStart}
+            onDragEnd={isGuest ? undefined : handleDragEnd}
         >
             <div className="scrum-container">
                 <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} />
@@ -528,7 +618,11 @@ export default function Scrum() {
                         style={{ top: contextMenu.y, left: contextMenu.x }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <button onClick={handleAssignToMe}>Assign to me</button>
+                        {contextMenu.task?.status === 'DONE' ? (
+                            <button onClick={handleDeleteTask} style={{ color: '#ff4d4d' }}>Delete</button>
+                        ) : (
+                            <button onClick={handleAssignToMe}>Assign to me</button>
+                        )}
                     </div>
                 )}
                 <div className="task-counts" onClick={closeContextMenu}>
@@ -544,10 +638,10 @@ export default function Scrum() {
                     <LogsSection logs={logs} tasks={tasks} onOpen={setSelectedTask} />
                 </div>
                 <div className="scrum-board" onClick={closeContextMenu}>
-                    <DroppableColumn id="TODO" title="To Do" tasks={todoTasks} onOpen={setSelectedTask} />
-                    <DroppableColumn id="IN_PROGRESS" title="In Progress" tasks={inProgressTasks} onOpen={setSelectedTask} />
-                    <DroppableColumn id="REVIEW" title="Review" tasks={reviewTasks} onOpen={setSelectedTask} />
-                    <DroppableColumn id="DONE" title="Done" tasks={doneTasks} onOpen={setSelectedTask} />
+                    <DroppableColumn id="TODO" title="To Do" tasks={todoTasks} onOpen={setSelectedTask} onContextMenu={handleContextMenu} />
+                    <DroppableColumn id="IN_PROGRESS" title="In Progress" tasks={inProgressTasks} onOpen={setSelectedTask} onContextMenu={handleContextMenu} />
+                    <DroppableColumn id="REVIEW" title="Review" tasks={reviewTasks} onOpen={setSelectedTask} onContextMenu={handleContextMenu} />
+                    <DroppableColumn id="DONE" title="Done" tasks={doneTasks} onOpen={setSelectedTask} onContextMenu={handleContextMenu} />
                 </div>
                 <div className="backlog-section" onClick={closeContextMenu}>
                     <h2>Backlog</h2>

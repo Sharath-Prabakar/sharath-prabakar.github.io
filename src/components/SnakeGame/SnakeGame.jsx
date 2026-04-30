@@ -67,11 +67,15 @@ const SnakeGame = () => {
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            switch (e.key) {
-                case 'ArrowUp': if (direction.y === 0) setDirection({ x: 0, y: -1 }); break;
-                case 'ArrowDown': if (direction.y === 0) setDirection({ x: 0, y: 1 }); break;
-                case 'ArrowLeft': if (direction.x === 0) setDirection({ x: -1, y: 0 }); break;
-                case 'ArrowRight': if (direction.x === 0) setDirection({ x: 1, y: 0 }); break;
+            const key = e.key;
+            if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(key)) {
+                e.preventDefault();
+            }
+            switch (key) {
+                case 'w': case 'W': case 'ArrowUp': if (direction.y === 0) setDirection({ x: 0, y: -1 }); break;
+                case 's': case 'S': case 'ArrowDown': if (direction.y === 0) setDirection({ x: 0, y: 1 }); break;
+                case 'a': case 'A': case 'ArrowLeft': if (direction.x === 0) setDirection({ x: -1, y: 0 }); break;
+                case 'd': case 'D': case 'ArrowRight': if (direction.x === 0) setDirection({ x: 1, y: 0 }); break;
                 default: break;
             }
         };
@@ -132,6 +136,7 @@ const SnakeGame = () => {
                 {!gameStarted && !gameOver && (
                     <div className="game-overlay">
                         <button onClick={startGame} className="btn-game">Start Game</button>
+                        <div className="wasd-hint">Use <strong>W A S D</strong> to navigate</div>
                     </div>
                 )}
 
@@ -144,12 +149,12 @@ const SnakeGame = () => {
             </div>
 
             <div className="mobile-controls">
-                <button onClick={() => direction.y === 0 && setDirection({ x: 0, y: -1 })} className="ctrl-btn up">▲</button>
+                <button onClick={() => direction.y === 0 && setDirection({ x: 0, y: -1 })} className="ctrl-btn up">W</button>
                 <div className="row">
-                    <button onClick={() => direction.x === 0 && setDirection({ x: -1, y: 0 })} className="ctrl-btn left">◀</button>
-                    <button onClick={() => direction.x === 0 && setDirection({ x: 1, y: 0 })} className="ctrl-btn right">▶</button>
+                    <button onClick={() => direction.x === 0 && setDirection({ x: -1, y: 0 })} className="ctrl-btn left">A</button>
+                    <button onClick={() => direction.x === 0 && setDirection({ x: 1, y: 0 })} className="ctrl-btn right">D</button>
                 </div>
-                <button onClick={() => direction.y === 0 && setDirection({ x: 0, y: 1 })} className="ctrl-btn down">▼</button>
+                <button onClick={() => direction.y === 0 && setDirection({ x: 0, y: 1 })} className="ctrl-btn down">S</button>
             </div>
         </div>
     );

@@ -129,6 +129,17 @@ const Books = () => {
         });
     };
 
+    // Helper to format date to dd/mm/yyyy
+    const formatDateSimple = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        if (isNaN(date)) return dateString; // Fallback if not a parsable date
+        const d = String(date.getDate()).padStart(2, '0');
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const y = date.getFullYear();
+        return `${d}/${m}/${y}`;
+    };
+
     const fetchBooks = (isManualSync = false) => {
         setRefreshing(true);
 
@@ -263,7 +274,7 @@ const Books = () => {
                                 <div style={styles.miniMeta}>
                                     <div style={styles.miniTitle}>{book.title}</div>
                                     <div style={styles.miniAuthor}>{book.author}</div>
-                                    <div style={styles.miniDateRead}>{book.dateRead}</div>
+                                    <div style={styles.miniDateRead}>{formatDateSimple(book.dateRead)}</div>
                                 </div>
                             </a>
                         ))}

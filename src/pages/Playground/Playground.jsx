@@ -2,10 +2,40 @@ import React, { useState, useEffect } from 'react';
 import './playground.css';
 import PaintingCanvas from '../../components/PaintingCanvas/PaintingCanvas';
 import SnakeGame from '../../components/SnakeGame/SnakeGame';
+import { chatService } from '../../services/chatService';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const SummaryModal = ({ summary, onClose }) => {
+    const [tasks, setTasks] = useState([]);
+    const [loadingTasks, setLoadingTasks] = useState(false);
+
+    useEffect(() => {
+        if (summary?.taskIds?.length > 0) {
+            const fetchTasks = async () => {
+                setLoadingTasks(true);
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/tasks/batch/fetch`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(summary.taskIds)
+                    });
+                    const data = await response.json();
+                    setTasks(data);
+                } catch (err) {
+                    console.error('Failed to fetch tasks:', err);
+                } finally {
+                    setLoadingTasks(false);
+                }
+            };
+            fetchTasks();
+        } else {
+            setTasks([]);
+        }
+    }, [summary]);
+
     if (!summary) return null;
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="glass-card modal-content" onClick={(e) => e.stopPropagation()}>
@@ -16,6 +46,38 @@ const SummaryModal = ({ summary, onClose }) => {
                 </div>
                 <div className="modal-body">
                     <div className="full-content">{summary.content}</div>
+
+                    {summary.taskIds && summary.taskIds.length > 0 && (
+                        <div className="tasks-summary-section">
+                            <h3 className="section-subtitle">🛠️ Tasks Executed</h3>
+                            {loadingTasks ? (
+                                <p className="loading-mini">Fetching task details...</p>
+                            ) : (
+                                <div className="summary-tasks-table-wrapper">
+                                    <table className="summary-tasks-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Task</th>
+                                                <th>Project</th>
+                                                <th>Assignee</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {tasks.map(task => (
+                                                <tr key={task.id}>
+                                                    <td>{task.title}</td>
+                                                    <td>{task.project}</td>
+                                                    <td>{task.assignee}</td>
+                                                    <td><span className={`status-pill ${task.status}`}>{task.status}</span></td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -24,8 +86,15 @@ const SummaryModal = ({ summary, onClose }) => {
 
 const Playground = () => {
     const [summaries, setSummaries] = useState([]);
+    const [messages, setMessages] = useState([]);
+    const [input, setInput] = useState('');
     const [loading, setLoading] = useState(true);
     const [selectedSummary, setSelectedSummary] = useState(null);
+    const messagesEndRef = React.useRef(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
 
     useEffect(() => {
         const fetchSummaries = async () => {
@@ -39,8 +108,35 @@ const Playground = () => {
                 setLoading(false);
             }
         };
+
+        const fetchMessages = async () => {
+            try {
+                const data = await chatService.getMessages();
+                setMessages(data);
+            } catch (err) {
+                console.error('Failed to fetch messages:', err);
+            }
+        };
+
         fetchSummaries();
+        fetchMessages();
     }, []);
+
+    const handleSendMessage = async () => {
+        if (!input.trim()) return;
+        const newMessage = { content: input, sender: 'user', createdAt: new Date().toISOString() };
+        setInput('');
+        setMessages(prev => [...prev, newMessage]);
+        try {
+            await chatService.sendMessage(newMessage);
+        } catch (err) {
+            console.error('Failed to send message:', err);
+        }
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') handleSendMessage();
+    };
 
     return (
         <div className="playground-container">
@@ -55,26 +151,7 @@ const Playground = () => {
             </header>
 
             <div className="playground-grid">
-                {/* 1. DIGITAL ZEN SECTION (TOP) */}
-                <section className="playground-section zen-section">
-                    <h2 className="section-title">
-                        <span className="icon">🧘</span> Digital Zen
-                    </h2>
-                    <div className="zen-grid">
-                        <div className="glass-card zen-card canvas-card">
-                            <div className="card-badge">Next Gen</div>
-                            <h3>Painting Canvas</h3>
-                            <PaintingCanvas />
-                        </div>
-                        <div className="glass-card zen-card">
-                            <div className="card-badge">Classic</div>
-                            <h3>Snake Game</h3>
-                            <SnakeGame />
-                        </div>
-                    </div>
-                </section>
-
-                {/* 2. EXECUTION SUMMARY SECTION (LEFT) */}
+                {/* 1. EXECUTION SUMMARY SECTION (LEFT) */}
                 <section className="playground-section summary-section">
                     <h2 className="section-title">
                         <span className="icon">📊</span> Agentic AI Execution Summary
@@ -84,7 +161,7 @@ const Playground = () => {
                             <p className="placeholder-text">Loading autonomous activity...</p>
                         ) : summaries.length > 0 ? (
                             <div className="summaries-list">
-                                {summaries.map((summary) => (
+                                {summaries.slice(0, 10).map((summary) => (
                                     <div
                                         key={summary.id}
                                         className="summary-item interactive"
@@ -103,26 +180,65 @@ const Playground = () => {
                         ) : (
                             <p className="placeholder-text">No autonomous activities recorded yet.</p>
                         )}
-                        <div className="status-indicator">
-                            <span className="pulse"></span> System Active
-                        </div>
                     </div>
                 </section>
 
-                {/* 3. CHAT INTERFACE SECTION (RIGHT) */}
+                {/* 2. CHAT INTERFACE SECTION (RIGHT) */}
                 <section className="playground-section chat-section">
                     <h2 className="section-title">
                         <span className="icon">💬</span> AI Explorer
                     </h2>
-                    <div className="glass-card chat-placeholder">
-                        <div className="mock-messages">
-                            <div className="message bot">Hello! How can I assist you today?</div>
-                            <div className="message user">Show me the latest system logs.</div>
-                            <div className="message bot">Fetching logs... One moment please.</div>
+                    <div className="glass-card chat-container">
+                        <div className="chat-messages-area">
+                            {messages.length > 0 ? messages.map((msg, idx) => (
+                                <div key={idx} className={`message ${msg.sender}`}>
+                                    <div className="message-content">{msg.content}</div>
+                                    <span className="message-time">
+                                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
+                                    </span>
+                                </div>
+                            )) : (
+                                <div className="message bot">
+                                    <div className="message-content">Hello! I am Antigravity. How can I assist your development today?</div>
+                                    <span className="message-time">Just now</span>
+                                </div>
+                            )}
+                            <div ref={messagesEndRef} />
                         </div>
-                        <div className="chat-input-mock">
-                            <span>Message Antigravity...</span>
-                            <div className="send-btn-mock"></div>
+                        <div className="chat-input-wrapper">
+                            <input
+                                type="text"
+                                className="chat-input"
+                                placeholder="Message Antigravity..."
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                            />
+                            <button className="chat-send-btn" onClick={handleSendMessage} disabled={!input.trim()}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 3. DIGITAL ZEN SECTION (BOTTOM) */}
+                <section className="playground-section zen-section">
+                    <h2 className="section-title">
+                        <span className="icon">🧘</span> Digital Zen
+                    </h2>
+                    <div className="zen-grid">
+                        <div className="glass-card zen-card canvas-card">
+                            <div className="card-badge">Next Gen</div>
+                            <h3>Painting Canvas</h3>
+                            <PaintingCanvas />
+                        </div>
+                        <div className="glass-card zen-card">
+                            <div className="card-badge">Classic</div>
+                            <h3>Snake Game</h3>
+                            <SnakeGame />
                         </div>
                     </div>
                 </section>
