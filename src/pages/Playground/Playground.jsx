@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './playground.css';
+import HorizontalCalendar from '../../components/HorizontalCalendar/HorizontalCalendar';
 import PaintingCanvas from '../../components/PaintingCanvas/PaintingCanvas';
-import SnakeGame from '../../components/SnakeGame/SnakeGame';
 import { chatService } from '../../services/chatService';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -150,6 +150,8 @@ const Playground = () => {
                 <p className="playground-tagline">Experiment. Automate. Relax.</p>
             </header>
 
+            <HorizontalCalendar summaries={summaries} />
+
             <div className="playground-grid">
                 {/* 1. EXECUTION SUMMARY SECTION (LEFT) */}
                 <section className="playground-section summary-section">
@@ -234,11 +236,6 @@ const Playground = () => {
                             <div className="card-badge">Next Gen</div>
                             <h3>Painting Canvas</h3>
                             <PaintingCanvas />
-                        </div>
-                        <div className="glass-card zen-card">
-                            <div className="card-badge">Classic</div>
-                            <h3>Snake Game</h3>
-                            <SnakeGame />
                         </div>
                     </div>
                 </section>
