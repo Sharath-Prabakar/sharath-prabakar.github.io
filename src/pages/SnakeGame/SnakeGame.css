@@ -1,0 +1,239 @@
+.snake-page-container {
+    background: radial-gradient(circle at top right, #0a0e1a, #050505);
+    min-height: 100vh;
+    padding: 120px 20px 60px;
+    color: #e0e0e0;
+    font-family: 'Outfit', 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.snake-page-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+    opacity: 0.03;
+    pointer-events: none;
+}
+
+.snake-page-header {
+    text-align: center;
+    margin-bottom: 60px;
+    animation: fadeInDown 1s ease-out;
+}
+
+.snake-page-title {
+    font-size: clamp(2.5rem, 10vw, 4.5rem);
+    letter-spacing: 16px;
+    font-weight: 900;
+    background: linear-gradient(to right, #fff, #4da3ff, #d4af37);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 0 15px rgba(77, 163, 255, 0.4));
+    text-transform: uppercase;
+}
+
+.snake-page-tagline {
+    font-size: 1.2rem;
+    color: #aaa;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-weight: 300;
+}
+
+.snake-game-card {
+    background: rgba(15, 15, 20, 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 35px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Snake Game Styles */
+.snake-game-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+.game-stats {
+    display: flex;
+    gap: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-item .label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    color: #666;
+    letter-spacing: 1px;
+}
+
+.stat-item .value {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #d4af37;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.game-viewport {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    background: #050505;
+    border: 2px solid rgba(212, 175, 55, 0.2);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    grid-template-rows: repeat(20, 1fr);
+    width: 100%;
+    height: 100%;
+}
+
+.grid-cell {
+    width: 100%;
+    height: 100%;
+}
+
+.grid-cell.snake {
+    background: #4da3ff;
+    border-radius: 2px;
+}
+
+.grid-cell.head {
+    background: #fff;
+    box-shadow: 0 0 10px #4da3ff;
+    z-index: 2;
+}
+
+.grid-cell.food {
+    background: #ff4d4d;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #ff4d4d;
+    animation: food-pulse 1s infinite alternate;
+}
+
+@keyframes food-pulse {
+    from { transform: scale(0.8); opacity: 0.8; }
+    to { transform: scale(1.1); opacity: 1; }
+}
+
+.game-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+}
+
+.wasd-hint {
+    color: #888;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 5px;
+}
+
+.wasd-hint strong {
+    color: #d4af37;
+    font-weight: 800;
+}
+
+.game-over-text {
+    color: #ff4d4d;
+    font-size: 1.2rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.btn-game {
+    background: #d4af37;
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 800;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.btn-game:hover {
+    transform: scale(1.05);
+    background: #fff;
+}
+
+.mobile-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.mobile-controls .row {
+    display: flex;
+    gap: 40px;
+}
+
+.ctrl-btn {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: #888;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.ctrl-btn:active {
+    background: #4da3ff;
+    color: #fff;
+    transform: scale(0.9);
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}

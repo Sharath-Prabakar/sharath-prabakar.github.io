@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import './SnakeGame.css';
 
 const GRID_SIZE = 20;
 const INITIAL_SNAKE = [{ x: 10, y: 10 }];
@@ -103,58 +104,67 @@ const SnakeGame = () => {
     };
 
     return (
-        <div className="snake-game-container">
-            <div className="game-stats">
-                <div className="stat-item">
-                    <span className="label">Score</span>
-                    <span className="value">{score}</span>
-                </div>
-                <div className="stat-item">
-                    <span className="label">High</span>
-                    <span className="value">{highScore}</span>
-                </div>
-            </div>
-            
-            <div className="game-viewport">
-                <div className="game-grid">
-                    {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, i) => {
-                        const x = i % GRID_SIZE;
-                        const y = Math.floor(i / GRID_SIZE);
-                        const isSnake = snake.some(s => s.x === x && s.y === y);
-                        const isHead = snake[0].x === x && snake[0].y === y;
-                        const isFood = food.x === x && food.y === y;
+        <div className="snake-page-container">
+            <header className="snake-page-header">
+                <h1 className="snake-page-title">SNAKE GAME</h1>
+                <p className="snake-page-tagline">Classic Arcade Experience</p>
+            </header>
 
-                        return (
-                            <div 
-                                key={i} 
-                                className={`grid-cell ${isSnake ? 'snake' : ''} ${isHead ? 'head' : ''} ${isFood ? 'food' : ''}`}
-                            />
-                        );
-                    })}
-                </div>
-
-                {!gameStarted && !gameOver && (
-                    <div className="game-overlay">
-                        <button onClick={startGame} className="btn-game">Start Game</button>
-                        <div className="wasd-hint">Use <strong>W A S D</strong> to navigate</div>
+            <div className="snake-game-card">
+                <div className="snake-game-container">
+                    <div className="game-stats">
+                        <div className="stat-item">
+                            <span className="label">Score</span>
+                            <span className="value">{score}</span>
+                        </div>
+                        <div className="stat-item">
+                            <span className="label">High</span>
+                            <span className="value">{highScore}</span>
+                        </div>
                     </div>
-                )}
+                    
+                    <div className="game-viewport">
+                        <div className="game-grid">
+                            {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, i) => {
+                                const x = i % GRID_SIZE;
+                                const y = Math.floor(i / GRID_SIZE);
+                                const isSnake = snake.some(s => s.x === x && s.y === y);
+                                const isHead = snake[0].x === x && snake[0].y === y;
+                                const isFood = food.x === x && food.y === y;
 
-                {gameOver && (
-                    <div className="game-overlay">
-                        <div className="game-over-text">System Failure</div>
-                        <button onClick={startGame} className="btn-game">Retry</button>
+                                return (
+                                    <div 
+                                        key={i} 
+                                        className={`grid-cell ${isSnake ? 'snake' : ''} ${isHead ? 'head' : ''} ${isFood ? 'food' : ''}`}
+                                    />
+                                );
+                            })}
+                        </div>
+
+                        {!gameStarted && !gameOver && (
+                            <div className="game-overlay">
+                                <button onClick={startGame} className="btn-game">Start Game</button>
+                                <div className="wasd-hint">Use <strong>W A S D</strong> to navigate</div>
+                            </div>
+                        )}
+
+                        {gameOver && (
+                            <div className="game-overlay">
+                                <div className="game-over-text">System Failure</div>
+                                <button onClick={startGame} className="btn-game">Retry</button>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
 
-            <div className="mobile-controls">
-                <button onClick={() => direction.y === 0 && setDirection({ x: 0, y: -1 })} className="ctrl-btn up">W</button>
-                <div className="row">
-                    <button onClick={() => direction.x === 0 && setDirection({ x: -1, y: 0 })} className="ctrl-btn left">A</button>
-                    <button onClick={() => direction.x === 0 && setDirection({ x: 1, y: 0 })} className="ctrl-btn right">D</button>
+                    <div className="mobile-controls">
+                        <button onClick={() => direction.y === 0 && setDirection({ x: 0, y: -1 })} className="ctrl-btn up">W</button>
+                        <div className="row">
+                            <button onClick={() => direction.x === 0 && setDirection({ x: -1, y: 0 })} className="ctrl-btn left">A</button>
+                            <button onClick={() => direction.x === 0 && setDirection({ x: 1, y: 0 })} className="ctrl-btn right">D</button>
+                        </div>
+                        <button onClick={() => direction.y === 0 && setDirection({ x: 0, y: 1 })} className="ctrl-btn down">S</button>
+                    </div>
                 </div>
-                <button onClick={() => direction.y === 0 && setDirection({ x: 0, y: 1 })} className="ctrl-btn down">S</button>
             </div>
         </div>
     );

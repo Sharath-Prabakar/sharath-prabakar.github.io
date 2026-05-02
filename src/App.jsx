@@ -8,6 +8,8 @@ import Scrum from './pages/Scrum/Scrum';
 import Admin from './pages/Admin/Admin';
 import SixtyHourClock from './pages/Clock/SixtyHourClock';
 import Playground from './pages/Playground/Playground';
+import SnakeGame from './pages/SnakeGame/SnakeGame';
+import MiniProjects from './pages/MiniProjects/MiniProjects';
 
 const App = () => {
     return (
@@ -19,6 +21,8 @@ const App = () => {
                 <Route path="/scrum" element={<Scrum />} />
                 <Route path="/clock" element={<SixtyHourClock />} />
                 <Route path="/playground" element={<Playground />} />
+                <Route path="/snake" element={<SnakeGame />} />
+                <Route path="/mini-projects" element={<MiniProjects />} />
                 <Route path="/admin" element={<Admin />} />
             </Routes>
         </Router>

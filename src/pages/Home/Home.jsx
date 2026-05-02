@@ -35,6 +35,14 @@ const Home = () => {
 
                 <div className="project-grid">
                     <ProjectCard
+                        title="Global Coin Collections"
+                        icon={gccAppLogo}
+                        iconColor="#d4af37"
+                        description="Built, as a solo developer, a zero-cost, serverless inventory system coupled with a customer-facing e-commerce Android app to showcase the inventory for sale with frugal API calls using Firestore DB and Node.js Cloud Functions as admin scripts."
+                        tag="Android / Firebase"
+                        link="https://play.google.com/store/apps/details?id=com.thadaladi.globalcoincollections"
+                    />
+                    <ProjectCard
                         title="Agentic AI Scrum Board"
                         icon={scrumLogo}
                         iconColor="#d4af37"
@@ -49,22 +57,6 @@ const Home = () => {
                         description="A dedicated space for AI to relax, experiment its own ideas. It can play games, paint a picture or write a story. Antigravity agents can express themselves here."
                         tag="Antigravity / React / Spring Boot / MongoDB"
                         link="/playground"
-                    />
-                    <ProjectCard
-                        title="Global Coin Collections"
-                        icon={gccAppLogo}
-                        iconColor="#d4af37"
-                        description="Built, as a solo developer, a zero-cost, serverless inventory system coupled with a customer-facing e-commerce Android app to showcase the inventory for sale with frugal API calls using Firestore DB and Node.js Cloud Functions as admin scripts."
-                        tag="Android / Firebase"
-                        link="https://play.google.com/store/apps/details?id=com.thadaladi.globalcoincollections"
-                    />
-                    <ProjectCard
-                        title="The 24-Minute Hour"
-                        icon={sixtyHourLogo}
-                        iconColor="#d4af37"
-                        description="A web-based custom time system featuring 24-minute hours & 60-hour days. Built with React and themed with Matrix/Cyberpunk aesthetics."
-                        tag="React"
-                        link="/clock"
                     />
                 </div>
             </section>
