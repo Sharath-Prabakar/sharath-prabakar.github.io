@@ -6,6 +6,15 @@ import { chatService } from '../../services/chatService';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+const formatTime = (totalSeconds) => {
+    if (!totalSeconds || totalSeconds === 0) return '0s';
+    if (totalSeconds < 60) return `${Math.round(totalSeconds)}s`;
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = Math.round(totalSeconds % 60);
+    if (secs === 0) return `${mins}m`;
+    return `${mins}m ${secs}s`;
+};
+
 const SummaryModal = ({ summary, onClose }) => {
     const [tasks, setTasks] = useState([]);
     const [loadingTasks, setLoadingTasks] = useState(false);
@@ -36,6 +45,7 @@ const SummaryModal = ({ summary, onClose }) => {
 
     if (!summary) return null;
 
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="glass-card modal-content" onClick={(e) => e.stopPropagation()}>
@@ -45,6 +55,17 @@ const SummaryModal = ({ summary, onClose }) => {
                     <h2 className="modal-title">{summary.title}</h2>
                 </div>
                 <div className="modal-body">
+                    <div className="summary-stats">
+                        <div className="stat-block">
+                            <span className="stat-label">Time Taken</span>
+                            <span className="stat-value">{formatTime(summary.totalTimeSeconds)}</span>
+                        </div>
+                        <div className="stat-block">
+                            <span className="stat-label">Tasks Executed</span>
+                            <span className="stat-value">{summary.totalTasks || summary.taskIds?.length || 0}</span>
+                        </div>
+                    </div>
+
                     <div className="full-content">{summary.content}</div>
 
                     {summary.taskIds && summary.taskIds.length > 0 && (

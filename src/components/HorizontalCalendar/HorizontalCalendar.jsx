@@ -40,11 +40,11 @@ const HorizontalCalendar = ({ summaries }) => {
 
     const formatTime = (totalSeconds) => {
         if (totalSeconds === 0) return '0s';
-        if (totalSeconds < 60) return `${totalSeconds.toFixed(0)}s`;
+        if (totalSeconds < 60) return `${Math.round(totalSeconds)}s`;
         const mins = Math.floor(totalSeconds / 60);
-        const secs = totalSeconds % 60;
+        const secs = Math.round(totalSeconds % 60);
         if (secs === 0) return `${mins}m`;
-        return `${mins}m ${secs.toFixed(0)}s`;
+        return `${mins}m ${secs}s`;
     };
 
     return (
