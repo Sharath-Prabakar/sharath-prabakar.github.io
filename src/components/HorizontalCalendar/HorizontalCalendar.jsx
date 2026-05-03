@@ -4,8 +4,8 @@ import './HorizontalCalendar.css';
 const HorizontalCalendar = ({ summaries }) => {
     // Generate an array of 7 days: 5 past, 1 today, 1 future
     const days = useMemo(() => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Normalize to start of day
+        const today = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+        today.setHours(0, 0, 0, 0); 
         
         const daysArray = [];
         for (let i = -5; i <= 1; i++) {
@@ -23,7 +23,7 @@ const HorizontalCalendar = ({ summaries }) => {
             if (!summary.createdAt) return;
             const dateObj = new Date(summary.createdAt);
             // Use local date string to avoid timezone shifts (YYYY-MM-DD)
-            const dateStr = dateObj.toLocaleDateString('en-CA');
+            const dateStr = dateObj.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
             
             if (!data[dateStr]) {
                 data[dateStr] = { tasks: 0, timeSec: 0 };
@@ -36,7 +36,7 @@ const HorizontalCalendar = ({ summaries }) => {
         return data;
     }, [summaries]);
 
-    const todayStr = new Date().toLocaleDateString('en-CA');
+    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
     const formatTime = (totalSeconds) => {
         if (totalSeconds === 0) return '0s';
@@ -52,9 +52,9 @@ const HorizontalCalendar = ({ summaries }) => {
             <h3 className="calendar-title">AI Productivity Tracker</h3>
             <div className="calendar-days-row">
                 {days.map((date, index) => {
-                    const dateStr = date.toLocaleDateString('en-CA');
+                    const dateStr = date.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
                     const isToday = dateStr === todayStr;
-                    const isFuture = date > new Date() && !isToday;
+                    const isFuture = date > new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })) && !isToday;
                     const stats = productivityByDate[dateStr] || { tasks: 0, timeSec: 0 };
                     
                     const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });

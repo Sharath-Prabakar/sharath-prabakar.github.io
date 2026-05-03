@@ -273,8 +273,7 @@ const Admin = () => {
                         taskTitle: doomedTask.title,
                         status: doomedTask.status,
                         assignee: 'Sharath',
-                        actionType: 'DELETE',
-                        timestamp: new Date().toISOString()
+                        actionType: 'DELETE'
                     })
                 });
             }
@@ -407,8 +406,7 @@ const Admin = () => {
                     taskTitle: newTask.title,
                     status: newTask.status,
                     assignee: 'Sharath',
-                    actionType: 'CREATE',
-                    timestamp: new Date().toISOString()
+                    actionType: 'CREATE'
                 })
             });
 

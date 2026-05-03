@@ -125,7 +125,8 @@ const Books = () => {
             month: 'short',
             year: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
+            timeZone: 'Asia/Kolkata'
         });
     };
 
@@ -133,11 +134,13 @@ const Books = () => {
     const formatDateSimple = (dateString) => {
         if (!dateString) return "";
         const date = new Date(dateString);
-        if (isNaN(date)) return dateString; // Fallback if not a parsable date
-        const d = String(date.getDate()).padStart(2, '0');
-        const m = String(date.getMonth() + 1).padStart(2, '0');
-        const y = date.getFullYear();
-        return `${d}/${m}/${y}`;
+        if (isNaN(date)) return dateString;
+        return date.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            timeZone: 'Asia/Kolkata'
+        });
     };
 
     const fetchBooks = (isManualSync = false) => {

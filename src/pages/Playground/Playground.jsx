@@ -41,7 +41,7 @@ const SummaryModal = ({ summary, onClose }) => {
             <div className="glass-card modal-content" onClick={(e) => e.stopPropagation()}>
                 <button className="modal-close" onClick={onClose}>✕</button>
                 <div className="modal-header">
-                    <span className="summary-date">{new Date(summary.createdAt).toLocaleString()}</span>
+                    <span className="summary-date">{new Date(summary.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</span>
                     <h2 className="modal-title">{summary.title}</h2>
                 </div>
                 <div className="modal-body">
@@ -170,7 +170,7 @@ const Playground = () => {
                                         onClick={() => setSelectedSummary(summary)}
                                     >
                                         <div className="summary-header">
-                                            <span className="summary-date">{new Date(summary.createdAt).toLocaleString()}</span>
+                                            <span className="summary-date">{new Date(summary.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</span>
                                             <h4 className="summary-title">{summary.title}</h4>
                                         </div>
                                         <div className="summary-content-preview">
@@ -196,7 +196,7 @@ const Playground = () => {
                                 <div key={idx} className={`message ${msg.sender}`}>
                                     <div className="message-content">{msg.content}</div>
                                     <span className="message-time">
-                                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
+                                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }) : 'Just now'}
                                     </span>
                                 </div>
                             )) : (

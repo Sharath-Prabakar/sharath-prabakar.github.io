@@ -208,7 +208,7 @@ const TaskDetailModal = ({ task, onClose }) => {
                         {task.createdAt && (
                             <div className="task-modal-meta-item">
                                 <span className="meta-label">Created</span>
-                                <span className="meta-value">{new Date(task.createdAt).toLocaleString('en-IN')}</span>
+                                <span className="meta-value">{new Date(task.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</span>
                             </div>
                         )}
                         <div className="task-modal-meta-item">
@@ -218,7 +218,7 @@ const TaskDetailModal = ({ task, onClose }) => {
                         {task.updatedAt && (
                             <div className="task-modal-meta-item">
                                 <span className="meta-label">Last Updated</span>
-                                <span className="meta-value">{new Date(task.updatedAt).toLocaleString('en-IN')}</span>
+                                <span className="meta-value">{new Date(task.updatedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</span>
                             </div>
                         )}
                     </div>
@@ -240,7 +240,7 @@ const TaskDetailModal = ({ task, onClose }) => {
                             <div className="task-modal-history-list">
                                 {task.logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((log, idx) => (
                                     <div key={idx} className="task-modal-history-item">
-                                        <span className="history-time">{new Date(log.timestamp).toLocaleString('en-IN')}</span>
+                                        <span className="history-time">{new Date(log.timestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</span>
                                         <span className="history-text">
                                             <strong>{log.assignee}</strong> {log.description}
                                         </span>
@@ -295,10 +295,10 @@ const LogsSection = ({ logs, tasks, onOpen }) => (
                         >
                             <div className="log-time-wrapper">
                                 <span className="log-time">
-                                    {new Date(log.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                                    {new Date(log.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}
                                 </span>
                                 <span className="log-date">
-                                    {new Date(log.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                                    {new Date(log.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', timeZone: 'Asia/Kolkata' })}
                                 </span>
                             </div>
                             {log.actionType === 'STATUS_UPDATE' ? (

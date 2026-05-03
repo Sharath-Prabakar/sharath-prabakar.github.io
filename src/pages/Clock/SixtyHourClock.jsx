@@ -39,7 +39,7 @@ const MultiThemeClock = () => {
     useEffect(() => {
         // 1. Clock Logic (1 hour = 1440s, 1 min = 24s)
         const timer = setInterval(() => {
-            const now = new Date();
+            const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
             const totalMinutes = now.getHours() * 60 + now.getMinutes();
 
             setTime({
