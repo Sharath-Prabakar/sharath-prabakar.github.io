@@ -1,0 +1,136 @@
+.sources-widget {
+    margin-top: 20px;
+    border: 1px solid rgba(77, 163, 255, 0.2);
+}
+
+.sources-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.source-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+}
+
+.source-item:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(77, 163, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.source-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.source-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.source-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #1a1a1a;
+}
+
+.source-date {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.credibility-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tag-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.credibility-tag.high {
+    background: rgba(46, 125, 50, 0.1);
+    color: #2e7d32;
+    border: 1px solid rgba(46, 125, 50, 0.2);
+}
+
+.credibility-tag.high .tag-dot {
+    background-color: #2e7d32;
+}
+
+.credibility-tag.medium {
+    background: rgba(239, 108, 0, 0.1);
+    color: #ef6c00;
+    border: 1px solid rgba(239, 108, 0, 0.2);
+}
+
+.credibility-tag.medium .tag-dot {
+    background-color: #ef6c00;
+}
+
+.source-link {
+    font-size: 0.8rem;
+    color: #4da3ff;
+    text-decoration: none;
+    align-self: flex-end;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.source-link:hover {
+    color: #80bdff;
+    text-decoration: underline;
+}
+
+.transparency-footer {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.transparency-note {
+    font-size: 0.75rem;
+    color: #777;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+.report-issue-btn {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #666;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    align-self: flex-start;
+}
+
+.report-issue-btn:hover {
+    background: #e9ecef;
+    color: #333;
+    border-color: #ced4da;
+}

@@ -1,12 +1,10 @@
 .career-timeline-container {
-  padding: 60px 20px;
-  background-color: #0f172a; /* Dark Blue */
-  color: #f8fafc;
+  padding: 40px 20px;
+  background-color: #ffffff;
+  color: #333;
   width: 100%;
-  max-width: 1000px;
-  margin: 40px auto;
-  border-radius: 24px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  margin: 0;
+  border-radius: 16px;
 }
 
 .timeline-title {
@@ -64,10 +62,10 @@
 }
 
 .timeline-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: #f8f9fa;
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #e9ecef;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   position: relative;
 }
@@ -110,12 +108,12 @@
 .event-title {
   margin: 0 0 8px 0;
   font-size: 1.1rem;
-  color: #fff;
+  color: #1a1a1a;
 }
 
 .event-description {
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: #555;
   margin-bottom: 12px;
   line-height: 1.5;
 }

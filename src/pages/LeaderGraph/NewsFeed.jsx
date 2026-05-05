@@ -37,7 +37,7 @@ const NewsFeed = ({ news = [] }) => {
         {newsList.map((item) => (
           <div 
             key={item.id} 
-            className="glass-card news-item-card overflow-hidden hover:scale-[1.01] transition-all duration-300 border border-white/5"
+            className="bg-white news-item-card overflow-hidden hover:scale-[1.01] transition-all duration-300 border border-gray-100 shadow-sm"
           >
             <div className="flex flex-col md:row">
               {/* Thumbnail */}
@@ -56,12 +56,12 @@ const NewsFeed = ({ news = [] }) => {
                     <span className="text-xs font-bold text-blue-400 uppercase tracking-widest px-2 py-1 bg-blue-500/10 rounded">
                       {item.source}
                     </span>
-                    <span className="text-white/20">|</span>
-                    <span className="text-xs text-white/40 font-mono">
+                    <span className="text-gray-300">|</span>
+                    <span className="text-xs text-gray-500 font-mono">
                       {item.date}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-3 line-clamp-2 leading-tight group-hover:text-blue-300 transition-colors">
+                  <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">
                     {item.title}
                   </h3>
                 </div>
@@ -69,8 +69,8 @@ const NewsFeed = ({ news = [] }) => {
                 <div className="flex items-center mt-4">
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
                     item.credibility === 'High' 
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                      : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                      ? 'bg-emerald-600 text-white border-emerald-700' 
+                      : 'bg-amber-600 text-white border-amber-700'
                   }`}>
                     <span className={`w-2 h-2 rounded-full mr-2 ${
                       item.credibility === 'High' ? 'bg-emerald-500' : 'bg-amber-500'
