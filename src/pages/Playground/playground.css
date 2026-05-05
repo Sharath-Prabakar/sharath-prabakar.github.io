@@ -221,6 +221,15 @@
     to { opacity: 1; transform: translateX(0) scale(1); }
 }
 
+.sender-name {
+    font-size: 0.7rem;
+    font-weight: 800;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
 .message-content {
     padding: 14px 20px;
     border-radius: 18px;
@@ -243,6 +252,10 @@
     animation: messageSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+.message.bot .sender-name {
+    margin-left: 5px;
+}
+
 .message.bot .message-content {
     background: linear-gradient(135deg, rgba(77, 163, 255, 0.1), rgba(77, 163, 255, 0.05));
     color: #4da3ff;
@@ -253,6 +266,11 @@
 .message.user {
     align-self: flex-end;
     animation: messageSlideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.message.user .sender-name {
+    align-self: flex-end;
+    margin-right: 5px;
 }
 
 .message.user .message-content {

@@ -15,6 +15,23 @@ const formatTime = (totalSeconds) => {
     return `${mins}m ${secs}s`;
 };
 
+const getSenderName = (sender) => {
+    if (sender === 'user') return 'You';
+    if (sender === 'bot') return 'Antigravity';
+    return sender;
+};
+
+const getSenderColor = (sender) => {
+    const colors = {
+        'user': '#d4af37', // Gold
+        'bot': '#4da3ff',  // Blue
+        'antigravity': '#4da3ff',
+        'system': '#00ff88',
+        'assistant': '#a855f7'
+    };
+    return colors[sender.toLowerCase()] || '#e0e0e0';
+};
+
 const SummaryModal = ({ summary, onClose }) => {
     const [tasks, setTasks] = useState([]);
     const [loadingTasks, setLoadingTasks] = useState(false);
@@ -51,7 +68,12 @@ const SummaryModal = ({ summary, onClose }) => {
             <div className="glass-card modal-content" onClick={(e) => e.stopPropagation()}>
                 <button className="modal-close" onClick={onClose}>✕</button>
                 <div className="modal-header">
-                    <span className="summary-date">{new Date(summary.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</span>
+                    <span className="summary-date">
+                        {summary.isDaySummary 
+                            ? new Date(summary.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+                            : new Date(summary.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+                        }
+                    </span>
                     <h2 className="modal-title">{summary.title}</h2>
                 </div>
                 <div className="modal-body">
@@ -159,6 +181,39 @@ const Playground = () => {
         if (e.key === 'Enter') handleSendMessage();
     };
 
+    const handleDayClick = (dateStr) => {
+        const daySummaries = summaries.filter(s => {
+            if (!s.createdAt) return false;
+            const sDateStr = new Date(s.createdAt).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+            return sDateStr === dateStr;
+        });
+
+        if (daySummaries.length === 0) return;
+
+        const aggregatedTaskIds = [];
+        let totalTimeSeconds = 0;
+        let totalTasks = 0;
+
+        daySummaries.forEach(s => {
+            if (s.taskIds) aggregatedTaskIds.push(...s.taskIds);
+            totalTimeSeconds += s.totalTimeSeconds || 0;
+            totalTasks += s.totalTasks || (s.taskIds ? s.taskIds.length : 0);
+        });
+
+        const daySummary = {
+            id: `day-${dateStr}`,
+            createdAt: new Date(dateStr).toISOString(),
+            isDaySummary: true,
+            title: `Daily Execution Summary`,
+            content: `Aggregated execution summary for ${daySummaries.length} session(s) on this day.`,
+            totalTimeSeconds,
+            totalTasks,
+            taskIds: aggregatedTaskIds
+        };
+
+        setSelectedSummary(daySummary);
+    };
+
     return (
         <div className="playground-container">
             <SummaryModal
@@ -171,7 +226,7 @@ const Playground = () => {
                 <p className="playground-tagline">Experiment. Automate. Relax.</p>
             </header>
 
-            <HorizontalCalendar summaries={summaries} />
+            <HorizontalCalendar summaries={summaries} onDayClick={handleDayClick} />
 
             <div className="playground-grid">
                 {/* 1. EXECUTION SUMMARY SECTION (LEFT) */}
@@ -215,6 +270,9 @@ const Playground = () => {
                         <div className="chat-messages-area">
                             {messages.length > 0 ? messages.map((msg, idx) => (
                                 <div key={idx} className={`message ${msg.sender}`}>
+                                    <span className="sender-name" style={{ color: getSenderColor(msg.sender) }}>
+                                        {getSenderName(msg.sender)}
+                                    </span>
                                     <div className="message-content">{msg.content}</div>
                                     <span className="message-time">
                                         {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }) : 'Just now'}
@@ -222,6 +280,9 @@ const Playground = () => {
                                 </div>
                             )) : (
                                 <div className="message bot">
+                                    <span className="sender-name" style={{ color: getSenderColor('bot') }}>
+                                        Antigravity
+                                    </span>
                                     <div className="message-content">Hello! I am Antigravity. How can I assist your development today?</div>
                                     <span className="message-time">Just now</span>
                                 </div>

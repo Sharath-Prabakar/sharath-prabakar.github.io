@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import './HorizontalCalendar.css';
 
-const HorizontalCalendar = ({ summaries }) => {
+const HorizontalCalendar = ({ summaries, onDayClick }) => {
     // Generate an array of 7 days: 5 past, 1 today, 1 future
     const days = useMemo(() => {
         const today = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
@@ -64,9 +64,18 @@ const HorizontalCalendar = ({ summaries }) => {
                     if (isToday) dayClass += ' is-today';
                     if (isFuture) dayClass += ' is-future';
                     if (!isFuture && stats.tasks > 0) dayClass += ' has-activity';
+                    if (onDayClick && !isFuture) dayClass += ' clickable';
 
                     return (
-                        <div key={dateStr} className={dayClass}>
+                        <div 
+                            key={dateStr} 
+                            className={dayClass}
+                            onClick={() => {
+                                if (onDayClick && !isFuture) {
+                                    onDayClick(dateStr);
+                                }
+                            }}
+                        >
                             <div className="day-header">
                                 <span className="day-name">{dayName}</span>
                                 <span className="day-number">{dayNumber}</span>

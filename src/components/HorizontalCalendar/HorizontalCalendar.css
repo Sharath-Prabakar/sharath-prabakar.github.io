@@ -64,6 +64,16 @@
     filter: grayscale(100%);
 }
 
+.calendar-day-box.clickable {
+    cursor: pointer;
+}
+
+.calendar-day-box.clickable:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border-color: rgba(218, 165, 32, 0.4);
+}
+
 .day-header {
     display: flex;
     flex-direction: column;
