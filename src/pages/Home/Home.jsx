@@ -15,7 +15,7 @@ const Home = () => {
                 <div style={styles.badge}>SOFTWARE DEVELOPER | AUTHOR</div>
                 <p style={styles.bio}>
                     Sharath Prabakar is an enthusiastic problem-solver with 5+ years of experience in Android and AEM frameworks.
-                    He's currently vibe coding React along with Spring Boot to develop this website using Gemini.
+                    He's currently learning React along with Spring Boot to develop this website using Antigravity.
                     When he’s not writing code, he’ll be writing sci-fi stories.
                 </p>
             </section>
