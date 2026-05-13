@@ -8,7 +8,6 @@ import {
     useSensor,
     useSensors,
     useDroppable,
-    useDraggable,
     DragOverlay,
     defaultDropAnimationSideEffects
 } from '@dnd-kit/core';
@@ -20,8 +19,11 @@ import {
     useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import './scrum.css';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "dummy-client-id.apps.googleusercontent.com";
 
 const hexToRgba = (hex, alpha) => {
     if (!hex) return `rgba(30, 58, 95, ${alpha})`;
@@ -69,7 +71,7 @@ function BacklogRow({ task, onOpen, onContextMenu, isOverlay }) {
         >
             <div className="backlog-row-title-container">
                 {task.project && (
-                    <span className="project-badge" style={projectStyle}>
+                    <span className="project-badge" style={projectStyle}>       
                         {task.project}
                     </span>
                 )}
@@ -99,7 +101,7 @@ function SortableTaskCard({ task, onOpen, onContextMenu, isOverlay }) {
         transition,
         zIndex: isOverlay ? 1000 : (isDragging ? 100 : 1),
         opacity: isDragging && !isOverlay ? 0.3 : 1,
-        boxShadow: isOverlay ? '0 20px 40px rgba(0,0,0,0.8)' : undefined,
+        boxShadow: isOverlay ? '0 20px 40px rgba(0,0,0,0.8)' : undefined,       
         cursor: isOverlay ? 'grabbing' : 'grab',
     };
 
@@ -140,7 +142,7 @@ function SortableTaskCard({ task, onOpen, onContextMenu, isOverlay }) {
 function DroppableColumn({ id, title, tasks, onOpen, onContextMenu }) {
     const { setNodeRef, isOver } = useDroppable({ id });
     const style = {
-        backgroundColor: isOver ? 'rgba(212, 175, 55, 0.05)' : undefined,
+        backgroundColor: isOver ? 'rgba(212, 175, 55, 0.05)' : undefined,       
         borderColor: isOver ? '#d4af37' : undefined,
     };
     return (
@@ -171,11 +173,14 @@ const LoadingPopup = ({ message }) => (
     </div>
 );
 
-const PRIORITY_COLORS = { HIGH: '#ff4d4f', MEDIUM: '#faad14', LOW: '#52c41a' };
+const PRIORITY_COLORS = { HIGH: '#ff4d4f', MEDIUM: '#faad14', LOW: '#52c41a' }; 
 const STATUS_LABELS = { TODO: 'To Do', IN_PROGRESS: 'In Progress', REVIEW: 'Review', DONE: 'Done', BACKLOG: 'Backlog' };
 
-const TaskDetailModal = ({ task, onClose }) => {
+const TaskDetailModal = ({ task, onClose, onTaskUpdate }) => {
     if (!task) return null;
+    const [newComment, setNewComment] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const priorityColor = PRIORITY_COLORS[task.priority] || '#888';
     const projectStyle = {
         backgroundColor: hexToRgba(task.projectColorCode, 0.25),
@@ -184,9 +189,31 @@ const TaskDetailModal = ({ task, onClose }) => {
         boxShadow: `0 0 12px ${hexToRgba(task.projectColorCode, 0.5)}`,
         textShadow: `0 0 5px ${task.projectColorCode || '#4da3ff'}`
     };
+
+    const handleAddComment = async () => {
+        if (!newComment.trim()) return;
+        setIsSubmitting(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/tasks/${task.id}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ comment: newComment })
+            });
+            if (res.ok) {
+                const updatedTask = await res.json();
+                onTaskUpdate(updatedTask);
+                setNewComment('');
+            }
+        } catch (err) {
+            console.error("Failed to add comment", err);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return (
         <div className="task-modal-overlay" onClick={onClose}>
-            <div className="task-modal" onClick={e => e.stopPropagation()}>
+            <div className="task-modal" onClick={e => e.stopPropagation()}>     
                 <button className="task-modal-close" onClick={onClose}>✕</button>
                 <div className="task-modal-header">
                     {task.project && <span className="project-badge" style={projectStyle}>{task.project}</span>}
@@ -198,29 +225,23 @@ const TaskDetailModal = ({ task, onClose }) => {
                         <div className="task-modal-meta-item">
                             <span className="meta-label">Status</span>
                             <span className={`log-status status-${task.status?.toLowerCase()}`}>
-                                {STATUS_LABELS[task.status] || task.status}
+                                {STATUS_LABELS[task.status] || task.status}     
                             </span>
                         </div>
                         <div className="task-modal-meta-item">
-                            <span className="meta-label">Priority</span>
+                            <span className="meta-label">Priority</span>        
                             <span className="meta-value" style={{ color: priorityColor, fontWeight: 'bold' }}>{task.priority}</span>
                         </div>
                         {task.createdAt && (
                             <div className="task-modal-meta-item">
-                                <span className="meta-label">Created</span>
+                                <span className="meta-label">Created</span>     
                                 <span className="meta-value">{new Date(task.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</span>
                             </div>
                         )}
                         <div className="task-modal-meta-item">
-                            <span className="meta-label">Assignee</span>
+                            <span className="meta-label">Assignee</span>        
                             <span className="meta-value">{task.assignee || '—'}</span>
                         </div>
-                        {task.updatedAt && (
-                            <div className="task-modal-meta-item">
-                                <span className="meta-label">Last Updated</span>
-                                <span className="meta-value">{new Date(task.updatedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</span>
-                            </div>
-                        )}
                     </div>
                     {task.prompt && (
                         <div className="task-modal-prompt">
@@ -234,13 +255,43 @@ const TaskDetailModal = ({ task, onClose }) => {
                             <p style={{ color: '#4da3ff', fontStyle: 'italic' }}>{task.aiSummary}</p>
                         </div>
                     )}
+
+                    <div className="task-modal-comments">
+                        <span className="meta-label">Comments</span>
+                        <div className="task-modal-comments-list">
+                            {task.comments && task.comments.length > 0 ? (
+                                task.comments.map((comment, idx) => (
+                                    <div key={idx} className="comment-item">
+                                        {comment}
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="empty-msg" style={{ margin: '10px 0' }}>No comments yet.</p>
+                            )}
+                        </div>
+                        <div className="add-comment-section">
+                            <textarea
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                placeholder="Add a comment..."
+                                disabled={isSubmitting}
+                            />
+                            <button 
+                                onClick={handleAddComment} 
+                                disabled={isSubmitting || !newComment.trim()}
+                            >
+                                {isSubmitting ? 'Posting...' : 'Post'}
+                            </button>
+                        </div>
+                    </div>
+
                     {task.logs && task.logs.length > 0 && (
                         <div className="task-modal-history">
                             <span className="meta-label">Activity History</span>
                             <div className="task-modal-history-list">
                                 {task.logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((log, idx) => (
                                     <div key={idx} className="task-modal-history-item">
-                                        <span className="history-time">{new Date(log.timestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</span>
+                                        <span className="history-time">{new Date(log.timestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</span>   
                                         <span className="history-text">
                                             <strong>{log.assignee}</strong> {log.description}
                                         </span>
@@ -260,7 +311,7 @@ function AISummarySection({ tasks, onOpen }) {
 
     return (
         <div className="ai-summary-container">
-            <h2 className="ai-summary-header">🤖 Agentic AI Task Summary</h2>
+            <h2 className="ai-summary-header">🤖 Agentic AI Task Summary</h2> 
             <div className="ai-summary-list">
                 {aiSummaries.length === 0 ? (
                     <p className="empty-msg">No autonomous summaries available.</p>
@@ -291,11 +342,11 @@ const LogsSection = ({ logs, tasks, onOpen }) => (
                             key={log.id}
                             className="log-item interactive"
                             onClick={() => task && onOpen(task)}
-                            title={task ? "Click to view task details" : ""}
+                            title={task ? "Click to view task details" : ""}    
                         >
                             <div className="log-time-wrapper">
                                 <span className="log-time">
-                                    {new Date(log.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}
+                                    {new Date(log.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}     
                                 </span>
                                 <span className="log-date">
                                     {new Date(log.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', timeZone: 'Asia/Kolkata' })}
@@ -331,16 +382,24 @@ const LogsSection = ({ logs, tasks, onOpen }) => (
 );
 
 const LoginPopup = ({ onLogin, onGuest }) => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
     const [loginError, setLoginError] = useState('');
 
-    const handleLogin = (e) => {
-        e.preventDefault();
-        if (username === 'admin' && password === 'admin') {
-            onLogin();
-        } else {
-            setLoginError('Invalid credentials. Try again.');
+    const handleSuccess = async (credentialResponse) => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/auth/google`, {        
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: credentialResponse.credential })  
+            });
+            if (res.ok) {
+                const data = await res.json();
+                onLogin(data);
+            } else {
+                const err = await res.json();
+                setLoginError(err.error || 'Authentication failed');
+            }
+        } catch {
+            setLoginError('Network error');
         }
     };
 
@@ -348,53 +407,46 @@ const LoginPopup = ({ onLogin, onGuest }) => {
         <div className="auth-overlay">
             <div className="auth-popup">
                 <div className="auth-header">
-                    <h2 className="auth-title">🔐 Scrum Board</h2>
+                    <h2 className="auth-title">🔒 Scrum Board</h2>
                     <p className="auth-subtitle">Authenticate to manage tasks</p>
                 </div>
-                <form onSubmit={handleLogin} className="auth-form">
+                <div className="auth-form">
                     {loginError && <div className="auth-error">{loginError}</div>}
-                    <div className="auth-field">
-                        <label>Username</label>
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => { setUsername(e.target.value); setLoginError(''); }}
-                            placeholder="Enter username"
-                            autoFocus
+                    <div style={{ display: 'flex', justifyContent: 'center', margin: '20px 0' }}>
+                        <GoogleLogin
+                            onSuccess={handleSuccess}
+                            onError={() => setLoginError('Login Failed')}       
                         />
                     </div>
-                    <div className="auth-field">
-                        <label>Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => { setPassword(e.target.value); setLoginError(''); }}
-                            placeholder="Enter password"
-                        />
-                    </div>
-                    <button type="submit" className="auth-login-btn">Login</button>
-                </form>
+                </div>
                 <div className="auth-divider">
                     <span>or</span>
                 </div>
                 <button className="auth-guest-btn" onClick={onGuest}>
-                    👁 View as Guest
+                    👤 View as Guest
                 </button>
             </div>
         </div>
     );
 };
 
+const LoginPopupWrapper = ({ onLogin, onGuest }) => (
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <LoginPopup onLogin={onLogin} onGuest={onGuest} />
+    </GoogleOAuthProvider>
+);
+
 export default function Scrum() {
     const [tasks, setTasks] = useState([]);
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [loadingMessage, setLoadingMessage] = useState("Initializing...");
+    const [loadingMessage, setLoadingMessage] = useState("Initializing...");    
     const [error, setError] = useState(null);
     const [selectedTask, setSelectedTask] = useState(null);
     const [activeTask, setActiveTask] = useState(null);
     const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, task: null });
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [userAccess, setUserAccess] = useState(null);
     const [isGuest, setIsGuest] = useState(false);
 
     const sensors = useSensors(
@@ -416,6 +468,7 @@ export default function Scrum() {
 
     const handleContextMenu = (e, task) => {
         e.preventDefault();
+        if (isGuest) return;
         setContextMenu({
             visible: true,
             x: e.clientX,
@@ -431,19 +484,19 @@ export default function Scrum() {
     const handleDeleteTask = async () => {
         const taskId = contextMenu.task?.id;
         if (!taskId) return;
-        
+
         try {
             const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
                 method: 'DELETE',
             });
             if (response.ok) {
                 setTasks(prev => prev.filter(t => t.id !== taskId));
-                setContextMenu({ visible: false, x: 0, y: 0, task: null });
+                setContextMenu({ visible: false, x: 0, y: 0, task: null });     
             } else {
                 console.error('Failed to delete task');
             }
-        } catch (error) {
-            console.error('Error deleting task:', error);
+        } catch (err) {
+            console.error('Error deleting task:', err);
         }
     };
 
@@ -463,6 +516,11 @@ export default function Scrum() {
             console.error("Failed to assign task", err);
         }
         closeContextMenu();
+    };
+
+    const handleTaskUpdate = (updatedTask) => {
+        setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
+        setSelectedTask(updatedTask);
     };
 
     useEffect(() => {
@@ -489,18 +547,18 @@ export default function Scrum() {
     useEffect(() => {
         const fetchTasks = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/tasks`);
-                if (!response.ok) throw new Error('Failed to fetch tasks');
+                const response = await fetch(`${API_BASE_URL}/api/tasks`);      
+                if (!response.ok) throw new Error('Failed to fetch tasks');     
                 const data = await response.json();
                 setTasks(data);
-            } catch (e) { setError(e); } finally { setLoading(false); }
+            } catch (err) { setError(err); } finally { setLoading(false); }     
         };
 
         const fetchLogs = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/logs`);
+                const response = await fetch(`${API_BASE_URL}/api/logs`);       
                 if (response.ok) setLogs(await response.json());
-            } catch (e) { console.error("Failed to fetch logs", e); }
+            } catch (err) { console.error("Failed to fetch logs", err); }       
         };
 
         fetchTasks();
@@ -510,22 +568,30 @@ export default function Scrum() {
     }, []);
 
     if (!isAuthenticated && !isGuest) {
-        return <LoginPopup onLogin={() => setIsAuthenticated(true)} onGuest={() => setIsGuest(true)} />;
+        return <LoginPopupWrapper
+            onLogin={(data) => {
+                setIsAuthenticated(true);
+                setUserAccess(data.access);
+            }}
+            onGuest={() => setIsGuest(true)}
+        />;
     }
 
     if (loading) return <div className="scrum-container"><LoadingPopup message={loadingMessage} /></div>;
     if (error) return <div className="scrum-container"><div className="empty-msg">Error: {error.message}</div></div>;
 
     const sortedTasks = [...tasks].sort((a, b) => (a.order || 0) - (b.order || 0));
-    const todoTasks = sortedTasks.filter(task => task.status === 'TODO');
+    const todoTasks = sortedTasks.filter(task => task.status === 'TODO');       
     const inProgressTasks = sortedTasks.filter(task => task.status === 'IN_PROGRESS');
-    const reviewTasks = sortedTasks.filter(task => task.status === 'REVIEW');
-    const doneTasks = sortedTasks.filter(task => task.status === 'DONE');
-    const backlogTasks = sortedTasks.filter(task => task.status === 'BACKLOG');
+    const reviewTasks = sortedTasks.filter(task => task.status === 'REVIEW');   
+    const doneTasks = sortedTasks.filter(task => task.status === 'DONE');       
+    const backlogTasks = sortedTasks.filter(task => task.status === 'BACKLOG'); 
+
+    const canDrag = isAuthenticated && userAccess === 'Admin';
 
     const handleDragStart = (event) => {
         const { active } = event;
-        const task = tasks.find(t => t.id.toString() === active.id.toString());
+        const task = tasks.find(t => t.id.toString() === active.id.toString()); 
         setActiveTask(task);
     };
 
@@ -538,7 +604,7 @@ export default function Scrum() {
             const overId = over.id.toString();
 
             const activeTaskObj = tasks.find(t => t.id.toString() === activeId);
-            const overTaskObj = tasks.find(t => t.id.toString() === overId);
+            const overTaskObj = tasks.find(t => t.id.toString() === overId);    
 
             if (overTaskObj) {
                 const sameColumnTasks = sortedTasks.filter(t => t.status === overTaskObj.status);
@@ -556,8 +622,8 @@ export default function Scrum() {
                     const prevOrder = reordered[movedTaskIndex - 1]?.order || 0.0;
                     newOrder = prevOrder + 1.0;
                 } else {
-                    const prevOrder = reordered[movedTaskIndex - 1].order;
-                    const nextOrder = reordered[movedTaskIndex + 1].order;
+                    const prevOrder = reordered[movedTaskIndex - 1].order;      
+                    const nextOrder = reordered[movedTaskIndex + 1].order;      
                     newOrder = (prevOrder + nextOrder) / 2.0;
                 }
 
@@ -566,13 +632,13 @@ export default function Scrum() {
                 try {
                     await fetch(`${API_BASE_URL}/api/tasks/${activeId}/order`, {
                         method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ order: newOrder.toString() })
+                        headers: { 'Content-Type': 'application/json' },        
+                        body: JSON.stringify({ order: newOrder.toString() })    
                     });
                     if (activeTaskObj.status !== overTaskObj.status) {
                         await fetch(`${API_BASE_URL}/api/tasks/${activeId}?updatedBy=Sharath`, {
                             method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json' },    
                             body: JSON.stringify({ status: overTaskObj.status })
                         });
                     }
@@ -587,7 +653,7 @@ export default function Scrum() {
                             await fetch(`${API_BASE_URL}/api/tasks/${activeId}?updatedBy=Sharath`, {
                                 method: 'PATCH',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ status: overId })
+                                body: JSON.stringify({ status: overId })        
                             });
                         } catch (err) { console.error(err); }
                     }
@@ -596,26 +662,32 @@ export default function Scrum() {
 
             setTimeout(async () => {
                 try {
-                    const res = await fetch(`${API_BASE_URL}/api/logs`);
+                    const res = await fetch(`${API_BASE_URL}/api/logs`);        
                     if (res.ok) setLogs(await res.json());
-                } catch (e) { }
+                } catch {
+                    // ignore
+                }
             }, 500);
         }
     };
 
     return (
         <DndContext
-            sensors={isGuest ? [] : sensors}
+            sensors={canDrag ? sensors : []}
             collisionDetection={closestCenter}
-            onDragStart={isGuest ? undefined : handleDragStart}
-            onDragEnd={isGuest ? undefined : handleDragEnd}
+            onDragStart={canDrag ? handleDragStart : undefined}
+            onDragEnd={canDrag ? handleDragEnd : undefined}
         >
             <div className="scrum-container">
-                <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} />
+                <TaskDetailModal 
+                    task={selectedTask} 
+                    onClose={() => setSelectedTask(null)} 
+                    onTaskUpdate={handleTaskUpdate}
+                />
                 {contextMenu.visible && (
                     <div
                         className="custom-context-menu"
-                        style={{ top: contextMenu.y, left: contextMenu.x }}
+                        style={{ top: contextMenu.y, left: contextMenu.x }}     
                         onClick={(e) => e.stopPropagation()}
                     >
                         {contextMenu.task?.status === 'DONE' ? (
@@ -625,7 +697,7 @@ export default function Scrum() {
                         )}
                     </div>
                 )}
-                <div className="task-counts" onClick={closeContextMenu}>
+                <div className="task-counts" onClick={closeContextMenu}>        
                     <span className="count-badge total">Total: {tasks.length}</span>
                     <span className="count-badge status-todo">To Do: {todoTasks.length}</span>
                     <span className="count-badge status-in_progress">In Progress: {inProgressTasks.length}</span>
@@ -634,23 +706,23 @@ export default function Scrum() {
                     <span className="count-badge status-backlog">Backlog: {backlogTasks.length}</span>
                 </div>
                 <div className="dashboard-top-section" onClick={closeContextMenu}>
-                    <AISummarySection tasks={tasks} onOpen={setSelectedTask} />
+                    <AISummarySection tasks={tasks} onOpen={setSelectedTask} /> 
                     <LogsSection logs={logs} tasks={tasks} onOpen={setSelectedTask} />
                 </div>
-                <div className="scrum-board" onClick={closeContextMenu}>
+                <div className="scrum-board" onClick={closeContextMenu}>        
                     <DroppableColumn id="TODO" title="To Do" tasks={todoTasks} onOpen={setSelectedTask} onContextMenu={handleContextMenu} />
-                    <DroppableColumn id="IN_PROGRESS" title="In Progress" tasks={inProgressTasks} onOpen={setSelectedTask} onContextMenu={handleContextMenu} />
+                    <DroppableColumn id="IN_PROGRESS" title="In Progress" tasks={inProgressTasks} onOpen={setSelectedTask} onContextMenu={handleContextMenu} /> 
                     <DroppableColumn id="REVIEW" title="Review" tasks={reviewTasks} onOpen={setSelectedTask} onContextMenu={handleContextMenu} />
                     <DroppableColumn id="DONE" title="Done" tasks={doneTasks} onOpen={setSelectedTask} onContextMenu={handleContextMenu} />
                 </div>
-                <div className="backlog-section" onClick={closeContextMenu}>
+                <div className="backlog-section" onClick={closeContextMenu}>    
                     <h2>Backlog</h2>
                     {backlogTasks.length === 0 ? (
-                        <p className="empty-msg">No tasks in backlog.</p>
+                        <p className="empty-msg">No tasks in backlog.</p>       
                     ) : (
                         <div className="backlog-list">
                             <SortableContext
-                                items={backlogTasks.map(t => t.id.toString())}
+                                items={backlogTasks.map(t => t.id.toString())}  
                                 strategy={verticalListSortingStrategy}
                             >
                                 {backlogTasks.map(task => (
@@ -675,7 +747,7 @@ export default function Scrum() {
                     activeTask.status === 'BACKLOG' ? (
                         <BacklogRow task={activeTask} isOverlay />
                     ) : (
-                        <SortableTaskCard task={activeTask} isOverlay />
+                        <SortableTaskCard task={activeTask} isOverlay />        
                     )
                 ) : null}
             </DragOverlay>
@@ -711,5 +783,3 @@ const styles = {
         textTransform: 'uppercase',
     }
 };
-
-

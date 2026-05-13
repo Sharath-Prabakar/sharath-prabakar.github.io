@@ -360,29 +360,29 @@
     text-transform: uppercase;
 }
 
-.status-todo { 
-    background-color: rgba(0, 128, 128, 0.15); 
-    color: #4db6ac; 
+.status-todo {
+    background-color: rgba(0, 128, 128, 0.15);
+    color: #4db6ac;
     border: 1px solid #008080;
 }
-.status-in_progress { 
-    background-color: rgba(0, 71, 171, 0.2); 
-    color: #4da3ff; 
+.status-in_progress {
+    background-color: rgba(0, 71, 171, 0.2);
+    color: #4da3ff;
     border: 1px solid #0047AB;
 }
-.status-review { 
-    background-color: rgba(255, 152, 0, 0.15); 
-    color: #ffb74d; 
+.status-review {
+    background-color: rgba(255, 152, 0, 0.15);
+    color: #ffb74d;
     border: 1px solid #ff9800;
 }
-.status-done { 
-    background-color: rgba(1, 68, 33, 0.2); 
-    color: #4ade80; 
+.status-done {
+    background-color: rgba(1, 68, 33, 0.2);
+    color: #4ade80;
     border: 1px solid #014421;
 }
-.status-backlog { 
-    background-color: rgba(79, 70, 229, 0.15); 
-    color: #94a3b8; 
+.status-backlog {
+    background-color: rgba(79, 70, 229, 0.15);
+    color: #94a3b8;
     border: 1px solid #4f46e5;
 }
 
@@ -601,6 +601,90 @@
     line-height: 1.55;
     font-style: italic;
     margin: 0;
+}
+
+/* Comments in Modal */
+.task-modal-comments {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #1e1e1e;
+}
+
+.task-modal-comments-list {
+    margin-top: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-right: 8px;
+    margin-bottom: 16px;
+}
+
+.task-modal-comments-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.task-modal-comments-list::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+}
+
+.comment-item {
+    padding: 10px 14px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #bbb;
+    line-height: 1.5;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.add-comment-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.add-comment-section textarea {
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 12px;
+    color: #eee;
+    font-size: 0.9rem;
+    font-family: inherit;
+    resize: none;
+    height: 80px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.add-comment-section textarea:focus {
+    border-color: #4da3ff;
+}
+
+.add-comment-section button {
+    align-self: flex-end;
+    background: #4da3ff;
+    color: #fff;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-comment-section button:hover {
+    background: #3a8ee6;
+}
+
+.add-comment-section button:disabled {
+    background: #333;
+    color: #666;
+    cursor: not-allowed;
 }
 
 /* Activity History in Modal */
@@ -928,4 +1012,4 @@
     background: rgba(255, 255, 255, 0.06);
     color: #ccc;
     border-color: rgba(255, 255, 255, 0.15);
-}
+}
