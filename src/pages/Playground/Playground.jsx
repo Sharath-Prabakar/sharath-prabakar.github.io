@@ -15,13 +15,14 @@ const formatTime = (totalSeconds) => {
     return `${mins}m ${secs}s`;
 };
 
-const getSenderName = (sender) => {
-    if (sender === 'user') {
-        const userFullName = localStorage.getItem('userFullName');
-        return userFullName || 'You';
+const getSenderName = (msg) => {
+    if (msg.sender === 'user') {
+        return (msg.senderName && msg.senderName.trim() !== '') ? msg.senderName : 'User';
     }
-    if (sender === 'bot') return 'Antigravity';
-    return sender;
+    if (msg.sender === 'bot') {
+        return (msg.senderName && msg.senderName.trim() !== '') ? msg.senderName : 'Antigravity';
+    }
+    return msg.sender || 'Unknown';
 };
 
 const getSenderColor = (sender) => {
@@ -150,6 +151,8 @@ const SummaryModal = ({ summary, onClose }) => {
 const Playground = () => {
     const [summaries, setSummaries] = useState([]);
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    const userAccess = localStorage.getItem('userAccess');
+    const isGuestUser = !isAuthenticated || userAccess === 'Request';
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(true);
@@ -187,8 +190,19 @@ const Playground = () => {
     }, []);
 
     const handleSendMessage = async () => {
-        if (!input.trim()) return;
-        const newMessage = { content: input, sender: 'user', createdAt: new Date().toISOString() };
+        if (!input.trim() || isGuestUser) return;
+        
+        const userFullName = localStorage.getItem('userFullName') || 'User';
+        const userEmail = localStorage.getItem('userEmail') || '';
+
+        const newMessage = { 
+            content: input, 
+            sender: 'user',
+            senderName: userFullName,
+            senderEmail: userEmail,
+            createdAt: new Date().toISOString() 
+        };
+        
         setInput('');
         setMessages(prev => [...prev, newMessage]);
         try {
@@ -292,7 +306,7 @@ const Playground = () => {
                             {messages.length > 0 ? messages.map((msg, idx) => (
                                 <div key={idx} className={`message ${msg.sender}`}>
                                     <span className="sender-name" style={{ color: getSenderColor(msg.sender) }}>
-                                        {getSenderName(msg.sender)}
+                                        {getSenderName(msg)}
                                     </span>
                                     <div className="message-content">{msg.content}</div>
                                     <span className="message-time">
@@ -311,21 +325,21 @@ const Playground = () => {
                             <div ref={messagesEndRef} />
                         </div>
                         <div className="chat-input-wrapper">
-                            <input
-                                type="text"
-                                className="chat-input"
-                                placeholder={isAuthenticated ? "Message Antigravity..." : "Log in to chat with Antigravity"}
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyPress={handleKeyPress}
-                                disabled={!isAuthenticated}
-                            />
-                            <button className="chat-send-btn" onClick={handleSendMessage} disabled={!input.trim() || !isAuthenticated}>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                                </svg>
-                            </button>
+                                <input
+                                    type="text"
+                                    className="chat-input"
+                                    placeholder={!isAuthenticated ? "Log in to chat with Antigravity" : isGuestUser ? "Access required to chat with Antigravity" : "Message Antigravity..."}
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    onKeyPress={handleKeyPress}
+                                    disabled={isGuestUser}
+                                />
+                                <button className="chat-send-btn" onClick={handleSendMessage} disabled={!input.trim() || isGuestUser}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                    </svg>
+                                </button>
                         </div>
                     </div>
                 </section>

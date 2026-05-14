@@ -425,7 +425,15 @@ const LogsSection = ({ logs, tasks, onOpen }) => (
                                 </span>
                             ) : log.actionType === 'EDIT' ? (
                                 <span className="log-text">
-                                    <strong>{log.assignee}</strong> updated <strong>{log.taskTitle}</strong>: {log.description}
+                                    <strong>{log.assignee}</strong> updated <strong>{log.taskTitle}</strong>
+                                </span>
+                            ) : log.actionType === 'BATCH_ASSIGN' ? (
+                                <span className="log-text">
+                                    <strong>{log.assignee}</strong> reassigned <strong>{log.taskTitle}</strong>
+                                </span>
+                            ) : log.actionType === 'LINK_PROJECT' ? (
+                                <span className="log-text">
+                                    <strong>{log.assignee}</strong> linked <strong>{log.taskTitle}</strong> to <strong>{log.description.replace('Task linked to project: ', '')}</strong>
                                 </span>
                             ) : log.actionType === 'DELETE' ? (
                                 <span className="log-text">
@@ -710,6 +718,7 @@ export default function Scrum() {
                 setUserAccess(data.access);
                 const userFullName = `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'System';
                 localStorage.setItem('userFullName', userFullName);
+                localStorage.setItem('userEmail', data.email);
                 localStorage.setItem('isAuthenticated', 'true');
                 localStorage.setItem('userAccess', data.access);
             }}

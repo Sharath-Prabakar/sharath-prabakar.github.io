@@ -140,7 +140,8 @@ const Admin = () => {
         setProjectSuccess('');
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/projects`, {
+            const userFullName = localStorage.getItem('userFullName') || 'System';
+            const response = await fetch(`${API_BASE_URL}/api/projects?createdBy=${encodeURIComponent(userFullName)}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -199,7 +200,8 @@ const Admin = () => {
         setEditProjectSuccess('');
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/projects/${editProjectSelectedId}`, {
+            const userFullName = localStorage.getItem('userFullName') || 'System';
+            const response = await fetch(`${API_BASE_URL}/api/projects/${editProjectSelectedId}?updatedBy=${encodeURIComponent(userFullName)}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(editProjectFormData)
@@ -275,8 +277,9 @@ const Admin = () => {
         setDeleteSuccess('');
 
         try {
+            const userFullName = localStorage.getItem('userFullName') || 'System';
             const doomedTask = allTasks.find(t => t.id === deleteSelectedTaskId);
-            const response = await fetch(`${API_BASE_URL}/api/tasks/${deleteSelectedTaskId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${deleteSelectedTaskId}?updatedBy=${encodeURIComponent(userFullName)}`, {
                 method: 'DELETE',
             });
 
@@ -330,7 +333,8 @@ const Admin = () => {
         setLinkSuccess('');
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/projects/${selectedProjectId}/tasks`, {
+            const userFullName = localStorage.getItem('userFullName') || 'System';
+            const response = await fetch(`${API_BASE_URL}/api/projects/${selectedProjectId}/tasks?updatedBy=${encodeURIComponent(userFullName)}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(selectedTaskIds)
@@ -428,21 +432,23 @@ const Admin = () => {
     };
 
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    const userAccess = localStorage.getItem('userAccess');
+    const hasAdminAccess = isAuthenticated && userAccess === 'Admin';
 
     return (
         <div className="admin-container">
-            {!isAuthenticated && (
+            {!hasAdminAccess && (
                 <div className="restricted-overlay">
                     <div className="restricted-message">
                         <h2>🔒 Restricted Access</h2>
-                        <p>Only authenticated administrators can manage tasks and projects.</p>
+                        <p>{!isAuthenticated ? "Please log in to access the Admin Dashboard." : "You do not have administrative privileges to access this page."}</p>
                         <button onClick={() => window.location.href = '/playground'} className="create-task-btn">
                             Return to Playground
                         </button>
                     </div>
                 </div>
             )}
-            <div className={!isAuthenticated ? "admin-content-restricted" : ""}>
+            <div className={!hasAdminAccess ? "admin-content-restricted" : ""}>
                 <h1 className="admin-title">Admin Dashboard</h1>
                 <p className="admin-subtitle">Manage tasks and operations seamlessly</p>
 
