@@ -442,7 +442,7 @@ const Admin = () => {
                     <div className="restricted-message">
                         <h2>🔒 Restricted Access</h2>
                         <p>{!isAuthenticated ? "Please log in to access the Admin Dashboard." : "You do not have administrative privileges to access this page."}</p>
-                        <button onClick={() => window.location.href = '/playground'} className="create-task-btn">
+                        <button onClick={() => window.location.href = '/#/playground'} className="create-task-btn">
                             Return to Playground
                         </button>
                     </div>
@@ -453,226 +453,331 @@ const Admin = () => {
                 <p className="admin-subtitle">Manage tasks and operations seamlessly</p>
 
                 <div className="admin-actions">
-                <button className="create-task-btn" onClick={() => setIsPopupOpen(true)}>
-                    <span>+ Create Task</span>
-                </button>
+                    <button className="create-task-btn" onClick={() => setIsPopupOpen(true)}>
+                        <span>+ Create Task</span>
+                    </button>
 
-                <button className="create-task-btn" onClick={() => setIsProjectPopupOpen(true)}>
-                    <span>+ Create Project</span>
-                </button>
+                    <button className="create-task-btn" onClick={() => setIsProjectPopupOpen(true)}>
+                        <span>+ Create Project</span>
+                    </button>
 
-                <button className="create-task-btn" onClick={openLinkPopup}>
-                    <span>+ Link Project to Tasks</span>
-                </button>
+                    <button className="create-task-btn" onClick={openLinkPopup}>
+                        <span>+ Link Project to Tasks</span>
+                    </button>
 
-                <button className="create-task-btn" onClick={() => { setIsEditProjectPopupOpen(true); fetchProjects(); }}>
-                    <span>✎ Edit Project</span>
-                </button>
+                    <button className="create-task-btn" onClick={() => { setIsEditProjectPopupOpen(true); fetchProjects(); }}>
+                        <span>✎ Edit Project</span>
+                    </button>
 
-                <button className="create-task-btn" onClick={() => setIsEditPopupOpen(true)}>
-                    <span>✎ Edit Task</span>
-                </button>
+                    <button className="create-task-btn" onClick={() => setIsEditPopupOpen(true)}>
+                        <span>✎ Edit Task</span>
+                    </button>
 
-                <button className="create-task-btn" onClick={() => setIsDeletePopupOpen(true)}>
-                    <span>🗑 Delete Task</span>
-                </button>
+                    <button className="create-task-btn" onClick={() => setIsDeletePopupOpen(true)}>
+                        <span>🗑 Delete Task</span>
+                    </button>
 
-                <button className="create-task-btn" onClick={() => { setIsArchivedPopupOpen(true); fetchArchivedTasks(); }} style={{ borderColor: '#6c5ce7', color: '#a29bfe' }}>
-                    <span>📦 View Archived</span>
-                </button>
-            </div>
+                    <button className="create-task-btn" onClick={() => { setIsArchivedPopupOpen(true); fetchArchivedTasks(); }} style={{ borderColor: '#6c5ce7', color: '#a29bfe' }}>
+                        <span>📦 View Archived</span>
+                    </button>
+                </div>
 
-            {isPopupOpen && (
-                <div className="popup-overlay">
-                    <div className="popup-content" onClick={(e) => e.stopPropagation()}>
-                        <button className="close-btn" onClick={() => setIsPopupOpen(false)}>×</button>
-                        <h2>New Task Details</h2>
+                {isPopupOpen && (
+                    <div className="popup-overlay">
+                        <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+                            <button className="close-btn" onClick={() => setIsPopupOpen(false)}>×</button>
+                            <h2>New Task Details</h2>
 
-                        {error && <div className="error-message">{error}</div>}
-                        {success && <div className="success-message">{success}</div>}
+                            {error && <div className="error-message">{error}</div>}
+                            {success && <div className="success-message">{success}</div>}
 
-                        <form onSubmit={handleSubmit}>
-                            <div className="form-group">
-                                <label>Project</label>
-                                <select
-                                    name="project"
-                                    value={formData.project}
-                                    onChange={handleChange}
-                                    required
-                                >
-                                    <option value="">-- Select Project --</option>
-                                    {allProjects.map(proj => (
-                                        <option key={proj.id || proj._id} value={proj.projectName}>{proj.projectName}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="form-group">
-                                <label>Title</label>
-                                <input
-                                    type="text"
-                                    name="title"
-                                    value={formData.title}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="Enter task title"
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>Description</label>
-                                <textarea
-                                    name="description"
-                                    value={formData.description}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="Enter task description"
-                                    rows="4"
-                                />
-                            </div>
-
-                            <div className="form-row">
+                            <form onSubmit={handleSubmit}>
                                 <div className="form-group">
-                                    <label>Priority</label>
-                                    <select name="priority" value={formData.priority} onChange={handleChange}>
-                                        <option value="HIGH">High</option>
-                                        <option value="MEDIUM">Medium</option>
-                                        <option value="LOW">Low</option>
-                                    </select>
-                                </div>
-
-
-
-                                <div className="form-group">
-                                    <label>Assignee</label>
+                                    <label>Project</label>
                                     <select
-                                        name="assignee"
-                                        value={formData.assignee}
+                                        name="project"
+                                        value={formData.project}
                                         onChange={handleChange}
                                         required
                                     >
-                                        <option value="AI Agent">AI Agent</option>
-                                        <option value={userFullName}>{userFullName}</option>
+                                        <option value="">-- Select Project --</option>
+                                        {allProjects.map(proj => (
+                                            <option key={proj.id || proj._id} value={proj.projectName}>{proj.projectName}</option>
+                                        ))}
                                     </select>
                                 </div>
-                                <div className="form-group">
-                                    <label>Status</label>
-                                    <select name="status" value={formData.status} onChange={handleChange}>
-                                        <option value="BACKLOG">Backlog</option>
-                                        <option value="TODO">To Do</option>
-                                        <option value="IN_PROGRESS">In Progress</option>
-                                        <option value="REVIEW">Review</option>
-                                        <option value="DONE">Done</option>
-                                    </select>
-                                </div>
-                            </div>
 
-                            {formData.assignee === 'AI Agent' && (
                                 <div className="form-group">
-                                    <label>Prompt</label>
-                                    <textarea
-                                        name="prompt"
-                                        value={formData.prompt}
+                                    <label>Title</label>
+                                    <input
+                                        type="text"
+                                        name="title"
+                                        value={formData.title}
                                         onChange={handleChange}
-                                        placeholder="Describe what you want AI Agent to implement..."
-                                        rows="3"
+                                        required
+                                        placeholder="Enter task title"
                                     />
                                 </div>
-                            )}
 
-                            <button type="submit" className="submit-btn" disabled={loading}>
-                                {loading ? 'Creating...' : 'Submit Task'}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
-            {isProjectPopupOpen && (
-                <div className="popup-overlay">
-                    <div className="popup-content" onClick={(e) => e.stopPropagation()}>
-                        <button className="close-btn" onClick={() => setIsProjectPopupOpen(false)}>×</button>
-                        <h2>New Project Details</h2>
-
-                        {projectError && <div className="error-message">{projectError}</div>}
-                        {projectSuccess && <div className="success-message">{projectSuccess}</div>}
-
-                        <form onSubmit={handleProjectSubmit}>
-                            <div className="form-group">
-                                <label>Project Title</label>
-                                <input
-                                    type="text"
-                                    name="projectName"
-                                    value={projectFormData.projectName}
-                                    onChange={handleProjectChange}
-                                    required
-                                    placeholder="Enter project title"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Project Status</label>
-                                <select
-                                    name="status"
-                                    value={projectFormData.status}
-                                    onChange={handleProjectChange}
-                                    required
-                                >
-                                    <option value="BRAINSTORM">Brainstorm</option>
-                                    <option value="IN_PROGRESS">In Progress</option>
-                                </select>
-                            </div>
-
-                            <div className="form-group">
-                                <label>Project Description</label>
-                                <textarea
-                                    name="description"
-                                    value={projectFormData.description}
-                                    onChange={handleProjectChange}
-                                    placeholder="Enter project description"
-                                    rows="4"
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>Project Color Code</label>
-                                <div className="color-grid">
-                                    {PROJECT_COLORS.map(color => (
-                                        <div
-                                            key={color}
-                                            className={`color-square ${projectFormData.projectColorCode === color ? 'selected' : ''}`}
-                                            style={{ backgroundColor: color }}
-                                            onClick={() => setProjectFormData(prev => ({ ...prev, projectColorCode: color }))}
-                                            title={color}
-                                        />
-                                    ))}
+                                <div className="form-group">
+                                    <label>Description</label>
+                                    <textarea
+                                        name="description"
+                                        value={formData.description}
+                                        onChange={handleChange}
+                                        required
+                                        placeholder="Enter task description"
+                                        rows="4"
+                                    />
                                 </div>
-                            </div>
 
-                            <button type="submit" className="submit-btn" disabled={projectLoading}>
-                                {projectLoading ? 'Creating...' : 'Submit Project'}
-                            </button>
-                        </form>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Priority</label>
+                                        <select name="priority" value={formData.priority} onChange={handleChange}>
+                                            <option value="HIGH">High</option>
+                                            <option value="MEDIUM">Medium</option>
+                                            <option value="LOW">Low</option>
+                                        </select>
+                                    </div>
+
+
+
+                                    <div className="form-group">
+                                        <label>Assignee</label>
+                                        <select
+                                            name="assignee"
+                                            value={formData.assignee}
+                                            onChange={handleChange}
+                                            required
+                                        >
+                                            <option value="AI Agent">AI Agent</option>
+                                            <option value={userFullName}>{userFullName}</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Status</label>
+                                        <select name="status" value={formData.status} onChange={handleChange}>
+                                            <option value="BACKLOG">Backlog</option>
+                                            <option value="TODO">To Do</option>
+                                            <option value="IN_PROGRESS">In Progress</option>
+                                            <option value="REVIEW">Review</option>
+                                            <option value="DONE">Done</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {formData.assignee === 'AI Agent' && (
+                                    <div className="form-group">
+                                        <label>Prompt</label>
+                                        <textarea
+                                            name="prompt"
+                                            value={formData.prompt}
+                                            onChange={handleChange}
+                                            placeholder="Describe what you want AI Agent to implement..."
+                                            rows="3"
+                                        />
+                                    </div>
+                                )}
+
+                                <button type="submit" className="submit-btn" disabled={loading}>
+                                    {loading ? 'Creating...' : 'Submit Task'}
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+                {isProjectPopupOpen && (
+                    <div className="popup-overlay">
+                        <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+                            <button className="close-btn" onClick={() => setIsProjectPopupOpen(false)}>×</button>
+                            <h2>New Project Details</h2>
 
-            {isLinkPopupOpen && (
-                <div className="popup-overlay">
-                    <div className="popup-content link-popup" onClick={(e) => e.stopPropagation()}>
-                        <button className="close-btn" onClick={() => setIsLinkPopupOpen(false)}>×</button>
-                        <h2>Link Project to Tasks</h2>
+                            {projectError && <div className="error-message">{projectError}</div>}
+                            {projectSuccess && <div className="success-message">{projectSuccess}</div>}
 
-                        {linkError && <div className="error-message">{linkError}</div>}
-                        {linkSuccess && <div className="success-message">{linkSuccess}</div>}
+                            <form onSubmit={handleProjectSubmit}>
+                                <div className="form-group">
+                                    <label>Project Title</label>
+                                    <input
+                                        type="text"
+                                        name="projectName"
+                                        value={projectFormData.projectName}
+                                        onChange={handleProjectChange}
+                                        required
+                                        placeholder="Enter project title"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Project Status</label>
+                                    <select
+                                        name="status"
+                                        value={projectFormData.status}
+                                        onChange={handleProjectChange}
+                                        required
+                                    >
+                                        <option value="BRAINSTORM">Brainstorm</option>
+                                        <option value="IN_PROGRESS">In Progress</option>
+                                    </select>
+                                </div>
 
-                        {linkLoading ? (
-                            <div className="loading-msg">Loading data...</div>
-                        ) : (
-                            <form onSubmit={handleLinkSubmit}>
+                                <div className="form-group">
+                                    <label>Project Description</label>
+                                    <textarea
+                                        name="description"
+                                        value={projectFormData.description}
+                                        onChange={handleProjectChange}
+                                        placeholder="Enter project description"
+                                        rows="4"
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Project Color Code</label>
+                                    <div className="color-grid">
+                                        {PROJECT_COLORS.map(color => (
+                                            <div
+                                                key={color}
+                                                className={`color-square ${projectFormData.projectColorCode === color ? 'selected' : ''}`}
+                                                style={{ backgroundColor: color }}
+                                                onClick={() => setProjectFormData(prev => ({ ...prev, projectColorCode: color }))}
+                                                title={color}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <button type="submit" className="submit-btn" disabled={projectLoading}>
+                                    {projectLoading ? 'Creating...' : 'Submit Project'}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {isLinkPopupOpen && (
+                    <div className="popup-overlay">
+                        <div className="popup-content link-popup" onClick={(e) => e.stopPropagation()}>
+                            <button className="close-btn" onClick={() => setIsLinkPopupOpen(false)}>×</button>
+                            <h2>Link Project to Tasks</h2>
+
+                            {linkError && <div className="error-message">{linkError}</div>}
+                            {linkSuccess && <div className="success-message">{linkSuccess}</div>}
+
+                            {linkLoading ? (
+                                <div className="loading-msg">Loading data...</div>
+                            ) : (
+                                <form onSubmit={handleLinkSubmit}>
+                                    <div className="form-group">
+                                        <label>Select Project</label>
+                                        <select
+                                            value={selectedProjectId}
+                                            onChange={(e) => setSelectedProjectId(e.target.value)}
+                                            required
+                                        >
+                                            <option value="">-- Choose a Project --</option>
+                                            {allProjects.map(proj => (
+                                                <option key={proj.id || proj._id} value={proj.id || proj._id}>{proj.projectName}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {selectedProjectId && (() => {
+                                        const selectedProj = allProjects.find(p => p.id.toString() === selectedProjectId.toString());
+                                        console.log(selectedProj);
+                                        const existingTasks = allTasks.filter(t => t.project === selectedProj.projectName);
+                                        console.log(existingTasks);
+                                        return (
+                                            <div className="form-group existing-tasks-group">
+                                                <label>Existing Tasks in Project</label>
+                                                <div className="existing-tasks-list">
+                                                    {existingTasks.length > 0 ? (
+                                                        existingTasks.map(t => <div key={t.id} className="existing-task-item">• {t.title}</div>)
+                                                    ) : (
+                                                        <div className="empty-msg">No tasks linked yet.</div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    <div className="form-group">
+                                        <label>Assign Tasks</label>
+                                        <div className="custom-dropdown">
+                                            <div
+                                                className="custom-dropdown-header"
+                                                onClick={() => setIsTaskDropdownOpen(!isTaskDropdownOpen)}
+                                            >
+                                                {selectedTaskIds.length === 0 ? "Select Tasks..." : `${selectedTaskIds.length} tasks selected`}
+                                                <span className="dropdown-arrow">{isTaskDropdownOpen ? '▲' : '▼'}</span>
+                                            </div>
+                                            {isTaskDropdownOpen && (
+                                                <div className="custom-dropdown-list">
+                                                    {allTasks.map(task => (
+                                                        <label key={task.id} className="custom-dropdown-item">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedTaskIds.includes(task.id)}
+                                                                onChange={(e) => {
+                                                                    if (e.target.checked) setSelectedTaskIds([...selectedTaskIds, task.id]);
+                                                                    else setSelectedTaskIds(selectedTaskIds.filter(id => id !== task.id));
+                                                                }}
+                                                            />
+                                                            {task.title}
+                                                        </label>
+                                                    ))}
+                                                    {allTasks.length === 0 && <div className="custom-dropdown-item">No tasks available</div>}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {selectedTaskIds.length > 0 && (
+                                            <div className="selected-tasks-chips">
+                                                {selectedTaskIds.map(id => {
+                                                    const t = allTasks.find(t => t.id === id);
+                                                    if (!t) return null;
+                                                    return (
+                                                        <span key={id} className="task-chip">
+                                                            {t.title}
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.preventDefault();
+                                                                    e.stopPropagation();
+                                                                    setSelectedTaskIds(selectedTaskIds.filter(tid => tid !== id));
+                                                                }}
+                                                            >×</button>
+                                                        </span>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <button type="submit" className="submit-btn" disabled={linkSubmitLoading}>
+                                        {linkSubmitLoading ? 'Linking...' : 'Link Tasks'}
+                                    </button>
+                                </form>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {isEditProjectPopupOpen && (
+                    <div className="popup-overlay">
+                        <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+                            <button className="close-btn" onClick={() => setIsEditProjectPopupOpen(false)}>×</button>
+                            <h2>Edit Project Details</h2>
+
+                            {editProjectError && <div className="error-message">{editProjectError}</div>}
+                            {editProjectSuccess && <div className="success-message">{editProjectSuccess}</div>}
+
+                            <form onSubmit={handleEditProjectSubmit}>
                                 <div className="form-group">
                                     <label>Select Project</label>
                                     <select
-                                        value={selectedProjectId}
-                                        onChange={(e) => setSelectedProjectId(e.target.value)}
+                                        value={editProjectSelectedId}
+                                        onChange={(e) => handleEditProjectSelect(e.target.value)}
                                         required
                                     >
                                         <option value="">-- Choose a Project --</option>
@@ -682,409 +787,304 @@ const Admin = () => {
                                     </select>
                                 </div>
 
-                                {selectedProjectId && (() => {
-                                    const selectedProj = allProjects.find(p => p.id.toString() === selectedProjectId.toString());
-                                    console.log(selectedProj);
-                                    const existingTasks = allTasks.filter(t => t.project === selectedProj.projectName);
-                                    console.log(existingTasks);
-                                    return (
-                                        <div className="form-group existing-tasks-group">
-                                            <label>Existing Tasks in Project</label>
-                                            <div className="existing-tasks-list">
-                                                {existingTasks.length > 0 ? (
-                                                    existingTasks.map(t => <div key={t.id} className="existing-task-item">• {t.title}</div>)
-                                                ) : (
-                                                    <div className="empty-msg">No tasks linked yet.</div>
-                                                )}
-                                            </div>
+                                {editProjectSelectedId && (
+                                    <>
+                                        <div className="form-group">
+                                            <label>Project Status</label>
+                                            <select
+                                                name="status"
+                                                value={editProjectFormData.status}
+                                                onChange={handleEditProjectChange}
+                                                required
+                                            >
+                                                <option value="BRAINSTORM">Brainstorm</option>
+                                                <option value="IN_PROGRESS">In Progress</option>
+                                            </select>
                                         </div>
-                                    );
-                                })()}
 
-                                <div className="form-group">
-                                    <label>Assign Tasks</label>
-                                    <div className="custom-dropdown">
-                                        <div
-                                            className="custom-dropdown-header"
-                                            onClick={() => setIsTaskDropdownOpen(!isTaskDropdownOpen)}
-                                        >
-                                            {selectedTaskIds.length === 0 ? "Select Tasks..." : `${selectedTaskIds.length} tasks selected`}
-                                            <span className="dropdown-arrow">{isTaskDropdownOpen ? '▲' : '▼'}</span>
+                                        <div className="form-group">
+                                            <label>Project Description</label>
+                                            <textarea
+                                                name="description"
+                                                value={editProjectFormData.description}
+                                                onChange={handleEditProjectChange}
+                                                rows="4"
+                                            />
                                         </div>
-                                        {isTaskDropdownOpen && (
-                                            <div className="custom-dropdown-list">
-                                                {allTasks.map(task => (
-                                                    <label key={task.id} className="custom-dropdown-item">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={selectedTaskIds.includes(task.id)}
-                                                            onChange={(e) => {
-                                                                if (e.target.checked) setSelectedTaskIds([...selectedTaskIds, task.id]);
-                                                                else setSelectedTaskIds(selectedTaskIds.filter(id => id !== task.id));
-                                                            }}
-                                                        />
-                                                        {task.title}
-                                                    </label>
+
+                                        <div className="form-group">
+                                            <label>Project Color Code</label>
+                                            <div className="color-grid">
+                                                {PROJECT_COLORS.map(color => (
+                                                    <div
+                                                        key={color}
+                                                        className={`color-square ${editProjectFormData.projectColorCode === color ? 'selected' : ''}`}
+                                                        style={{ backgroundColor: color }}
+                                                        onClick={() => setEditProjectFormData(prev => ({ ...prev, projectColorCode: color }))}
+                                                        title={color}
+                                                    />
                                                 ))}
-                                                {allTasks.length === 0 && <div className="custom-dropdown-item">No tasks available</div>}
                                             </div>
-                                        )}
-                                    </div>
-
-                                    {selectedTaskIds.length > 0 && (
-                                        <div className="selected-tasks-chips">
-                                            {selectedTaskIds.map(id => {
-                                                const t = allTasks.find(t => t.id === id);
-                                                if (!t) return null;
-                                                return (
-                                                    <span key={id} className="task-chip">
-                                                        {t.title}
-                                                        <button
-                                                            type="button"
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-                                                                e.stopPropagation();
-                                                                setSelectedTaskIds(selectedTaskIds.filter(tid => tid !== id));
-                                                            }}
-                                                        >×</button>
-                                                    </span>
-                                                );
-                                            })}
                                         </div>
-                                    )}
-                                </div>
 
-                                <button type="submit" className="submit-btn" disabled={linkSubmitLoading}>
-                                    {linkSubmitLoading ? 'Linking...' : 'Link Tasks'}
-                                </button>
+                                        <button type="submit" className="submit-btn" disabled={editProjectLoading}>
+                                            {editProjectLoading ? 'Updating...' : 'Update Project'}
+                                        </button>
+                                    </>
+                                )}
                             </form>
-                        )}
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {isEditProjectPopupOpen && (
-                <div className="popup-overlay">
-                    <div className="popup-content" onClick={(e) => e.stopPropagation()}>
-                        <button className="close-btn" onClick={() => setIsEditProjectPopupOpen(false)}>×</button>
-                        <h2>Edit Project Details</h2>
+                {isEditPopupOpen && (
+                    <div className="popup-overlay">
+                        <div className="popup-content edit-popup" onClick={(e) => e.stopPropagation()}>
+                            <button className="close-btn" onClick={() => { setIsEditPopupOpen(false); setEditSelectedTaskId(''); }}>×</button>
+                            <h2>Edit Task</h2>
 
-                        {editProjectError && <div className="error-message">{editProjectError}</div>}
-                        {editProjectSuccess && <div className="success-message">{editProjectSuccess}</div>}
+                            {editError && <div className="error-message">{editError}</div>}
+                            {editSuccess && <div className="success-message">{editSuccess}</div>}
 
-                        <form onSubmit={handleEditProjectSubmit}>
                             <div className="form-group">
-                                <label>Select Project</label>
+                                <label>Select Project to Filter</label>
                                 <select
-                                    value={editProjectSelectedId}
-                                    onChange={(e) => handleEditProjectSelect(e.target.value)}
-                                    required
+                                    value={editFilterProject}
+                                    onChange={(e) => {
+                                        setEditFilterProject(e.target.value);
+                                        setEditSelectedTaskId('');
+                                    }}
                                 >
-                                    <option value="">-- Choose a Project --</option>
+                                    <option value="">-- All Projects --</option>
                                     {allProjects.map(proj => (
-                                        <option key={proj.id || proj._id} value={proj.id || proj._id}>{proj.projectName}</option>
+                                        <option key={proj.id || proj._id} value={proj.projectName}>{proj.projectName}</option>
                                     ))}
                                 </select>
                             </div>
 
-                            {editProjectSelectedId && (
-                                <>
-                                    <div className="form-group">
-                                        <label>Project Status</label>
-                                        <select
-                                            name="status"
-                                            value={editProjectFormData.status}
-                                            onChange={handleEditProjectChange}
-                                            required
-                                        >
-                                            <option value="BRAINSTORM">Brainstorm</option>
-                                            <option value="IN_PROGRESS">In Progress</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label>Project Description</label>
-                                        <textarea
-                                            name="description"
-                                            value={editProjectFormData.description}
-                                            onChange={handleEditProjectChange}
-                                            rows="4"
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label>Project Color Code</label>
-                                        <div className="color-grid">
-                                            {PROJECT_COLORS.map(color => (
-                                                <div
-                                                    key={color}
-                                                    className={`color-square ${editProjectFormData.projectColorCode === color ? 'selected' : ''}`}
-                                                    style={{ backgroundColor: color }}
-                                                    onClick={() => setEditProjectFormData(prev => ({ ...prev, projectColorCode: color }))}
-                                                    title={color}
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <button type="submit" className="submit-btn" disabled={editProjectLoading}>
-                                        {editProjectLoading ? 'Updating...' : 'Update Project'}
-                                    </button>
-                                </>
-                            )}
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {isEditPopupOpen && (
-                <div className="popup-overlay">
-                    <div className="popup-content edit-popup" onClick={(e) => e.stopPropagation()}>
-                        <button className="close-btn" onClick={() => { setIsEditPopupOpen(false); setEditSelectedTaskId(''); }}>×</button>
-                        <h2>Edit Task</h2>
-
-                        {editError && <div className="error-message">{editError}</div>}
-                        {editSuccess && <div className="success-message">{editSuccess}</div>}
-
-                        <div className="form-group">
-                            <label>Select Project to Filter</label>
-                            <select
-                                value={editFilterProject}
-                                onChange={(e) => {
-                                    setEditFilterProject(e.target.value);
-                                    setEditSelectedTaskId('');
-                                }}
-                            >
-                                <option value="">-- All Projects --</option>
-                                {allProjects.map(proj => (
-                                    <option key={proj.id || proj._id} value={proj.projectName}>{proj.projectName}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="form-group">
-                            <label>Select Task to Edit</label>
-                            <select
-                                value={editSelectedTaskId}
-                                onChange={(e) => handleEditTaskSelect(e.target.value)}
-                            >
-                                <option value="">-- Choose a Task --</option>
-                                {allTasks
-                                    .filter(task => !editFilterProject || task.project === editFilterProject)
-                                    .map(task => (
-                                        <option key={task.id} value={task.id}>{task.title}</option>
-                                    ))}
-                            </select>
-                        </div>
-
-                        {editSelectedTaskId && (
-                            <form onSubmit={handleEditSubmit}>
-                                <div className="form-group">
-                                    <label>Description</label>
-                                    <textarea name="description" value={editFormData.description} onChange={handleEditChange} rows="4" placeholder="Task description" />
-                                </div>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Priority</label>
-                                        <select name="priority" value={editFormData.priority} onChange={handleEditChange}>
-                                            <option value="HIGH">High</option>
-                                            <option value="MEDIUM">Medium</option>
-                                            <option value="LOW">Low</option>
-                                        </select>
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Status</label>
-                                        <select name="status" value={editFormData.status} onChange={handleEditChange}>
-                                            <option value="BACKLOG">Backlog</option>
-                                            <option value="TODO">To Do</option>
-                                            <option value="IN_PROGRESS">In Progress</option>
-                                            <option value="REVIEW">Review</option>
-                                            <option value="DONE">Done</option>
-                                        </select>
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Project</label>
-                                        <select name="project" value={editFormData.project} onChange={handleEditChange}>
-                                            <option value="">-- Select Project --</option>
-                                            {allProjects.map(proj => (
-                                                <option key={proj.id || proj._id} value={proj.projectName}>{proj.projectName}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Assignee</label>
-                                        <select name="assignee" value={editFormData.assignee} onChange={handleEditChange}>
-                                            <option value="AI Agent">AI Agent</option>
-                                            <option value={userFullName}>{userFullName}</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                {editFormData.assignee === 'AI Agent' && (
-                                    <div className="form-group">
-                                        <label>Prompt</label>
-                                        <textarea
-                                            name="prompt"
-                                            value={editFormData.prompt}
-                                            onChange={handleEditChange}
-                                            placeholder="Describe what you want AI Agent to implement..."
-                                            rows="3"
-                                        />
-                                    </div>
-                                )}
-                                <button type="submit" className="submit-btn" disabled={editLoading}>
-                                    {editLoading ? 'Updating...' : 'Update Task'}
-                                </button>
-                            </form>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {isDeletePopupOpen && (
-                <div className="popup-overlay">
-                    <div className="popup-content" onClick={(e) => e.stopPropagation()}>
-                        <button className="close-btn" onClick={() => { setIsDeletePopupOpen(false); setDeleteSelectedTaskId(''); }}>×</button>
-                        <h2>Delete Task</h2>
-                        <p style={{ color: '#888', marginBottom: '20px' }}>Only tasks with status "DONE" can be deleted.</p>
-
-                        {deleteError && <div className="error-message">{deleteError}</div>}
-                        {deleteSuccess && <div className="success-message">{deleteSuccess}</div>}
-
-                        <form onSubmit={handleDeleteSubmit}>
                             <div className="form-group">
-                                <label>Select Task to Delete</label>
+                                <label>Select Task to Edit</label>
                                 <select
-                                    value={deleteSelectedTaskId}
-                                    onChange={(e) => setDeleteSelectedTaskId(e.target.value)}
-                                    required
+                                    value={editSelectedTaskId}
+                                    onChange={(e) => handleEditTaskSelect(e.target.value)}
                                 >
-                                    <option value="">-- Choose a "DONE" Task --</option>
+                                    <option value="">-- Choose a Task --</option>
                                     {allTasks
-                                        .filter(task => task.status === 'DONE')
+                                        .filter(task => !editFilterProject || task.project === editFilterProject)
                                         .map(task => (
                                             <option key={task.id} value={task.id}>{task.title}</option>
                                         ))}
                                 </select>
                             </div>
 
-                            {deleteSelectedTaskId && (() => {
-                                const task = allTasks.find(t => t.id === deleteSelectedTaskId);
-                                return task ? (
-                                    <div className="form-group existing-tasks-group" style={{ marginBottom: '20px' }}>
-                                        <label>Task Details</label>
-                                        <div className="existing-tasks-list" style={{ maxHeight: '250px', padding: '15px' }}>
-                                            <div style={{ marginBottom: '10px' }}>
-                                                <strong style={{ color: '#d4af37' }}>Description</strong>
-                                                <div style={{ color: '#ccc', marginTop: '4px' }}>{task.description || <em style={{ color: '#666' }}>No description provided.</em>}</div>
-                                            </div>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '12px', borderTop: '1px solid #222', paddingTop: '12px' }}>
-                                                <div>
-                                                    <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Project</strong>
-                                                    <div style={{ color: task.projectColorCode || '#4da3ff', marginTop: '3px' }}>{task.project || '—'}</div>
-                                                </div>
-                                                <div>
-                                                    <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Priority</strong>
-                                                    <div style={{ color: task.priority === 'HIGH' ? '#ff4d4f' : task.priority === 'MEDIUM' ? '#faad14' : '#52c41a', marginTop: '3px' }}>{task.priority || '—'}</div>
-                                                </div>
-                                                <div>
-                                                    <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Assignee</strong>
-                                                    <div style={{ color: '#ccc', marginTop: '3px' }}>{task.assignee || '—'}</div>
-                                                </div>
-                                                <div>
-                                                    <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Status</strong>
-                                                    <div style={{ color: '#00ff88', marginTop: '3px' }}>{task.status || '—'}</div>
-                                                </div>
-                                            </div>
-                                            {task.aiSummary && (
-                                                <div style={{ marginTop: '12px', borderTop: '1px solid #222', paddingTop: '12px' }}>
-                                                    <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Agentic AI Task Summary - Portfolio Website</strong>
-                                                    <div style={{ color: '#4da3ff', marginTop: '4px', fontStyle: 'italic' }}>{task.aiSummary}</div>
-                                                </div>
-                                            )}
+                            {editSelectedTaskId && (
+                                <form onSubmit={handleEditSubmit}>
+                                    <div className="form-group">
+                                        <label>Description</label>
+                                        <textarea name="description" value={editFormData.description} onChange={handleEditChange} rows="4" placeholder="Task description" />
+                                    </div>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>Priority</label>
+                                            <select name="priority" value={editFormData.priority} onChange={handleEditChange}>
+                                                <option value="HIGH">High</option>
+                                                <option value="MEDIUM">Medium</option>
+                                                <option value="LOW">Low</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Status</label>
+                                            <select name="status" value={editFormData.status} onChange={handleEditChange}>
+                                                <option value="BACKLOG">Backlog</option>
+                                                <option value="TODO">To Do</option>
+                                                <option value="IN_PROGRESS">In Progress</option>
+                                                <option value="REVIEW">Review</option>
+                                                <option value="DONE">Done</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Project</label>
+                                            <select name="project" value={editFormData.project} onChange={handleEditChange}>
+                                                <option value="">-- Select Project --</option>
+                                                {allProjects.map(proj => (
+                                                    <option key={proj.id || proj._id} value={proj.projectName}>{proj.projectName}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Assignee</label>
+                                            <select name="assignee" value={editFormData.assignee} onChange={handleEditChange}>
+                                                <option value="AI Agent">AI Agent</option>
+                                                <option value={userFullName}>{userFullName}</option>
+                                            </select>
                                         </div>
                                     </div>
-                                ) : null;
-                            })()}
-
-                            <button
-                                type="submit"
-                                className="submit-btn"
-                                style={{ backgroundColor: '#cc0000' }}
-                                disabled={deleteLoading || !deleteSelectedTaskId}
-                            >
-                                {deleteLoading ? 'Deleting...' : 'Delete Task Permanently'}
-                            </button>
-                        </form>
+                                    {editFormData.assignee === 'AI Agent' && (
+                                        <div className="form-group">
+                                            <label>Prompt</label>
+                                            <textarea
+                                                name="prompt"
+                                                value={editFormData.prompt}
+                                                onChange={handleEditChange}
+                                                placeholder="Describe what you want AI Agent to implement..."
+                                                rows="3"
+                                            />
+                                        </div>
+                                    )}
+                                    <button type="submit" className="submit-btn" disabled={editLoading}>
+                                        {editLoading ? 'Updating...' : 'Update Task'}
+                                    </button>
+                                </form>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {isArchivedPopupOpen && (
-                <div className="popup-overlay" onClick={() => setIsArchivedPopupOpen(false)}>
-                    <div className="popup-content" style={{ maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
-                        <button className="close-btn" onClick={() => setIsArchivedPopupOpen(false)}>×</button>
-                        <h2>📦 Archived Tasks</h2>
-                        {archivedLoading ? (
-                            <p style={{ color: '#888', textAlign: 'center', padding: '20px' }}>Loading archived tasks...</p>
-                        ) : archivedTasks.length === 0 ? (
-                            <p style={{ color: '#888', textAlign: 'center', padding: '20px' }}>No archived tasks found.</p>
-                        ) : (
-                            (() => {
-                                const grouped = archivedTasks.reduce((acc, task) => {
-                                    const proj = task.project || 'Unknown';
-                                    if (!acc[proj]) acc[proj] = [];
-                                    acc[proj].push(task);
-                                    return acc;
-                                }, {});
-                                return Object.entries(grouped).map(([project, tasks]) => (
-                                    <div key={project} style={{ marginBottom: '24px' }}>
-                                        <h3 style={{ color: tasks[0]?.projectColorCode || '#d4af37', fontSize: '0.95rem', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px', borderBottom: `1px solid ${tasks[0]?.projectColorCode || '#333'}`, paddingBottom: '6px' }}>
-                                            {project} <span style={{ color: '#555', fontSize: '0.75rem' }}>({tasks.length} tasks)</span>
-                                        </h3>
-                                        {tasks.map(task => (
-                                            <div key={task.id} style={{ backgroundColor: '#111', border: '1px solid #222', borderRadius: '6px', padding: '12px', marginBottom: '8px' }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
-                                                    <div style={{ flex: 1 }}>
-                                                        <div style={{ color: '#e0e0e0', fontWeight: 'bold', marginBottom: '4px' }}>{task.title}</div>
-                                                        {task.description && <div style={{ color: '#666', fontSize: '0.8rem' }}>{task.description}</div>}
+                {isDeletePopupOpen && (
+                    <div className="popup-overlay">
+                        <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+                            <button className="close-btn" onClick={() => { setIsDeletePopupOpen(false); setDeleteSelectedTaskId(''); }}>×</button>
+                            <h2>Delete Task</h2>
+                            <p style={{ color: '#888', marginBottom: '20px' }}>Only tasks with status "DONE" can be deleted.</p>
+
+                            {deleteError && <div className="error-message">{deleteError}</div>}
+                            {deleteSuccess && <div className="success-message">{deleteSuccess}</div>}
+
+                            <form onSubmit={handleDeleteSubmit}>
+                                <div className="form-group">
+                                    <label>Select Task to Delete</label>
+                                    <select
+                                        value={deleteSelectedTaskId}
+                                        onChange={(e) => setDeleteSelectedTaskId(e.target.value)}
+                                        required
+                                    >
+                                        <option value="">-- Choose a "DONE" Task --</option>
+                                        {allTasks
+                                            .filter(task => task.status === 'DONE')
+                                            .map(task => (
+                                                <option key={task.id} value={task.id}>{task.title}</option>
+                                            ))}
+                                    </select>
+                                </div>
+
+                                {deleteSelectedTaskId && (() => {
+                                    const task = allTasks.find(t => t.id === deleteSelectedTaskId);
+                                    return task ? (
+                                        <div className="form-group existing-tasks-group" style={{ marginBottom: '20px' }}>
+                                            <label>Task Details</label>
+                                            <div className="existing-tasks-list" style={{ maxHeight: '250px', padding: '15px' }}>
+                                                <div style={{ marginBottom: '10px' }}>
+                                                    <strong style={{ color: '#d4af37' }}>Description</strong>
+                                                    <div style={{ color: '#ccc', marginTop: '4px' }}>{task.description || <em style={{ color: '#666' }}>No description provided.</em>}</div>
+                                                </div>
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '12px', borderTop: '1px solid #222', paddingTop: '12px' }}>
+                                                    <div>
+                                                        <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Project</strong>
+                                                        <div style={{ color: task.projectColorCode || '#4da3ff', marginTop: '3px' }}>{task.project || '—'}</div>
                                                     </div>
-                                                    <div style={{ display: 'flex', gap: '8px', flexShrink: 0, alignItems: 'center' }}>
-                                                        <span style={{ backgroundColor: 'rgba(108,92,231,0.15)', color: '#a29bfe', border: '1px solid #6c5ce7', padding: '2px 8px', borderRadius: '4px', fontSize: '0.72rem' }}>ARCHIVED</span>
-                                                        <span style={{ color: task.priority === 'HIGH' ? '#ff4d4f' : task.priority === 'MEDIUM' ? '#faad14' : '#52c41a', fontSize: '0.75rem', fontWeight: 'bold' }}>{task.priority}</span>
-                                                        <span 
-                                                            style={{ cursor: 'pointer', color: '#ff4d4f', fontSize: '1rem', marginLeft: '4px' }} 
-                                                            title="Permanently Delete"
-                                                            onClick={async (e) => {
-                                                                e.stopPropagation();
-                                                                if (window.confirm('Are you sure you want to permanently delete this archived task?')) {
-                                                                    const userFullName = localStorage.getItem('userFullName') || 'System';
-                                                                    try {
-                                                                        const res = await fetch(`${API_BASE_URL}/api/tasks/${task.id}?updatedBy=${encodeURIComponent(userFullName)}`, { method: 'DELETE' });
-                                                                        if (res.ok) {
-                                                                            fetchArchivedTasks();
-                                                                        } else {
-                                                                            console.error('Failed to delete archived task');
-                                                                        }
-                                                                    } catch (err) {
-                                                                        console.error(err);
-                                                                    }
-                                                                }
-                                                            }}
-                                                        >
-                                                            🗑️
-                                                        </span>
+                                                    <div>
+                                                        <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Priority</strong>
+                                                        <div style={{ color: task.priority === 'HIGH' ? '#ff4d4f' : task.priority === 'MEDIUM' ? '#faad14' : '#52c41a', marginTop: '3px' }}>{task.priority || '—'}</div>
+                                                    </div>
+                                                    <div>
+                                                        <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Assignee</strong>
+                                                        <div style={{ color: '#ccc', marginTop: '3px' }}>{task.assignee || '—'}</div>
+                                                    </div>
+                                                    <div>
+                                                        <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Status</strong>
+                                                        <div style={{ color: '#00ff88', marginTop: '3px' }}>{task.status || '—'}</div>
                                                     </div>
                                                 </div>
-                                                <div style={{ color: '#555', fontSize: '0.75rem', marginTop: '6px' }}>Assignee: {task.assignee || '—'}</div>
+                                                {task.aiSummary && (
+                                                    <div style={{ marginTop: '12px', borderTop: '1px solid #222', paddingTop: '12px' }}>
+                                                        <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Agentic AI Task Summary - Portfolio Website</strong>
+                                                        <div style={{ color: '#4da3ff', marginTop: '4px', fontStyle: 'italic' }}>{task.aiSummary}</div>
+                                                    </div>
+                                                )}
                                             </div>
-                                        ))}
-                                    </div>
-                                ));
-                            })()
-                        )}
+                                        </div>
+                                    ) : null;
+                                })()}
+
+                                <button
+                                    type="submit"
+                                    className="submit-btn"
+                                    style={{ backgroundColor: '#cc0000' }}
+                                    disabled={deleteLoading || !deleteSelectedTaskId}
+                                >
+                                    {deleteLoading ? 'Deleting...' : 'Delete Task Permanently'}
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+
+                {isArchivedPopupOpen && (
+                    <div className="popup-overlay" onClick={() => setIsArchivedPopupOpen(false)}>
+                        <div className="popup-content" style={{ maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                            <button className="close-btn" onClick={() => setIsArchivedPopupOpen(false)}>×</button>
+                            <h2>📦 Archived Tasks</h2>
+                            {archivedLoading ? (
+                                <p style={{ color: '#888', textAlign: 'center', padding: '20px' }}>Loading archived tasks...</p>
+                            ) : archivedTasks.length === 0 ? (
+                                <p style={{ color: '#888', textAlign: 'center', padding: '20px' }}>No archived tasks found.</p>
+                            ) : (
+                                (() => {
+                                    const grouped = archivedTasks.reduce((acc, task) => {
+                                        const proj = task.project || 'Unknown';
+                                        if (!acc[proj]) acc[proj] = [];
+                                        acc[proj].push(task);
+                                        return acc;
+                                    }, {});
+                                    return Object.entries(grouped).map(([project, tasks]) => (
+                                        <div key={project} style={{ marginBottom: '24px' }}>
+                                            <h3 style={{ color: tasks[0]?.projectColorCode || '#d4af37', fontSize: '0.95rem', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px', borderBottom: `1px solid ${tasks[0]?.projectColorCode || '#333'}`, paddingBottom: '6px' }}>
+                                                {project} <span style={{ color: '#555', fontSize: '0.75rem' }}>({tasks.length} tasks)</span>
+                                            </h3>
+                                            {tasks.map(task => (
+                                                <div key={task.id} style={{ backgroundColor: '#111', border: '1px solid #222', borderRadius: '6px', padding: '12px', marginBottom: '8px' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                                                        <div style={{ flex: 1 }}>
+                                                            <div style={{ color: '#e0e0e0', fontWeight: 'bold', marginBottom: '4px' }}>{task.title}</div>
+                                                            {task.description && <div style={{ color: '#666', fontSize: '0.8rem' }}>{task.description}</div>}
+                                                        </div>
+                                                        <div style={{ display: 'flex', gap: '8px', flexShrink: 0, alignItems: 'center' }}>
+                                                            <span style={{ backgroundColor: 'rgba(108,92,231,0.15)', color: '#a29bfe', border: '1px solid #6c5ce7', padding: '2px 8px', borderRadius: '4px', fontSize: '0.72rem' }}>ARCHIVED</span>
+                                                            <span style={{ color: task.priority === 'HIGH' ? '#ff4d4f' : task.priority === 'MEDIUM' ? '#faad14' : '#52c41a', fontSize: '0.75rem', fontWeight: 'bold' }}>{task.priority}</span>
+                                                            <span
+                                                                style={{ cursor: 'pointer', color: '#ff4d4f', fontSize: '1rem', marginLeft: '4px' }}
+                                                                title="Permanently Delete"
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation();
+                                                                    if (window.confirm('Are you sure you want to permanently delete this archived task?')) {
+                                                                        const userFullName = localStorage.getItem('userFullName') || 'System';
+                                                                        try {
+                                                                            const res = await fetch(`${API_BASE_URL}/api/tasks/${task.id}?updatedBy=${encodeURIComponent(userFullName)}`, { method: 'DELETE' });
+                                                                            if (res.ok) {
+                                                                                fetchArchivedTasks();
+                                                                            } else {
+                                                                                console.error('Failed to delete archived task');
+                                                                            }
+                                                                        } catch (err) {
+                                                                            console.error(err);
+                                                                        }
+                                                                    }
+                                                                }}
+                                                            >
+                                                                🗑️
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ color: '#555', fontSize: '0.75rem', marginTop: '6px' }}>Assignee: {task.assignee || '—'}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ));
+                                })()
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
