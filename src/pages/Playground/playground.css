@@ -550,6 +550,7 @@
 .status-pill.IN_PROGRESS { background: rgba(212, 175, 55, 0.1); color: #d4af37; }
 .status-pill.REVIEW { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
 .status-pill.DONE { background: rgba(0, 255, 136, 0.1); color: #00ff88; }
+.status-pill.ARCHIVED { background: rgba(255, 100, 0, 0.1); color: #ff6400; border: 1px solid rgba(255, 100, 0, 0.3); }
 
 .loading-mini {
     color: #555;

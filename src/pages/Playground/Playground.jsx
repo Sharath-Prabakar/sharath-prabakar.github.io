@@ -16,7 +16,10 @@ const formatTime = (totalSeconds) => {
 };
 
 const getSenderName = (sender) => {
-    if (sender === 'user') return 'You';
+    if (sender === 'user') {
+        const userFullName = localStorage.getItem('userFullName');
+        return userFullName || 'You';
+    }
     if (sender === 'bot') return 'Antigravity';
     return sender;
 };
@@ -43,11 +46,28 @@ const SummaryModal = ({ summary, onClose }) => {
                 try {
                     const response = await fetch(`${API_BASE_URL}/api/tasks/batch/fetch`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'application/json' },        
                         body: JSON.stringify(summary.taskIds)
                     });
-                    const data = await response.json();
-                    setTasks(data);
+                    const activeTasks = await response.json();
+                    
+                    // Check if any tasks are missing (e.g. they were archived)
+                    const activeTaskIds = activeTasks.map(t => t.id);
+                    const missingTaskIds = summary.taskIds.filter(id => !activeTaskIds.includes(id));
+                    
+                    let archivedTasks = [];
+                    if (missingTaskIds.length > 0) {
+                        const archiveResponse = await fetch(`${API_BASE_URL}/api/tasks/archived/batch/fetch`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(missingTaskIds)
+                        });
+                        if (archiveResponse.ok) {
+                            archivedTasks = await archiveResponse.json();
+                        }
+                    }
+                    
+                    setTasks([...activeTasks, ...archivedTasks]);
                 } catch (err) {
                     console.error('Failed to fetch tasks:', err);
                 } finally {
@@ -66,10 +86,10 @@ const SummaryModal = ({ summary, onClose }) => {
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="glass-card modal-content" onClick={(e) => e.stopPropagation()}>
-                <button className="modal-close" onClick={onClose}>✕</button>
+                <button className="modal-close" onClick={onClose}>✕</button>  
                 <div className="modal-header">
                     <span className="summary-date">
-                        {summary.isDaySummary 
+                        {summary.isDaySummary
                             ? new Date(summary.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
                             : new Date(summary.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
                         }
@@ -79,16 +99,14 @@ const SummaryModal = ({ summary, onClose }) => {
                 <div className="modal-body">
                     <div className="summary-stats">
                         <div className="stat-block">
-                            <span className="stat-label">Time Taken</span>
+                            <span className="stat-label">Time Taken</span>      
                             <span className="stat-value">{formatTime(summary.totalTimeSeconds)}</span>
                         </div>
                         <div className="stat-block">
-                            <span className="stat-label">Tasks Executed</span>
+                            <span className="stat-label">Tasks Executed</span>  
                             <span className="stat-value">{summary.totalTasks || summary.taskIds?.length || 0}</span>
                         </div>
                     </div>
-
-                    <div className="full-content">{summary.content}</div>
 
                     {summary.taskIds && summary.taskIds.length > 0 && (
                         <div className="tasks-summary-section">
@@ -96,8 +114,8 @@ const SummaryModal = ({ summary, onClose }) => {
                             {loadingTasks ? (
                                 <p className="loading-mini">Fetching task details...</p>
                             ) : (
-                                <div className="summary-tasks-table-wrapper">
-                                    <table className="summary-tasks-table">
+                                <div className="summary-tasks-table-wrapper">   
+                                    <table className="summary-tasks-table">     
                                         <thead>
                                             <tr>
                                                 <th>Task</th>
@@ -109,9 +127,9 @@ const SummaryModal = ({ summary, onClose }) => {
                                         <tbody>
                                             {tasks.map(task => (
                                                 <tr key={task.id}>
-                                                    <td>{task.title}</td>
-                                                    <td>{task.project}</td>
-                                                    <td>{task.assignee}</td>
+                                                    <td>{task.title}</td>       
+                                                    <td>{task.project}</td>     
+                                                    <td>{task.assignee}</td>    
                                                     <td><span className={`status-pill ${task.status}`}>{task.status}</span></td>
                                                 </tr>
                                             ))}
@@ -121,6 +139,8 @@ const SummaryModal = ({ summary, onClose }) => {
                             )}
                         </div>
                     )}
+
+                    <div className="full-content">{summary.content}</div>
                 </div>
             </div>
         </div>
@@ -129,6 +149,7 @@ const SummaryModal = ({ summary, onClose }) => {
 
 const Playground = () => {
     const [summaries, setSummaries] = useState([]);
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(true);
@@ -204,7 +225,7 @@ const Playground = () => {
             id: `day-${dateStr}`,
             createdAt: new Date(dateStr).toISOString(),
             isDaySummary: true,
-            title: `Daily Execution Summary`,
+            title: `Daily Agentic AI Task Summary`,
             content: `Aggregated execution summary for ${daySummaries.length} session(s) on this day.`,
             totalTimeSeconds,
             totalTasks,
@@ -232,7 +253,7 @@ const Playground = () => {
                 {/* 1. EXECUTION SUMMARY SECTION (LEFT) */}
                 <section className="playground-section summary-section">
                     <h2 className="section-title">
-                        <span className="icon">📊</span> Agentic AI Execution Summary
+                        <span className="icon">📊</span> Agentic AI Task Summary
                     </h2>
                     <div className="glass-card summary-card">
                         {loading ? (
@@ -293,12 +314,13 @@ const Playground = () => {
                             <input
                                 type="text"
                                 className="chat-input"
-                                placeholder="Message Antigravity..."
+                                placeholder={isAuthenticated ? "Message Antigravity..." : "Log in to chat with Antigravity"}
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyPress={handleKeyPress}
+                                disabled={!isAuthenticated}
                             />
-                            <button className="chat-send-btn" onClick={handleSendMessage} disabled={!input.trim()}>
+                            <button className="chat-send-btn" onClick={handleSendMessage} disabled={!input.trim() || !isAuthenticated}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <line x1="22" y1="2" x2="11" y2="13"></line>
                                     <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
@@ -327,3 +349,4 @@ const Playground = () => {
 };
 
 export default Playground;
+
