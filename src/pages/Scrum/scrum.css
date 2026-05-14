@@ -128,6 +128,41 @@
     margin-top: 20px;
 }
 
+/* User Profile Bar */
+.user-profile-bar {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 6px 0;
+}
+
+.user-greeting {
+    color: #aaa;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.logout-btn {
+    background: transparent;
+    border: 1px solid #444;
+    color: #d4af37;
+    padding: 4px 12px;
+    border-radius: 5px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+    background-color: rgba(212, 175, 55, 0.1);
+    border-color: #d4af37;
+}
+
 /* Task Counts Section */
 .task-counts {
     max-width: 800px;
@@ -181,7 +216,13 @@
 .count-badge.status-backlog {
     background-color: rgba(79, 70, 229, 0.15);
     color: #94a3b8;
-    border-color: #4f46e5;
+    border: 1px solid #4f46e5;
+}
+
+.count-badge.status-archived {
+    background-color: rgba(108, 92, 231, 0.15);
+    color: #a29bfe;
+    border: 1px solid #6c5ce7;
 }
 
 /* Dashboard Top Section */
@@ -385,6 +426,11 @@
     color: #94a3b8;
     border: 1px solid #4f46e5;
 }
+.status-archived {
+    background-color: rgba(108, 92, 231, 0.15);
+    color: #a29bfe;
+    border: 1px solid #6c5ce7;
+}
 
 /* Backlog Section */
 .backlog-section {
@@ -516,10 +562,21 @@
     border-radius: 12px;
     width: 100%;
     max-width: 540px;
+    max-height: 90vh;
+    overflow-y: auto;
     padding: 28px 32px;
     position: relative;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(212, 175, 55, 0.05);
     animation: modal-in 0.2s ease;
+}
+
+/* Custom scrollbar for modal */
+.task-modal::-webkit-scrollbar {
+    width: 6px;
+}
+.task-modal::-webkit-scrollbar-thumb {
+    background: #222;
+    border-radius: 10px;
 }
 
 @keyframes modal-in {
@@ -612,7 +669,7 @@
 
 .task-modal-comments-list {
     margin-top: 10px;
-    max-height: 200px;
+    max-height: 300px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -638,6 +695,20 @@
     color: #bbb;
     line-height: 1.5;
     border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.comment-author {
+    color: #d4af37;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.comment-text {
+    color: #ddd;
 }
 
 .add-comment-section {

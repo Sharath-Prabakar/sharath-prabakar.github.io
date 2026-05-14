@@ -83,6 +83,36 @@ function BacklogRow({ task, onOpen, onContextMenu, isOverlay }) {
     );
 }
 
+function BacklogSection({ tasks, onOpen, onContextMenu, closeContextMenu }) {
+    const { setNodeRef, isOver } = useDroppable({ id: 'BACKLOG' });
+    const style = {
+        backgroundColor: isOver ? 'rgba(212, 175, 55, 0.05)' : undefined,
+        borderColor: isOver ? '#d4af37' : undefined,
+        border: isOver ? '2px dashed #d4af37' : undefined,
+        borderRadius: '12px'
+    };
+
+    return (
+        <div ref={setNodeRef} className="backlog-section" style={style} onClick={closeContextMenu}>
+            <h2>Backlog</h2>
+            {tasks.length === 0 ? (
+                <p className="empty-msg">No tasks in backlog.</p>
+            ) : (
+                <div className="backlog-list">
+                    <SortableContext
+                        items={tasks.map(t => t.id.toString())}
+                        strategy={verticalListSortingStrategy}
+                    >
+                        {tasks.map(task => (
+                            <BacklogRow key={task.id} task={task} onOpen={onOpen} onContextMenu={onContextMenu} />
+                        ))}
+                    </SortableContext>
+                </div>
+            )}
+        </div>
+    );
+}
+
 function SortableTaskCard({ task, onOpen, onContextMenu, isOverlay }) {
     const {
         attributes,
@@ -194,7 +224,8 @@ const TaskDetailModal = ({ task, onClose, onTaskUpdate }) => {
         if (!newComment.trim()) return;
         setIsSubmitting(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/api/tasks/${task.id}/comments`, {
+            const userFullName = localStorage.getItem('userFullName') || 'System';
+            const res = await fetch(`${API_BASE_URL}/api/tasks/${task.id}/comments?updatedBy=${encodeURIComponent(userFullName)}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ comment: newComment })
@@ -251,7 +282,7 @@ const TaskDetailModal = ({ task, onClose, onTaskUpdate }) => {
                     )}
                     {task.aiSummary && (
                         <div className="task-modal-prompt" style={{ borderTop: '1px solid #1e1e1e', marginTop: '16px', paddingTop: '16px' }}>
-                            <span className="meta-label">AI Execution Summary</span>
+                            <span className="meta-label">Agentic AI Task Summary - {task.project || 'Portfolio Website'}</span>
                             <p style={{ color: '#4da3ff', fontStyle: 'italic' }}>{task.aiSummary}</p>
                         </div>
                     )}
@@ -260,11 +291,24 @@ const TaskDetailModal = ({ task, onClose, onTaskUpdate }) => {
                         <span className="meta-label">Comments</span>
                         <div className="task-modal-comments-list">
                             {task.comments && task.comments.length > 0 ? (
-                                task.comments.map((comment, idx) => (
-                                    <div key={idx} className="comment-item">
-                                        {comment}
-                                    </div>
-                                ))
+                                task.comments.map((comment, idx) => {
+                                    const colonIndex = comment.indexOf(':');
+                                    if (colonIndex !== -1) {
+                                        const name = comment.substring(0, colonIndex);
+                                        const message = comment.substring(colonIndex + 1);
+                                        return (
+                                            <div key={idx} className="comment-item">
+                                                <strong className="comment-author">{name}:</strong>
+                                                <span className="comment-text">{message}</span>
+                                            </div>
+                                        );
+                                    }
+                                    return (
+                                        <div key={idx} className="comment-item">
+                                            {comment}
+                                        </div>
+                                    );
+                                })
                             ) : (
                                 <p className="empty-msg" style={{ margin: '10px 0' }}>No comments yet.</p>
                             )}
@@ -316,12 +360,31 @@ function AISummarySection({ tasks, onOpen }) {
                 {aiSummaries.length === 0 ? (
                     <p className="empty-msg">No autonomous summaries available.</p>
                 ) : (
-                    aiSummaries.slice(0, 10).map(task => (
-                        <div key={task.id} className="ai-summary-card interactive" onClick={() => onOpen(task)}>
-                            <div className="ai-summary-card-title">{task.title}</div>
-                            <div className="ai-summary-card-text">{task.aiSummary}</div>
-                        </div>
-                    ))
+                    aiSummaries.slice(0, 10).map(task => {
+                        const projectStyle = {
+                            backgroundColor: hexToRgba(task.projectColorCode, 0.25),
+                            color: '#fff',
+                            border: `1px solid ${task.projectColorCode || '#4da3ff'}`,
+                            boxShadow: `0 0 12px ${hexToRgba(task.projectColorCode, 0.5)}`,
+                            textShadow: `0 0 5px ${task.projectColorCode || '#4da3ff'}`,
+                            fontSize: '0.65rem',
+                            padding: '2px 6px',
+                            marginBottom: '6px'
+                        };
+                        return (
+                            <div key={task.id} className="ai-summary-card interactive" onClick={() => onOpen(task)}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                                    {task.project && (
+                                        <span className="project-badge" style={{ ...projectStyle, marginBottom: 0 }}>
+                                            {task.project}
+                                        </span>
+                                    )}
+                                    <div className="ai-summary-card-title" style={{ marginBottom: 0 }}>{task.title}</div>
+                                </div>
+                                <div className="ai-summary-card-text">{task.aiSummary}</div>
+                            </div>
+                        );
+                    })
                 )}
             </div>
         </div>
@@ -368,11 +431,19 @@ const LogsSection = ({ logs, tasks, onOpen }) => (
                                 <span className="log-text">
                                     <strong>{log.assignee}</strong> deleted task <strong>{log.taskTitle}</strong>
                                 </span>
-                            ) : (
+                            ) : log.actionType === 'COMMENT' ? (
                                 <span className="log-text">
-                                    <strong>{log.assignee}</strong> moved <strong>{log.taskTitle}</strong> to <span className={`log-status status-${log.status?.toLowerCase()}`}>{log.status?.replace('_', ' ')}</span>
+                                    <strong>{log.assignee}</strong> commented on <strong>{log.taskTitle}</strong>: {log.description.replace('New comment added: ', '')}
                                 </span>
-                            )}
+                            ) : log.actionType === 'AI_SUMMARY' ? (
+                                <span className="log-text">
+                                    <strong>{log.assignee}</strong> generated an <strong>AI Summary</strong> for <strong>{log.taskTitle}</strong>
+                                </span>
+                            ) : log.actionType === 'PERMANENT_DELETE' ? (
+                                <span className="log-text">
+                                    <strong>{log.assignee}</strong> permanently deleted <strong>{log.taskTitle}</strong> from archives
+                                </span>
+                            ) : null}
                         </div>
                     );
                 })
@@ -383,6 +454,27 @@ const LogsSection = ({ logs, tasks, onOpen }) => (
 
 const LoginPopup = ({ onLogin, onGuest }) => {
     const [loginError, setLoginError] = useState('');
+    const [requestMessage, setRequestMessage] = useState('');
+    const [requestMode, setRequestMode] = useState(false);
+
+    const handleRequestAccess = async (credentialResponse) => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/auth/request-access`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: credentialResponse.credential })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setRequestMessage(data.message || 'Access request submitted!');
+            } else {
+                setRequestMessage(data.error || 'Request failed');
+            }
+        } catch {
+            setRequestMessage('Network error. Please try again.');
+        }
+        setRequestMode(false);
+    };
 
     const handleSuccess = async (credentialResponse) => {
         try {
@@ -425,6 +517,25 @@ const LoginPopup = ({ onLogin, onGuest }) => {
                 <button className="auth-guest-btn" onClick={onGuest}>
                     👤 View as Guest
                 </button>
+                <div className="auth-divider" style={{ margin: '12px 0 8px' }}>
+                    <span>need access?</span>
+                </div>
+                {requestMessage ? (
+                    <div className="auth-error" style={{ backgroundColor: 'rgba(0,150,100,0.1)', borderColor: '#00a060', color: '#4ade80', textAlign: 'center', padding: '8px 12px', borderRadius: '6px', fontSize: '0.82rem' }}>
+                        {requestMessage}
+                    </div>
+                ) : requestMode ? (
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <GoogleLogin
+                            onSuccess={handleRequestAccess}
+                            onError={() => setRequestMessage('Login failed')}
+                        />
+                    </div>
+                ) : (
+                    <button className="auth-guest-btn" style={{ borderColor: '#6c5ce7', color: '#a29bfe', marginTop: '0' }} onClick={() => setRequestMode(true)}>
+                        📨 Request Login Access
+                    </button>
+                )}
             </div>
         </div>
     );
@@ -445,9 +556,14 @@ export default function Scrum() {
     const [selectedTask, setSelectedTask] = useState(null);
     const [activeTask, setActiveTask] = useState(null);
     const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, task: null });
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [userAccess, setUserAccess] = useState(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(() => {
+        return localStorage.getItem('isAuthenticated') === 'true';
+    });
+    const [userAccess, setUserAccess] = useState(() => {
+        return localStorage.getItem('userAccess') || null;
+    });
     const [isGuest, setIsGuest] = useState(false);
+    const userFullName = localStorage.getItem('userFullName') || 'User';
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -469,6 +585,10 @@ export default function Scrum() {
     const handleContextMenu = (e, task) => {
         e.preventDefault();
         if (isGuest) return;
+        
+        // Only show context menu for DONE or BACKLOG tasks
+        if (task.status !== 'DONE' && task.status !== 'BACKLOG') return;
+
         setContextMenu({
             visible: true,
             x: e.clientX,
@@ -486,7 +606,8 @@ export default function Scrum() {
         if (!taskId) return;
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
+            const userFullName = localStorage.getItem('userFullName') || 'System';
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}?updatedBy=${encodeURIComponent(userFullName)}`, {
                 method: 'DELETE',
             });
             if (response.ok) {
@@ -500,21 +621,32 @@ export default function Scrum() {
         }
     };
 
-    const handleAssignToMe = async () => {
+    const handleMoveToTodo = async () => {
         if (!contextMenu.task) return;
         const taskId = contextMenu.task.id;
+        const userFullName = localStorage.getItem('userFullName') || 'System';
         try {
-            const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}?updatedBy=Sharath`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}?updatedBy=${encodeURIComponent(userFullName)}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ assignee: 'Sharath' })
+                body: JSON.stringify({ status: 'TODO' })
             });
             if (response.ok) {
-                setTasks(prev => prev.map(t => t.id === taskId ? { ...t, assignee: 'Sharath' } : t));
+                setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'TODO' } : t));
             }
         } catch (err) {
-            console.error("Failed to assign task", err);
+            console.error("Failed to move task to TODO", err);
         }
+        closeContextMenu();
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('userAccess');
+        localStorage.removeItem('userFullName');
+        setIsAuthenticated(false);
+        setUserAccess(null);
+        setIsGuest(false);
         closeContextMenu();
     };
 
@@ -572,6 +704,10 @@ export default function Scrum() {
             onLogin={(data) => {
                 setIsAuthenticated(true);
                 setUserAccess(data.access);
+                const userFullName = `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'System';
+                localStorage.setItem('userFullName', userFullName);
+                localStorage.setItem('isAuthenticated', 'true');
+                localStorage.setItem('userAccess', data.access);
             }}
             onGuest={() => setIsGuest(true)}
         />;
@@ -636,7 +772,8 @@ export default function Scrum() {
                         body: JSON.stringify({ order: newOrder.toString() })    
                     });
                     if (activeTaskObj.status !== overTaskObj.status) {
-                        await fetch(`${API_BASE_URL}/api/tasks/${activeId}?updatedBy=Sharath`, {
+                        const userFullName = localStorage.getItem('userFullName') || 'System';
+                        await fetch(`${API_BASE_URL}/api/tasks/${activeId}?updatedBy=${encodeURIComponent(userFullName)}`, {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },    
                             body: JSON.stringify({ status: overTaskObj.status })
@@ -650,7 +787,8 @@ export default function Scrum() {
                     if (activeTask && activeTask.status !== overId) {
                         setTasks(prev => prev.map(t => t.id.toString() === activeId ? { ...t, status: overId } : t));
                         try {
-                            await fetch(`${API_BASE_URL}/api/tasks/${activeId}?updatedBy=Sharath`, {
+                            const userFullName = localStorage.getItem('userFullName') || 'System';
+                            await fetch(`${API_BASE_URL}/api/tasks/${activeId}?updatedBy=${encodeURIComponent(userFullName)}`, {
                                 method: 'PATCH',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ status: overId })        
@@ -690,13 +828,24 @@ export default function Scrum() {
                         style={{ top: contextMenu.y, left: contextMenu.x }}     
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {contextMenu.task?.status === 'DONE' ? (
-                            <button onClick={handleDeleteTask} style={{ color: '#ff4d4d' }}>Delete</button>
-                        ) : (
-                            <button onClick={handleAssignToMe}>Assign to me</button>
+                        {contextMenu.task?.status === 'DONE' && (
+                            <button onClick={handleDeleteTask} style={{ color: '#ff4d4d' }}>Archive</button>
+                        )}
+                        {contextMenu.task?.status === 'BACKLOG' && (
+                            <button onClick={handleMoveToTodo}>Move to TODO</button>
                         )}
                     </div>
                 )}
+                <div className="user-profile-bar" onClick={closeContextMenu}>
+                    {!isGuest ? (
+                        <>
+                            <span className="user-greeting">👤 {userFullName} [Admin]</span>
+                            <button className="logout-btn" onClick={handleLogout}>Log out</button>
+                        </>
+                    ) : (
+                        <span className="user-greeting">👤 Guest [Guest]</span>
+                    )}
+                </div>
                 <div className="task-counts" onClick={closeContextMenu}>        
                     <span className="count-badge total">Total: {tasks.length}</span>
                     <span className="count-badge status-todo">To Do: {todoTasks.length}</span>
@@ -715,23 +864,12 @@ export default function Scrum() {
                     <DroppableColumn id="REVIEW" title="Review" tasks={reviewTasks} onOpen={setSelectedTask} onContextMenu={handleContextMenu} />
                     <DroppableColumn id="DONE" title="Done" tasks={doneTasks} onOpen={setSelectedTask} onContextMenu={handleContextMenu} />
                 </div>
-                <div className="backlog-section" onClick={closeContextMenu}>    
-                    <h2>Backlog</h2>
-                    {backlogTasks.length === 0 ? (
-                        <p className="empty-msg">No tasks in backlog.</p>       
-                    ) : (
-                        <div className="backlog-list">
-                            <SortableContext
-                                items={backlogTasks.map(t => t.id.toString())}  
-                                strategy={verticalListSortingStrategy}
-                            >
-                                {backlogTasks.map(task => (
-                                    <BacklogRow key={task.id} task={task} onOpen={setSelectedTask} onContextMenu={handleContextMenu} />
-                                ))}
-                            </SortableContext>
-                        </div>
-                    )}
-                </div>
+                <BacklogSection 
+                    tasks={backlogTasks} 
+                    onOpen={setSelectedTask} 
+                    onContextMenu={handleContextMenu} 
+                    closeContextMenu={closeContextMenu} 
+                />
             </div>
 
             <DragOverlay dropAnimation={{
@@ -783,3 +921,5 @@ const styles = {
         textTransform: 'uppercase',
     }
 };
+
+
