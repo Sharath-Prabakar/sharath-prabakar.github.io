@@ -8,6 +8,7 @@ const PROJECT_COLORS = [
 ];
 
 const Admin = () => {
+    const userFullName = localStorage.getItem('userFullName') || 'System';
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
@@ -77,6 +78,11 @@ const Admin = () => {
     const [editProjectError, setEditProjectError] = useState('');
     const [editProjectSuccess, setEditProjectSuccess] = useState('');
 
+    // Archived Tasks Popup state
+    const [isArchivedPopupOpen, setIsArchivedPopupOpen] = useState(false);
+    const [archivedTasks, setArchivedTasks] = useState([]);
+    const [archivedLoading, setArchivedLoading] = useState(false);
+
     const fetchProjects = async () => {
         try {
             const res = await fetch(`${API_BASE_URL}/api/projects`);
@@ -86,6 +92,18 @@ const Admin = () => {
             }
         } catch (err) {
             console.error("Failed to fetch projects", err);
+        }
+    };
+
+    const fetchArchivedTasks = async () => {
+        setArchivedLoading(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/tasks/archived`);
+            if (res.ok) setArchivedTasks(await res.json());
+        } catch (err) {
+            console.error("Failed to fetch archived tasks", err);
+        } finally {
+            setArchivedLoading(false);
         }
     };
 
@@ -226,7 +244,7 @@ const Admin = () => {
         setEditSuccess('');
         const selectedProject = allProjects.find(p => p.projectName === editFormData.project);
         try {
-            const response = await fetch(`${API_BASE_URL}/api/tasks/${editSelectedTaskId}?updatedBy=Sharath`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${editSelectedTaskId}?updatedBy=${encodeURIComponent(userFullName)}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -263,20 +281,6 @@ const Admin = () => {
             });
 
             if (!response.ok) throw new Error('Failed to delete task');
-
-            if (doomedTask) {
-                await fetch(`${API_BASE_URL}/api/logs`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        taskId: doomedTask.id,
-                        taskTitle: doomedTask.title,
-                        status: doomedTask.status,
-                        assignee: 'Sharath',
-                        actionType: 'DELETE'
-                    })
-                });
-            }
 
             setAllTasks(prev => prev.filter(t => t.id !== deleteSelectedTaskId));
             setDeleteSuccess('Task deleted successfully!');
@@ -371,8 +375,9 @@ const Admin = () => {
         const newOrder = totalCount + 1;
 
         try {
+            const userFullName = localStorage.getItem('userFullName') || 'System';
             // 1. Create the Task
-            const response = await fetch(`${API_BASE_URL}/api/tasks`, {
+            const response = await fetch(`${API_BASE_URL}/api/tasks?createdBy=${encodeURIComponent(userFullName)}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -398,18 +403,6 @@ const Admin = () => {
 
             if (!projectResponse.ok) throw new Error('Failed to link task to project');
 
-            await fetch(`${API_BASE_URL}/api/logs`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    taskId: newTaskId,
-                    taskTitle: newTask.title,
-                    status: newTask.status,
-                    assignee: 'Sharath',
-                    actionType: 'CREATE'
-                })
-            });
-
             setSuccess('Task created and linked successfully!');
             setFormData({
                 title: '',
@@ -434,12 +427,26 @@ const Admin = () => {
         }
     };
 
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+
     return (
         <div className="admin-container">
-            <h1 className="admin-title">Admin Dashboard</h1>
-            <p className="admin-subtitle">Manage tasks and operations seamlessly</p>
+            {!isAuthenticated && (
+                <div className="restricted-overlay">
+                    <div className="restricted-message">
+                        <h2>🔒 Restricted Access</h2>
+                        <p>Only authenticated administrators can manage tasks and projects.</p>
+                        <button onClick={() => window.location.href = '/playground'} className="create-task-btn">
+                            Return to Playground
+                        </button>
+                    </div>
+                </div>
+            )}
+            <div className={!isAuthenticated ? "admin-content-restricted" : ""}>
+                <h1 className="admin-title">Admin Dashboard</h1>
+                <p className="admin-subtitle">Manage tasks and operations seamlessly</p>
 
-            <div className="admin-actions">
+                <div className="admin-actions">
                 <button className="create-task-btn" onClick={() => setIsPopupOpen(true)}>
                     <span>+ Create Task</span>
                 </button>
@@ -462,6 +469,10 @@ const Admin = () => {
 
                 <button className="create-task-btn" onClick={() => setIsDeletePopupOpen(true)}>
                     <span>🗑 Delete Task</span>
+                </button>
+
+                <button className="create-task-btn" onClick={() => { setIsArchivedPopupOpen(true); fetchArchivedTasks(); }} style={{ borderColor: '#6c5ce7', color: '#a29bfe' }}>
+                    <span>📦 View Archived</span>
                 </button>
             </div>
 
@@ -526,29 +537,29 @@ const Admin = () => {
 
 
 
-                                    <div className="form-group">
-                                        <label>Assignee</label>
-                                        <select
-                                            name="assignee"
-                                            value={formData.assignee}
-                                            onChange={handleChange}
-                                            required
-                                        >
-                                            <option value="AI Agent">AI Agent</option>
-                                            <option value="Sharath">Sharath</option>
-                                        </select>
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Status</label>
-                                        <select name="status" value={formData.status} onChange={handleChange}>
-                                            <option value="BACKLOG">Backlog</option>
-                                            <option value="TODO">To Do</option>
-                                            <option value="IN_PROGRESS">In Progress</option>
-                                            <option value="REVIEW">Review</option>
-                                            <option value="DONE">Done</option>
-                                        </select>
-                                    </div>
+                                <div className="form-group">
+                                    <label>Assignee</label>
+                                    <select
+                                        name="assignee"
+                                        value={formData.assignee}
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        <option value="AI Agent">AI Agent</option>
+                                        <option value={userFullName}>{userFullName}</option>
+                                    </select>
                                 </div>
+                                <div className="form-group">
+                                    <label>Status</label>
+                                    <select name="status" value={formData.status} onChange={handleChange}>
+                                        <option value="BACKLOG">Backlog</option>
+                                        <option value="TODO">To Do</option>
+                                        <option value="IN_PROGRESS">In Progress</option>
+                                        <option value="REVIEW">Review</option>
+                                        <option value="DONE">Done</option>
+                                    </select>
+                                </div>
+                            </div>
 
                             {formData.assignee === 'AI Agent' && (
                                 <div className="form-group">
@@ -593,9 +604,9 @@ const Admin = () => {
                             </div>
                             <div className="form-group">
                                 <label>Project Status</label>
-                                <select 
-                                    name="status" 
-                                    value={projectFormData.status} 
+                                <select
+                                    name="status"
+                                    value={projectFormData.status}
                                     onChange={handleProjectChange}
                                     required
                                 >
@@ -774,9 +785,9 @@ const Admin = () => {
                                 <>
                                     <div className="form-group">
                                         <label>Project Status</label>
-                                        <select 
-                                            name="status" 
-                                            value={editProjectFormData.status} 
+                                        <select
+                                            name="status"
+                                            value={editProjectFormData.status}
                                             onChange={handleEditProjectChange}
                                             required
                                         >
@@ -898,7 +909,7 @@ const Admin = () => {
                                         <label>Assignee</label>
                                         <select name="assignee" value={editFormData.assignee} onChange={handleEditChange}>
                                             <option value="AI Agent">AI Agent</option>
-                                            <option value="Sharath">Sharath</option>
+                                            <option value={userFullName}>{userFullName}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -980,7 +991,7 @@ const Admin = () => {
                                             </div>
                                             {task.aiSummary && (
                                                 <div style={{ marginTop: '12px', borderTop: '1px solid #222', paddingTop: '12px' }}>
-                                                    <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>AI Summary</strong>
+                                                    <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Agentic AI Task Summary - Portfolio Website</strong>
                                                     <div style={{ color: '#4da3ff', marginTop: '4px', fontStyle: 'italic' }}>{task.aiSummary}</div>
                                                 </div>
                                             )}
@@ -1001,6 +1012,74 @@ const Admin = () => {
                     </div>
                 </div>
             )}
+
+            {isArchivedPopupOpen && (
+                <div className="popup-overlay" onClick={() => setIsArchivedPopupOpen(false)}>
+                    <div className="popup-content" style={{ maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                        <button className="close-btn" onClick={() => setIsArchivedPopupOpen(false)}>×</button>
+                        <h2>📦 Archived Tasks</h2>
+                        {archivedLoading ? (
+                            <p style={{ color: '#888', textAlign: 'center', padding: '20px' }}>Loading archived tasks...</p>
+                        ) : archivedTasks.length === 0 ? (
+                            <p style={{ color: '#888', textAlign: 'center', padding: '20px' }}>No archived tasks found.</p>
+                        ) : (
+                            (() => {
+                                const grouped = archivedTasks.reduce((acc, task) => {
+                                    const proj = task.project || 'Unknown';
+                                    if (!acc[proj]) acc[proj] = [];
+                                    acc[proj].push(task);
+                                    return acc;
+                                }, {});
+                                return Object.entries(grouped).map(([project, tasks]) => (
+                                    <div key={project} style={{ marginBottom: '24px' }}>
+                                        <h3 style={{ color: tasks[0]?.projectColorCode || '#d4af37', fontSize: '0.95rem', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px', borderBottom: `1px solid ${tasks[0]?.projectColorCode || '#333'}`, paddingBottom: '6px' }}>
+                                            {project} <span style={{ color: '#555', fontSize: '0.75rem' }}>({tasks.length} tasks)</span>
+                                        </h3>
+                                        {tasks.map(task => (
+                                            <div key={task.id} style={{ backgroundColor: '#111', border: '1px solid #222', borderRadius: '6px', padding: '12px', marginBottom: '8px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                                                    <div style={{ flex: 1 }}>
+                                                        <div style={{ color: '#e0e0e0', fontWeight: 'bold', marginBottom: '4px' }}>{task.title}</div>
+                                                        {task.description && <div style={{ color: '#666', fontSize: '0.8rem' }}>{task.description}</div>}
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '8px', flexShrink: 0, alignItems: 'center' }}>
+                                                        <span style={{ backgroundColor: 'rgba(108,92,231,0.15)', color: '#a29bfe', border: '1px solid #6c5ce7', padding: '2px 8px', borderRadius: '4px', fontSize: '0.72rem' }}>ARCHIVED</span>
+                                                        <span style={{ color: task.priority === 'HIGH' ? '#ff4d4f' : task.priority === 'MEDIUM' ? '#faad14' : '#52c41a', fontSize: '0.75rem', fontWeight: 'bold' }}>{task.priority}</span>
+                                                        <span 
+                                                            style={{ cursor: 'pointer', color: '#ff4d4f', fontSize: '1rem', marginLeft: '4px' }} 
+                                                            title="Permanently Delete"
+                                                            onClick={async (e) => {
+                                                                e.stopPropagation();
+                                                                if (window.confirm('Are you sure you want to permanently delete this archived task?')) {
+                                                                    const userFullName = localStorage.getItem('userFullName') || 'System';
+                                                                    try {
+                                                                        const res = await fetch(`${API_BASE_URL}/api/tasks/${task.id}?updatedBy=${encodeURIComponent(userFullName)}`, { method: 'DELETE' });
+                                                                        if (res.ok) {
+                                                                            fetchArchivedTasks();
+                                                                        } else {
+                                                                            console.error('Failed to delete archived task');
+                                                                        }
+                                                                    } catch (err) {
+                                                                        console.error(err);
+                                                                    }
+                                                                }
+                                                            }}
+                                                        >
+                                                            🗑️
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div style={{ color: '#555', fontSize: '0.75rem', marginTop: '6px' }}>Assignee: {task.assignee || '—'}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ));
+                            })()
+                        )}
+                    </div>
+                </div>
+            )}
+            </div>
         </div>
     );
 };
