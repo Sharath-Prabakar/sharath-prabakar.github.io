@@ -843,7 +843,7 @@ export default function Scrum() {
                 <div className="user-profile-bar" onClick={closeContextMenu}>
                     {!isGuest ? (
                         <>
-                            <span className="user-greeting">👤 {userFullName} [Admin]</span>
+                            <span className="user-greeting">👤 {userFullName} [{userAccess === 'Request' ? 'Guest' : 'Admin'}]</span>
                             <button className="logout-btn" onClick={handleLogout}>Log out</button>
                         </>
                     ) : (
