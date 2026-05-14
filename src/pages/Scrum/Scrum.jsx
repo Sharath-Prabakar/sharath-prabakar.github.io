@@ -439,6 +439,10 @@ const LogsSection = ({ logs, tasks, onOpen }) => (
                                 <span className="log-text">
                                     <strong>{log.assignee}</strong> generated an <strong>AI Summary</strong> for <strong>{log.taskTitle}</strong>
                                 </span>
+                            ) : log.actionType === 'ARCHIVE' ? (
+                                <span className="log-text">
+                                    <strong>{log.assignee}</strong> archived <strong>{log.taskTitle}</strong>
+                                </span>
                             ) : log.actionType === 'PERMANENT_DELETE' ? (
                                 <span className="log-text">
                                     <strong>{log.assignee}</strong> permanently deleted <strong>{log.taskTitle}</strong> from archives
