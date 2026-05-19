@@ -3,9 +3,18 @@ import { Link } from 'react-router-dom';
 import './MiniProjects.css';
 import sixtyHourLogo from '../../assets/SixtyHour_Logo.png';
 import snakeLogo from '../../assets/snake_game_logo.png';
+import bookclubLogo from '../../assets/bookclub_logo.png';
 
 const MiniProjects = () => {
     const projects = [
+        {
+            id: 'bookclub',
+            title: 'Goodreads Book Club',
+            description: 'Paste a Goodreads profile URL to discover overlapping "Want to Read" books among your friends. Find your next group read instantly!',
+            icon: bookclubLogo,
+            path: '/bookclub',
+            tags: ['React', 'Spring Boot']
+        },
         {
             id: 'snake',
             title: 'Classic Snake Game',

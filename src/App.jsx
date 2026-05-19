@@ -11,6 +11,7 @@ import Playground from './pages/Playground/Playground';
 import SnakeGame from './pages/SnakeGame/SnakeGame';
 import MiniProjects from './pages/MiniProjects/MiniProjects';
 import LeaderGraph from './pages/LeaderGraph/LeaderGraph';
+import BookClub from './pages/BookClub/BookClub';
 
 const App = () => {
     return (
@@ -26,6 +27,7 @@ const App = () => {
                 <Route path="/mini-projects" element={<MiniProjects />} />
                 <Route path="/leaderGraph" element={<LeaderGraph />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/bookclub" element={<BookClub />} />
             </Routes>
         </Router>
     );
