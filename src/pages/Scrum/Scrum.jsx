@@ -575,7 +575,20 @@ export default function Scrum() {
         return localStorage.getItem('userAccess') || null;
     });
     const [isGuest, setIsGuest] = useState(false);
+    const [archivedCount, setArchivedCount] = useState(0);
     const userFullName = localStorage.getItem('userFullName') || 'User';
+
+    const fetchArchivedCount = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/archived`);
+            if (response.ok) {
+                const data = await response.json();
+                setArchivedCount(data.length);
+            }
+        } catch (err) {
+            console.error("Failed to fetch archived tasks", err);
+        }
+    };
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -625,6 +638,7 @@ export default function Scrum() {
             if (response.ok) {
                 setTasks(prev => prev.filter(t => t.id !== taskId));
                 setContextMenu({ visible: false, x: 0, y: 0, task: null });     
+                fetchArchivedCount();
             } else {
                 console.error('Failed to delete task');
             }
@@ -707,7 +721,8 @@ export default function Scrum() {
 
         fetchTasks();
         fetchLogs();
-        const interval = setInterval(() => { fetchTasks(); fetchLogs(); }, 30000);
+        fetchArchivedCount();
+        const interval = setInterval(() => { fetchTasks(); fetchLogs(); fetchArchivedCount(); }, 30000);
         return () => clearInterval(interval);
     }, []);
 
@@ -860,12 +875,13 @@ export default function Scrum() {
                     )}
                 </div>
                 <div className="task-counts" onClick={closeContextMenu}>        
-                    <span className="count-badge total">Total: {tasks.length}</span>
+                    <span className="count-badge total">Total: {tasks.length + archivedCount}</span>
                     <span className="count-badge status-todo">To Do: {todoTasks.length}</span>
                     <span className="count-badge status-in_progress">In Progress: {inProgressTasks.length}</span>
                     <span className="count-badge status-review">Review: {reviewTasks.length}</span>
                     <span className="count-badge status-done">Done: {doneTasks.length}</span>
                     <span className="count-badge status-backlog">Backlog: {backlogTasks.length}</span>
+                    <span className="count-badge status-archived">Archived: {archivedCount}</span>
                 </div>
                 <div className="dashboard-top-section" onClick={closeContextMenu}>
                     <AISummarySection tasks={tasks} onOpen={setSelectedTask} /> 

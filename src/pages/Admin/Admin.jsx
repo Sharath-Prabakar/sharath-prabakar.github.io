@@ -83,6 +83,81 @@ const Admin = () => {
     const [archivedTasks, setArchivedTasks] = useState([]);
     const [archivedLoading, setArchivedLoading] = useState(false);
 
+    // User Access Popup state
+    const [isUserAccessPopupOpen, setIsUserAccessPopupOpen] = useState(false);
+    const [allUsers, setAllUsers] = useState([]);
+    const [userUpdates, setUserUpdates] = useState([]);
+    const [userAccessLoading, setUserAccessLoading] = useState(false);
+    const [userAccessError, setUserAccessError] = useState('');
+    const [userAccessSuccess, setUserAccessSuccess] = useState('');
+
+    const fetchUsers = async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/users`);
+            if (res.ok) {
+                const users = await res.json();
+                setAllUsers(users);
+                setUserUpdates([]);
+            }
+        } catch (err) {
+            console.error("Failed to fetch users", err);
+        }
+    };
+
+    const openUserAccessPopup = () => {
+        setIsUserAccessPopupOpen(true);
+        fetchUsers();
+    };
+
+    const handleUserAccessChange = (userId, newAccess) => {
+        setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, access: newAccess } : u));
+        
+        setUserUpdates(prev => {
+            const existingIndex = prev.findIndex(u => u.id === userId);
+            if (existingIndex >= 0) {
+                const newUpdates = [...prev];
+                newUpdates[existingIndex] = { id: userId, access: newAccess };
+                return newUpdates;
+            } else {
+                return [...prev, { id: userId, access: newAccess }];
+            }
+        });
+    };
+
+    const handleUserAccessSubmit = async (e) => {
+        e.preventDefault();
+        if (userUpdates.length === 0) {
+            setUserAccessSuccess('No changes to save.');
+            return;
+        }
+
+        setUserAccessLoading(true);
+        setUserAccessError('');
+        setUserAccessSuccess('');
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/users/access`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userUpdates)
+            });
+
+            if (!res.ok) throw new Error('Failed to update user access');
+
+            setUserAccessSuccess('User access updated successfully!');
+            setUserUpdates([]);
+            setTimeout(() => {
+                setIsUserAccessPopupOpen(false);
+                setUserAccessSuccess('');
+            }, 1500);
+
+        } catch (err) {
+            setUserAccessError(err.message || 'Failed to update user access');
+        } finally {
+            setUserAccessLoading(false);
+        }
+    };
+
     const fetchProjects = async () => {
         try {
             const res = await fetch(`${API_BASE_URL}/api/projects`);
@@ -479,6 +554,10 @@ const Admin = () => {
 
                     <button className="create-task-btn" onClick={() => { setIsArchivedPopupOpen(true); fetchArchivedTasks(); }} style={{ borderColor: '#6c5ce7', color: '#a29bfe' }}>
                         <span>📦 View Archived</span>
+                    </button>
+
+                    <button className="create-task-btn" onClick={openUserAccessPopup} style={{ borderColor: '#00cec9', color: '#81ecec' }}>
+                        <span>👥 User Access</span>
                     </button>
                 </div>
 
@@ -1082,6 +1161,51 @@ const Admin = () => {
                                     ));
                                 })()
                             )}
+                        </div>
+                    </div>
+                )}
+
+                {isUserAccessPopupOpen && (
+                    <div className="popup-overlay" onClick={() => setIsUserAccessPopupOpen(false)}>
+                        <div className="popup-content" style={{ maxWidth: '600px', maxHeight: '80vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                            <button className="close-btn" onClick={() => setIsUserAccessPopupOpen(false)}>×</button>
+                            <h2>👥 User Access</h2>
+                            
+                            {userAccessError && <div className="error-message">{userAccessError}</div>}
+                            {userAccessSuccess && <div className="success-message">{userAccessSuccess}</div>}
+                            
+                            <form onSubmit={handleUserAccessSubmit}>
+                                {allUsers.length === 0 ? (
+                                    <p style={{ color: '#888', textAlign: 'center', padding: '20px' }}>Loading users...</p>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+                                        {allUsers.map(user => (
+                                            <div key={user.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#111', border: '1px solid #222', borderRadius: '8px', padding: '10px 15px' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <strong style={{ color: '#e0e0e0', fontSize: '1rem' }}>{user.firstName} {user.lastName}</strong>
+                                                    <span style={{ color: '#888', fontSize: '0.85rem' }}>{user.email}</span>
+                                                </div>
+                                                <select
+                                                    value={user.access || 'Request'}
+                                                    onChange={(e) => handleUserAccessChange(user.id, e.target.value)}
+                                                    style={{ width: 'auto', padding: '8px 12px' }}
+                                                >
+                                                    <option value="Admin">Admin</option>
+                                                    <option value="Request">Request (Guest)</option>
+                                                </select>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                
+                                <button
+                                    type="submit"
+                                    className="submit-btn"
+                                    disabled={userAccessLoading || userUpdates.length === 0}
+                                >
+                                    {userAccessLoading ? 'Saving...' : 'Save Changes'}
+                                </button>
+                            </form>
                         </div>
                     </div>
                 )}
