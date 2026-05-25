@@ -54,15 +54,15 @@ const SummaryModal = ({ summary, onClose }) => {
                 try {
                     const response = await fetch(`${API_BASE_URL}/api/tasks/batch/fetch`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },        
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(summary.taskIds)
                     });
                     const activeTasks = await response.json();
-                    
+
                     // Check if any tasks are missing (e.g. they were archived)
                     const activeTaskIds = activeTasks.map(t => t.id);
                     const missingTaskIds = summary.taskIds.filter(id => !activeTaskIds.includes(id));
-                    
+
                     let archivedTasks = [];
                     if (missingTaskIds.length > 0) {
                         const archiveResponse = await fetch(`${API_BASE_URL}/api/tasks/archived/batch/fetch`, {
@@ -74,7 +74,7 @@ const SummaryModal = ({ summary, onClose }) => {
                             archivedTasks = await archiveResponse.json();
                         }
                     }
-                    
+
                     setTasks([...activeTasks, ...archivedTasks]);
                 } catch (err) {
                     console.error('Failed to fetch tasks:', err);
@@ -94,7 +94,7 @@ const SummaryModal = ({ summary, onClose }) => {
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="glass-card modal-content" onClick={(e) => e.stopPropagation()}>
-                <button className="modal-close" onClick={onClose}>✕</button>  
+                <button className="modal-close" onClick={onClose}>✕</button>
                 <div className="modal-header">
                     <span className="summary-date">
                         {summary.isDaySummary
@@ -107,11 +107,11 @@ const SummaryModal = ({ summary, onClose }) => {
                 <div className="modal-body">
                     <div className="summary-stats">
                         <div className="stat-block">
-                            <span className="stat-label">Time Taken</span>      
+                            <span className="stat-label">Time Taken</span>
                             <span className="stat-value">{formatTime(summary.totalTimeSeconds)}</span>
                         </div>
                         <div className="stat-block">
-                            <span className="stat-label">Tasks Executed</span>  
+                            <span className="stat-label">Tasks Executed</span>
                             <span className="stat-value">{summary.totalTasks || summary.taskIds?.length || 0}</span>
                         </div>
                     </div>
@@ -122,8 +122,8 @@ const SummaryModal = ({ summary, onClose }) => {
                             {loadingTasks ? (
                                 <p className="loading-mini">Fetching task details...</p>
                             ) : (
-                                <div className="summary-tasks-table-wrapper">   
-                                    <table className="summary-tasks-table">     
+                                <div className="summary-tasks-table-wrapper">
+                                    <table className="summary-tasks-table">
                                         <thead>
                                             <tr>
                                                 <th>Task</th>
@@ -135,9 +135,9 @@ const SummaryModal = ({ summary, onClose }) => {
                                         <tbody>
                                             {tasks.map(task => (
                                                 <tr key={task.id}>
-                                                    <td>{task.title}</td>       
-                                                    <td>{task.project}</td>     
-                                                    <td>{task.assignee}</td>    
+                                                    <td>{task.title}</td>
+                                                    <td>{task.project}</td>
+                                                    <td>{task.assignee}</td>
                                                     <td><span className={`status-pill ${task.status}`}>{task.status}</span></td>
                                                 </tr>
                                             ))}
@@ -200,18 +200,18 @@ const Playground = () => {
 
     const handleSendMessage = async () => {
         if (!input.trim() || isGuestUser) return;
-        
+
         const userFullName = localStorage.getItem('userFullName') || 'User';
         const userEmail = localStorage.getItem('userEmail') || '';
 
-        const newMessage = { 
-            content: input, 
+        const newMessage = {
+            content: input,
             sender: 'user',
             senderName: userFullName,
             senderEmail: userEmail,
-            createdAt: new Date().toISOString() 
+            createdAt: new Date().toISOString()
         };
-        
+
         setInput('');
         setMessages(prev => [...prev, newMessage]);
         try {
@@ -341,21 +341,21 @@ const Playground = () => {
                             <div ref={messagesEndRef} />
                         </div>
                         <div className="chat-input-wrapper">
-                                <input
-                                    type="text"
-                                    className="chat-input"
-                                    placeholder={!isAuthenticated ? "Log in to chat with Antigravity" : isGuestUser ? "Access required to chat with Antigravity" : "Message Antigravity..."}
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    onKeyPress={handleKeyPress}
-                                    disabled={isGuestUser}
-                                />
-                                <button className="chat-send-btn" onClick={handleSendMessage} disabled={!input.trim() || isGuestUser}>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <line x1="22" y1="2" x2="11" y2="13"></line>
-                                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                                    </svg>
-                                </button>
+                            <input
+                                type="text"
+                                className="chat-input"
+                                placeholder={!isAuthenticated ? "Log in to chat with Antigravity" : isGuestUser ? "Access required to chat with Antigravity" : "Message Antigravity..."}
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                disabled={isGuestUser}
+                            />
+                            <button className="chat-send-btn" onClick={handleSendMessage} disabled={!input.trim() || isGuestUser}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </section>
@@ -367,7 +367,6 @@ const Playground = () => {
                     </h2>
                     <div className="zen-grid">
                         <div className="glass-card zen-card tictactoe-card">
-                            <div className="card-badge">New AI Mini Game</div>
                             <h3>Tic Tac Toe</h3>
                             <TicTacToe />
                         </div>
