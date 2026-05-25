@@ -20,6 +20,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import './scrum.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -283,7 +285,9 @@ const TaskDetailModal = ({ task, onClose, onTaskUpdate }) => {
                     {task.aiSummary && (
                         <div className="task-modal-prompt" style={{ borderTop: '1px solid #1e1e1e', marginTop: '16px', paddingTop: '16px' }}>
                             <span className="meta-label">Agentic AI Task Summary - {task.project || 'Portfolio Website'}</span>
-                            <p style={{ color: '#4da3ff', fontStyle: 'italic' }}>{task.aiSummary}</p>
+                            <div className="markdown-content" style={{ color: '#4da3ff', fontStyle: 'italic', marginTop: '8px' }}>
+                                <ReactMarkdown rehypePlugins={[rehypeRaw]}>{task.aiSummary}</ReactMarkdown>
+                            </div>
                         </div>
                     )}
 
@@ -299,13 +303,17 @@ const TaskDetailModal = ({ task, onClose, onTaskUpdate }) => {
                                         return (
                                             <div key={idx} className="comment-item">
                                                 <strong className="comment-author">{name}:</strong>
-                                                <span className="comment-text">{message}</span>
+                                                <div className="comment-text markdown-content">
+                                                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>{message}</ReactMarkdown>
+                                                </div>
                                             </div>
                                         );
                                     }
                                     return (
                                         <div key={idx} className="comment-item">
-                                            {comment}
+                                            <div className="markdown-content">
+                                                <ReactMarkdown rehypePlugins={[rehypeRaw]}>{comment}</ReactMarkdown>
+                                            </div>
                                         </div>
                                     );
                                 })
@@ -381,7 +389,9 @@ function AISummarySection({ tasks, onOpen }) {
                                     )}
                                     <div className="ai-summary-card-title" style={{ marginBottom: 0 }}>{task.title}</div>
                                 </div>
-                                <div className="ai-summary-card-text">{task.aiSummary}</div>
+                                <div className="ai-summary-card-text markdown-content">
+                                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>{task.aiSummary}</ReactMarkdown>
+                                </div>
                             </div>
                         );
                     })
@@ -427,11 +437,15 @@ const LogsSection = ({ logs, tasks, onOpen }) => (
                                 <span className="log-text">
                                     <strong>{log.assignee}</strong> updated <strong>{log.taskTitle}</strong>
                                 </span>
-                            ) : log.actionType === 'BATCH_ASSIGN' ? (
-                                <span className="log-text">
-                                    <strong>{log.assignee}</strong> reassigned <strong>{log.taskTitle}</strong>
-                                </span>
-                            ) : log.actionType === 'LINK_PROJECT' ? (
+                            ) : log.actionType === 'BATCH_ASSIGN' ? (() => {
+                                const match = log.description.match(/ to (.*?)( \(Project Level\))?$/);
+                                const modelName = match ? match[1] : log.assignee;
+                                return (
+                                    <span className="log-text">
+                                        <strong>{modelName}</strong> was assigned to <strong>{log.taskTitle}</strong>
+                                    </span>
+                                );
+                            })() : log.actionType === 'LINK_PROJECT' ? (
                                 <span className="log-text">
                                     <strong>{log.assignee}</strong> linked <strong>{log.taskTitle}</strong> to <strong>{log.description.replace('Task linked to project: ', '')}</strong>
                                 </span>

@@ -4,6 +4,7 @@ import './MiniProjects.css';
 import sixtyHourLogo from '../../assets/SixtyHour_Logo.png';
 import snakeLogo from '../../assets/snake_game_logo.png';
 import bookclubLogo from '../../assets/bookclub_logo.png';
+import paintingCanvasLogo from '../../assets/painting_canvas_logo.png';
 
 const MiniProjects = () => {
     const projects = [
@@ -14,6 +15,14 @@ const MiniProjects = () => {
             icon: bookclubLogo,
             path: '/bookclub',
             tags: ['React', 'Spring Boot']
+        },
+        {
+            id: 'canvas',
+            title: 'Painting Canvas',
+            description: 'An interactive digital drawing and painting board. Pick your brush color and size, and sketch your thoughts inside Zen state!',
+            icon: paintingCanvasLogo,
+            path: '/canvas',
+            tags: ['React']
         },
         {
             id: 'snake',

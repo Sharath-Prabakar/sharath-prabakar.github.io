@@ -12,6 +12,7 @@ import SnakeGame from './pages/SnakeGame/SnakeGame';
 import MiniProjects from './pages/MiniProjects/MiniProjects';
 import LeaderGraph from './pages/LeaderGraph/LeaderGraph';
 import BookClub from './pages/BookClub/BookClub';
+import PaintingCanvasPage from './pages/PaintingCanvas/PaintingCanvasPage';
 
 const App = () => {
     return (
@@ -28,6 +29,7 @@ const App = () => {
                 <Route path="/leaderGraph" element={<LeaderGraph />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/bookclub" element={<BookClub />} />
+                <Route path="/canvas" element={<PaintingCanvasPage />} />
             </Routes>
         </Router>
     );

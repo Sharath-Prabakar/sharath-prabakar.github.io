@@ -302,6 +302,18 @@ option {
     transform: scale(1.1);
 }
 
+.color-square.disabled {
+    opacity: 0.15;
+    cursor: not-allowed;
+    box-shadow: none;
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
+.color-square.disabled:hover {
+    transform: none;
+    z-index: auto;
+}
+
 @media (max-width: 600px) {
     .color-grid {
         grid-template-columns: repeat(4, 1fr);

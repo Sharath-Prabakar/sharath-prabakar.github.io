@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import './admin.css';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -6,6 +8,13 @@ const PROJECT_COLORS = [
     "#007788", "#DDAA33", "#9966AA", "#666666", "#0047AB", "#014421", "#9B111E",
     "#DAA520", "#A1008F", "#D15F5F", "#007F5F", "#1ABC9C", "#8B4513", "#2F4F4F"
 ];
+
+const formatLastLogin = (lastLoginStr) => {
+    if (!lastLoginStr) return null;
+    const date = new Date(lastLoginStr);
+    if (isNaN(date.getTime())) return null;
+    return date.toLocaleString();
+};
 
 const Admin = () => {
     const userFullName = localStorage.getItem('userFullName') || 'System';
@@ -41,6 +50,7 @@ const Admin = () => {
     const [linkError, setLinkError] = useState('');
     const [linkSuccess, setLinkSuccess] = useState('');
     const [allProjects, setAllProjects] = useState([]);
+    const usedProjectColors = allProjects.map(p => p.projectColorCode).filter(Boolean);
     const [allTasks, setAllTasks] = useState([]);
     const [selectedProjectId, setSelectedProjectId] = useState('');
     const [selectedTaskIds, setSelectedTaskIds] = useState([]);
@@ -184,6 +194,7 @@ const Admin = () => {
 
     React.useEffect(() => {
         fetchProjects();
+        fetchUsers();
         (async () => {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/tasks`);
@@ -631,7 +642,16 @@ const Admin = () => {
                                             required
                                         >
                                             <option value="AI Agent">AI Agent</option>
-                                            <option value={userFullName}>{userFullName}</option>
+                                            {allUsers
+                                                .filter(u => u.access === 'Admin')
+                                                .map(u => {
+                                                    const fullName = `${u.firstName} ${u.lastName}`;
+                                                    return (
+                                                        <option key={u.id || u._id} value={fullName}>
+                                                            {fullName}
+                                                        </option>
+                                                    );
+                                                })}
                                         </select>
                                     </div>
                                     <div className="form-group">
@@ -714,15 +734,21 @@ const Admin = () => {
                                 <div className="form-group">
                                     <label>Project Color Code</label>
                                     <div className="color-grid">
-                                        {PROJECT_COLORS.map(color => (
-                                            <div
-                                                key={color}
-                                                className={`color-square ${projectFormData.projectColorCode === color ? 'selected' : ''}`}
-                                                style={{ backgroundColor: color }}
-                                                onClick={() => setProjectFormData(prev => ({ ...prev, projectColorCode: color }))}
-                                                title={color}
-                                            />
-                                        ))}
+                                        {PROJECT_COLORS.map(color => {
+                                            const isColorUsed = usedProjectColors.includes(color);
+                                            return (
+                                                <div
+                                                    key={color}
+                                                    className={`color-square ${projectFormData.projectColorCode === color ? 'selected' : ''} ${isColorUsed ? 'disabled' : ''}`}
+                                                    style={{ backgroundColor: color }}
+                                                    onClick={() => {
+                                                        if (isColorUsed) return;
+                                                        setProjectFormData(prev => ({ ...prev, projectColorCode: color }));
+                                                    }}
+                                                    title={isColorUsed ? `${color} (Already used)` : color}
+                                                />
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
@@ -894,15 +920,23 @@ const Admin = () => {
                                         <div className="form-group">
                                             <label>Project Color Code</label>
                                             <div className="color-grid">
-                                                {PROJECT_COLORS.map(color => (
-                                                    <div
-                                                        key={color}
-                                                        className={`color-square ${editProjectFormData.projectColorCode === color ? 'selected' : ''}`}
-                                                        style={{ backgroundColor: color }}
-                                                        onClick={() => setEditProjectFormData(prev => ({ ...prev, projectColorCode: color }))}
-                                                        title={color}
-                                                    />
-                                                ))}
+                                                {PROJECT_COLORS.map(color => {
+                                                    const selectedProj = allProjects.find(p => p.id === editProjectSelectedId);
+                                                    const currentProjectColor = selectedProj ? selectedProj.projectColorCode : null;
+                                                    const isColorUsed = usedProjectColors.includes(color) && color !== currentProjectColor;
+                                                    return (
+                                                        <div
+                                                            key={color}
+                                                            className={`color-square ${editProjectFormData.projectColorCode === color ? 'selected' : ''} ${isColorUsed ? 'disabled' : ''}`}
+                                                            style={{ backgroundColor: color }}
+                                                            onClick={() => {
+                                                                if (isColorUsed) return;
+                                                                setEditProjectFormData(prev => ({ ...prev, projectColorCode: color }));
+                                                            }}
+                                                            title={isColorUsed ? `${color} (Already used)` : color}
+                                                        />
+                                                    );
+                                                })}
                                             </div>
                                         </div>
 
@@ -994,7 +1028,16 @@ const Admin = () => {
                                             <label>Assignee</label>
                                             <select name="assignee" value={editFormData.assignee} onChange={handleEditChange}>
                                                 <option value="AI Agent">AI Agent</option>
-                                                <option value={userFullName}>{userFullName}</option>
+                                                {allUsers
+                                                    .filter(u => u.access === 'Admin')
+                                                    .map(u => {
+                                                        const fullName = `${u.firstName} ${u.lastName}`;
+                                                        return (
+                                                            <option key={u.id || u._id} value={fullName}>
+                                                                {fullName}
+                                                            </option>
+                                                        );
+                                                    })}
                                             </select>
                                         </div>
                                     </div>
@@ -1077,7 +1120,9 @@ const Admin = () => {
                                                 {task.aiSummary && (
                                                     <div style={{ marginTop: '12px', borderTop: '1px solid #222', paddingTop: '12px' }}>
                                                         <strong style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Agentic AI Task Summary - Portfolio Website</strong>
-                                                        <div style={{ color: '#4da3ff', marginTop: '4px', fontStyle: 'italic' }}>{task.aiSummary}</div>
+                                                        <div className="markdown-content" style={{ color: '#4da3ff', marginTop: '4px', fontStyle: 'italic' }}>
+                                                            <ReactMarkdown rehypePlugins={[rehypeRaw]}>{task.aiSummary}</ReactMarkdown>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
@@ -1184,6 +1229,11 @@ const Admin = () => {
                                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                                                     <strong style={{ color: '#e0e0e0', fontSize: '1rem' }}>{user.firstName} {user.lastName}</strong>
                                                     <span style={{ color: '#888', fontSize: '0.85rem' }}>{user.email}</span>
+                                                    {user.lastLogin && formatLastLogin(user.lastLogin) && (
+                                                        <span style={{ color: '#81ecec', fontSize: '0.75rem', marginTop: '4px' }}>
+                                                            📅 Last Login: {formatLastLogin(user.lastLogin)}
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <select
                                                     value={user.access || 'Request'}

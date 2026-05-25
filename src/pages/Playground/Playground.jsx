@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import './playground.css';
 import HorizontalCalendar from '../../components/HorizontalCalendar/HorizontalCalendar';
-import PaintingCanvas from '../../components/PaintingCanvas/PaintingCanvas';
+import TicTacToe from '../../components/TicTacToe/TicTacToe';
 import { chatService } from '../../services/chatService';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -34,6 +36,11 @@ const getSenderColor = (sender) => {
         'assistant': '#a855f7'
     };
     return colors[sender.toLowerCase()] || '#e0e0e0';
+};
+
+const cleanMarkdownContent = (content) => {
+    if (!content) return '';
+    return content.replace(/\?\?/g, '✨');
 };
 
 const SummaryModal = ({ summary, onClose }) => {
@@ -141,7 +148,9 @@ const SummaryModal = ({ summary, onClose }) => {
                         </div>
                     )}
 
-                    <div className="full-content">{summary.content}</div>
+                    <div className="full-content markdown-content">
+                        <ReactMarkdown rehypePlugins={[rehypeRaw]}>{cleanMarkdownContent(summary.content)}</ReactMarkdown>
+                    </div>
                 </div>
             </div>
         </div>
@@ -284,8 +293,15 @@ const Playground = () => {
                                             <span className="summary-date">{new Date(summary.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</span>
                                             <h4 className="summary-title">{summary.title}</h4>
                                         </div>
-                                        <div className="summary-content-preview">
-                                            {summary.content.length > 150 ? summary.content.substring(0, 150) + '...' : summary.content}
+                                        <div className="summary-quick-stats">
+                                            <div className="quick-stat">
+                                                <span className="quick-stat-icon">⏱️</span>
+                                                <span className="quick-stat-value">{formatTime(summary.totalTimeSeconds)}</span>
+                                            </div>
+                                            <div className="quick-stat">
+                                                <span className="quick-stat-icon">✅</span>
+                                                <span className="quick-stat-value">{summary.totalTasks || summary.taskIds?.length || 0} Tasks</span>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -350,10 +366,10 @@ const Playground = () => {
                         <span className="icon">🧘</span> Digital Zen
                     </h2>
                     <div className="zen-grid">
-                        <div className="glass-card zen-card canvas-card">
-                            <div className="card-badge">Next Gen</div>
-                            <h3>Painting Canvas</h3>
-                            <PaintingCanvas />
+                        <div className="glass-card zen-card tictactoe-card">
+                            <div className="card-badge">New AI Mini Game</div>
+                            <h3>Tic Tac Toe</h3>
+                            <TicTacToe />
                         </div>
                     </div>
                 </section>

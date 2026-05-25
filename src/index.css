@@ -6,3 +6,54 @@ html, body, #root {
   overflow-x: hidden; /* Prevent horizontal scroll */
   overflow-y: auto;   /* Allow vertical scroll */
 }
+
+/* Global Markdown Formatting */
+.markdown-content {
+    white-space: normal !important;
+    text-align: left !important;
+    line-height: 1.4 !important;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+    margin-top: 14px !important;
+    margin-bottom: 6px !important;
+    color: #d4af37 !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+}
+
+.markdown-content h3 { font-size: 1.1rem !important; }
+.markdown-content h4, .markdown-content h5 { font-size: 1rem !important; color: #fff !important; }
+
+.markdown-content p {
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+    line-height: 1.4 !important;
+    color: #ccc !important;
+}
+
+.markdown-content p:empty, .markdown-content br {
+    display: none !important;
+}
+
+.markdown-content p:last-child { margin-bottom: 0 !important; }
+
+.markdown-content ul,
+.markdown-content ol {
+    margin-top: 4px !important;
+    margin-bottom: 10px !important;
+    padding-left: 20px !important;
+}
+
+.markdown-content li {
+    margin-bottom: 6px !important;
+    line-height: 1.4 !important;
+}
+
+.markdown-content li:last-child { margin-bottom: 0 !important; }
+.markdown-content li > p { margin-bottom: 0 !important; margin-top: 0 !important; }
