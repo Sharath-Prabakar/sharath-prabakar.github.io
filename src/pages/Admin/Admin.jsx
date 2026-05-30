@@ -547,9 +547,9 @@ const Admin = () => {
                         <span>+ Create Project</span>
                     </button>
 
-                    <button className="create-task-btn" onClick={openLinkPopup}>
+                    {/* <button className="create-task-btn" onClick={openLinkPopup}>
                         <span>+ Link Project to Tasks</span>
-                    </button>
+                    </button> */}
 
                     <button className="create-task-btn" onClick={() => { setIsEditProjectPopupOpen(true); fetchProjects(); }}>
                         <span>✎ Edit Project</span>

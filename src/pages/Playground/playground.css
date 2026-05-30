@@ -30,8 +30,15 @@
 }
 
 @keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-30px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .playground-title {
@@ -57,7 +64,8 @@
 .playground-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    align-items: start !important; /* Forces sections to respect their own height */
+    align-items: start !important;
+    /* Forces sections to respect their own height */
     gap: 40px;
     width: 100%;
     max-width: 1300px;
@@ -159,9 +167,20 @@
 }
 
 @keyframes pulse-glow {
-    0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
-    70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
-    100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+    0% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7);
+    }
+
+    70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(0, 255, 136, 0);
+    }
+
+    100% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgba(0, 255, 136, 0);
+    }
 }
 
 /* Chat Container */
@@ -183,7 +202,8 @@
     gap: 20px !important;
     padding-right: 12px !important;
     margin-bottom: 20px !important;
-    scrollbar-width: thin; /* Restore thin scrollbar */
+    scrollbar-width: thin;
+    /* Restore thin scrollbar */
     scrollbar-color: rgba(212, 175, 55, 0.3) transparent;
 }
 
@@ -212,13 +232,27 @@
 }
 
 @keyframes messageSlideIn {
-    from { opacity: 0; transform: translateX(-20px) scale(0.95); }
-    to { opacity: 1; transform: translateX(0) scale(1); }
+    from {
+        opacity: 0;
+        transform: translateX(-20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
 }
 
 @keyframes messageSlideInRight {
-    from { opacity: 0; transform: translateX(20px) scale(0.95); }
-    to { opacity: 1; transform: translateX(0) scale(1); }
+    from {
+        opacity: 0;
+        transform: translateX(20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
 }
 
 .sender-name {
@@ -430,12 +464,12 @@
 }
 
 .summaries-list::-webkit-scrollbar-track {
-    background: rgba(255,255,255,0.02);
+    background: rgba(255, 255, 255, 0.02);
     border-radius: 10px;
 }
 
 .summaries-list::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
 }
 
@@ -464,8 +498,13 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .modal-content {
@@ -480,8 +519,15 @@
 }
 
 @keyframes scaleUp {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .modal-close {
@@ -509,7 +555,7 @@
 }
 
 .modal-body .full-content {
-    font-size: 1.1rem;
+    font-size: 1rem;
     line-height: 1.8;
     color: #ccc;
     white-space: pre-wrap;
@@ -520,7 +566,7 @@
 }
 
 .modal-content::-webkit-scrollbar-track {
-    background: rgba(255,255,255,0.02);
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .modal-content::-webkit-scrollbar-thumb {
@@ -571,12 +617,36 @@
     letter-spacing: 0.5px;
 }
 
-.status-pill.BACKLOG { background: rgba(100, 100, 100, 0.2); color: #888; }
-.status-pill.TODO { background: rgba(77, 163, 255, 0.1); color: #4da3ff; }
-.status-pill.IN_PROGRESS { background: rgba(212, 175, 55, 0.1); color: #d4af37; }
-.status-pill.REVIEW { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
-.status-pill.DONE { background: rgba(0, 255, 136, 0.1); color: #00ff88; }
-.status-pill.ARCHIVED { background: rgba(255, 100, 0, 0.1); color: #ff6400; border: 1px solid rgba(255, 100, 0, 0.3); }
+.status-pill.BACKLOG {
+    background: rgba(100, 100, 100, 0.2);
+    color: #888;
+}
+
+.status-pill.TODO {
+    background: rgba(77, 163, 255, 0.1);
+    color: #4da3ff;
+}
+
+.status-pill.IN_PROGRESS {
+    background: rgba(212, 175, 55, 0.1);
+    color: #d4af37;
+}
+
+.status-pill.REVIEW {
+    background: rgba(168, 85, 247, 0.1);
+    color: #a855f7;
+}
+
+.status-pill.DONE {
+    background: rgba(0, 255, 136, 0.1);
+    color: #00ff88;
+}
+
+.status-pill.ARCHIVED {
+    background: rgba(255, 100, 0, 0.1);
+    color: #ff6400;
+    border: 1px solid rgba(255, 100, 0, 0.3);
+}
 
 .loading-mini {
     color: #555;
@@ -619,13 +689,17 @@
     .summary-tasks-table {
         font-size: 0.8rem;
     }
-    .summary-tasks-table td, .summary-tasks-table th {
+
+    .summary-tasks-table td,
+    .summary-tasks-table th {
         padding: 10px 8px;
     }
+
     .summary-stats {
         gap: 20px;
         padding: 15px;
     }
+
     .stat-value {
         font-size: 1rem;
     }
@@ -635,7 +709,10 @@
     .playground-grid {
         grid-template-columns: 1fr;
     }
-    .zen-section, .summary-section, .chat-section {
+
+    .zen-section,
+    .summary-section,
+    .chat-section {
         grid-column: 1;
     }
 }
@@ -644,13 +721,16 @@
     .zen-grid {
         grid-template-columns: 1fr;
     }
+
     .modal-content {
         padding: 30px;
     }
+
     .modal-title {
         font-size: 1.5rem;
     }
 }
+
 /* Painting Canvas Styles */
 .canvas-card {
     grid-column: span 1;
@@ -743,10 +823,12 @@
     .zen-grid {
         grid-template-columns: 1fr;
     }
+
     .canvas-card {
         min-height: 500px;
     }
 }
+
 /* Snake Game Styles */
 .snake-game-container {
     display: flex;
@@ -826,8 +908,15 @@
 }
 
 @keyframes food-pulse {
-    from { transform: scale(0.8); opacity: 0.8; }
-    to { transform: scale(1.1); opacity: 1; }
+    from {
+        transform: scale(0.8);
+        opacity: 0.8;
+    }
+
+    to {
+        transform: scale(1.1);
+        opacity: 1;
+    }
 }
 
 .game-overlay {
