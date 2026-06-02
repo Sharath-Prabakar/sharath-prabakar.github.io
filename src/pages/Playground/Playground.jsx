@@ -276,7 +276,7 @@ const Playground = () => {
                 {/* 1. EXECUTION SUMMARY SECTION (LEFT) */}
                 <section className="playground-section summary-section">
                     <h2 className="section-title">
-                        <span className="icon">📊</span> Agentic AI Task Summary
+                        Agentic AI Task Summary
                     </h2>
                     <div className="glass-card summary-card">
                         {loading ? (
@@ -315,7 +315,7 @@ const Playground = () => {
                 {/* 2. CHAT INTERFACE SECTION (RIGHT) */}
                 <section className="playground-section chat-section">
                     <h2 className="section-title">
-                        <span className="icon">💬</span> AI Explorer
+                        AI Explorer
                     </h2>
                     <div className="glass-card chat-container">
                         <div className="chat-messages-area">
@@ -363,7 +363,7 @@ const Playground = () => {
                 {/* 3. DIGITAL ZEN SECTION (BOTTOM) */}
                 <section className="playground-section zen-section">
                     <h2 className="section-title">
-                        <span className="icon">🧘</span> Digital Zen
+                        Digital Zen
                     </h2>
                     <div className="zen-grid">
                         <div className="glass-card zen-card tictactoe-card">

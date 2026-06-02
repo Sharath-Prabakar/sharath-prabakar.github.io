@@ -71,16 +71,18 @@ function BacklogRow({ task, onOpen, onContextMenu, isOverlay }) {
             onClick={() => !isOverlay && onOpen(task)}
             onContextMenu={(e) => !isOverlay && onContextMenu(e, task)}
         >
-            <div className="backlog-row-title-container">
+            <div className="backlog-row-left">
                 {task.project && (
                     <span className="project-badge" style={projectStyle}>       
                         {task.project}
                     </span>
                 )}
-                <div className="backlog-row-title"><strong>{task.title}</strong></div>
+                <div className="backlog-row-assignee"><strong>Assignee:</strong> {task.assignee}</div>
             </div>
-            <div className="backlog-row-desc">{task.description}</div>
-            <div className="backlog-row-assignee"><strong>Assignee:</strong> {task.assignee}</div>
+            <div className="backlog-row-right">
+                <div className="backlog-row-title"><strong>{task.title}</strong></div>
+                <div className="backlog-row-desc">{task.description}</div>
+            </div>
         </div>
     );
 }
@@ -91,7 +93,9 @@ function BacklogSection({ tasks, onOpen, onContextMenu, closeContextMenu }) {
         backgroundColor: isOver ? 'rgba(212, 175, 55, 0.05)' : undefined,
         borderColor: isOver ? '#d4af37' : undefined,
         border: isOver ? '2px dashed #d4af37' : undefined,
-        borderRadius: '12px'
+        borderRadius: '12px',
+        margin: 0,
+        maxWidth: '100%'
     };
 
     return (
@@ -109,6 +113,55 @@ function BacklogSection({ tasks, onOpen, onContextMenu, closeContextMenu }) {
                             <BacklogRow key={task.id} task={task} onOpen={onOpen} onContextMenu={onContextMenu} />
                         ))}
                     </SortableContext>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function ProjectPrioritySection() {
+    const [projects, setProjects] = React.useState([]);
+
+    React.useEffect(() => {
+        fetch(`${API_BASE_URL}/api/projects`)
+            .then(res => res.json())
+            .then(data => {
+                data.sort((a, b) => (a.rank || 0) - (b.rank || 0));
+                setProjects(data);
+            });
+    }, []);
+
+    return (
+        <div className="backlog-section" style={{ flex: 1, margin: 0, minWidth: '300px', maxWidth: '100%' }}>
+            <h2>Project Priority</h2>
+            {projects.length === 0 ? (
+                <p className="empty-msg">No projects found.</p>
+            ) : (
+                <div className="backlog-list">
+                    {projects.map(proj => {
+                        const projectStyle = {
+                            backgroundColor: hexToRgba(proj.projectColorCode || '#4da3ff', 0.25),
+                            color: '#fff',
+                            border: `1px solid ${proj.projectColorCode || '#4da3ff'}`,
+                            boxShadow: `0 0 12px ${hexToRgba(proj.projectColorCode || '#4da3ff', 0.5)}`,
+                            textShadow: `0 0 5px ${proj.projectColorCode || '#4da3ff'}`,
+                            fontSize: '0.85rem',
+                            padding: '5px 10px',
+                            marginBottom: 0
+                        };
+                        return (
+                            <div key={proj.id || proj._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 5px', borderBottom: '1px solid #1a1a1a' }}>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <span className="project-badge" style={projectStyle}>
+                                        {proj.projectName}
+                                    </span>
+                                </div>
+                                <div style={{ fontSize: '1rem', color: '#d4af37', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                                    #{proj.rank || 0}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
         </div>
@@ -363,7 +416,7 @@ function AISummarySection({ tasks, onOpen }) {
 
     return (
         <div className="ai-summary-container">
-            <h2 className="ai-summary-header">🤖 Agentic AI Task Summary</h2> 
+            <h2 className="ai-summary-header">Agentic AI Task Summary</h2> 
             <div className="ai-summary-list">
                 {aiSummaries.length === 0 ? (
                     <p className="empty-msg">No autonomous summaries available.</p>
@@ -907,12 +960,17 @@ export default function Scrum() {
                     <DroppableColumn id="REVIEW" title="Review" tasks={reviewTasks} onOpen={setSelectedTask} onContextMenu={handleContextMenu} />
                     <DroppableColumn id="DONE" title="Done" tasks={doneTasks} onOpen={setSelectedTask} onContextMenu={handleContextMenu} />
                 </div>
-                <BacklogSection 
-                    tasks={backlogTasks} 
-                    onOpen={setSelectedTask} 
-                    onContextMenu={handleContextMenu} 
-                    closeContextMenu={closeContextMenu} 
-                />
+                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center', width: '100%', maxWidth: '1200px', margin: '40px auto 0' }}>
+                    <div style={{ flex: 2, minWidth: '300px' }}>
+                        <BacklogSection 
+                            tasks={backlogTasks} 
+                            onOpen={setSelectedTask} 
+                            onContextMenu={handleContextMenu} 
+                            closeContextMenu={closeContextMenu} 
+                        />
+                    </div>
+                    <ProjectPrioritySection />
+                </div>
             </div>
 
             <DragOverlay dropAnimation={{

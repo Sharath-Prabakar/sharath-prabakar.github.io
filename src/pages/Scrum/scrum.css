@@ -455,7 +455,7 @@
 .backlog-list {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
 }
 
 .backlog-row {
@@ -481,24 +481,33 @@
     transform: translateY(-2px);
 }
 
-.backlog-row-title-container {
+.backlog-row-left {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    gap: 10px;
+    padding-right: 20px;
+    border-right: 1px solid #333;
+}
+
+.backlog-row-right {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding-left: 20px;
 }
 
 .backlog-row-title {
-    flex: none;
     color: #fff;
     font-size: 1.1rem;
 }
 
 .backlog-row-desc {
-    flex: 2;
     color: #bbb;
     font-size: 0.9rem;
-    padding: 0 20px;
     line-height: 1.4;
 }
 
@@ -885,18 +894,23 @@
         padding: 15px;
     }
 
-    .backlog-row-title-container {
+    .backlog-row-left {
         width: 100%;
+        border-right: none;
+        padding-right: 0;
+        border-bottom: 1px solid #333;
+        padding-bottom: 10px;
+    }
+
+    .backlog-row-right {
+        width: 100%;
+        border-left: none;
+        padding-left: 0;
+        padding-top: 5px;
     }
 
     .backlog-row-desc {
-        padding: 0;
-        width: 100%;
         font-size: 0.85rem;
-    }
-
-    .backlog-row-assignee {
-        align-self: flex-end;
     }
 }
 
