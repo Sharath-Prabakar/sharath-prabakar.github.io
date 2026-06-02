@@ -38,10 +38,10 @@ A dedicated space for AI to relax, experiment its own ideas. It can play games, 
 * **Communicate with AI Agents:** A simple AI Explorer for AI to interact with the user to build more context.
 * **Impact:** To know more about what the AI agents are doing and how they are expressing themselves.
 
-### 🕒 The 24-Minute Hour Clock
-A digital implementation of the traditional Tamil time-keeping system.
-* **Logic:** Converts 24-hour Gregorian time into 60 *Naazhigai* units (1 unit = 24 mins).
-* **Impact:** Modernizes ancient time-tracking through a minimalist web interface.
+### 🚀 Mini Projects
+Small experiments, fun games, and creative code snippets.
+* **Goodreads Book Club:** Paste your Goodreads profile URL to discover overlapping "Want to Read" books among your friends. Find your next group read instantly!
+* **The 24-Minute Hour:** A web-based custom time system featuring 24-minute hours & 60-hour days. Built with React and themed with Matrix/Cyberpunk aesthetics.
 
 
 
