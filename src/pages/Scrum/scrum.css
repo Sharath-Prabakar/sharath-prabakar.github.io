@@ -509,6 +509,10 @@
     color: #bbb;
     font-size: 0.9rem;
     line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .backlog-row-assignee {
