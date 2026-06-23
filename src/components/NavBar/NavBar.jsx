@@ -1,14 +1,18 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import ServerStatusIndicator from './ServerStatusIndicator';
+import NotificationBell from './NotificationBell';
 
 const NavBar = () => {
     return (
         <nav style={navStyle}>
+            <ServerStatusIndicator />
             <NavItem to="/" label="Developer Portfolio" />
             <NavItem to="/books" label="Books" />
             <NavItem to="/scrum" label="Agentic AI Scrum Board" />
             <NavItem to="/playground" label="AI Playground" />
             <NavItem to="/mini-projects" label="Mini Projects" />
+            <NotificationBell />
         </nav>
     );
 };

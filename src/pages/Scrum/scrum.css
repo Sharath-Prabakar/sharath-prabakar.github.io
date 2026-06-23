@@ -311,7 +311,7 @@
     color: #ddd;
     font-weight: bold;
     margin-bottom: 6px;
-    font-size: 0.9rem;
+    font-size: 1.15rem;
 }
 
 .ai-summary-card-text {
@@ -321,6 +321,18 @@
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+.ai-summary-card-text.markdown-content h1,
+.ai-summary-card-text.markdown-content h2,
+.ai-summary-card-text.markdown-content h3,
+.ai-summary-card-text.markdown-content h4,
+.ai-summary-card-text.markdown-content h5,
+.ai-summary-card-text.markdown-content h6 {
+    font-size: 0.95rem !important;
+    color: #ddd !important;
+    margin-top: 4px !important;
+    margin-bottom: 6px !important;
 }
 
 .logs-container h3 {

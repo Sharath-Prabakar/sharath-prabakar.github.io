@@ -23,6 +23,7 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import './scrum.css';
+import EditTaskModal from '../../components/Modals/EditTaskModal';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "dummy-client-id.apps.googleusercontent.com";
@@ -119,8 +120,83 @@ function BacklogSection({ tasks, onOpen, onContextMenu, closeContextMenu }) {
     );
 }
 
-function ProjectPrioritySection() {
+function SortableProjectRow({ proj, index, isOverlay, canDrag }) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({
+        id: (proj.id || proj._id).toString(),
+        disabled: !canDrag
+    });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging && !isOverlay ? 0.3 : 1,
+        cursor: canDrag ? (isOverlay ? 'grabbing' : 'grab') : 'default',
+        zIndex: isOverlay ? 1000 : 1,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '8px 5px',
+        borderBottom: '1px solid #1a1a1a',
+        backgroundColor: isOverlay ? 'rgba(10, 10, 10, 0.9)' : 'transparent',
+    };
+
+    const projectStyle = {
+        backgroundColor: hexToRgba(proj.projectColorCode || '#4da3ff', 0.25),
+        color: '#fff',
+        border: `1px solid ${proj.projectColorCode || '#4da3ff'}`,
+        boxShadow: `0 0 12px ${hexToRgba(proj.projectColorCode || '#4da3ff', 0.5)}`,
+        textShadow: `0 0 5px ${proj.projectColorCode || '#4da3ff'}`,
+        fontSize: '0.85rem',
+        padding: '5px 10px',
+        marginBottom: 0
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...(canDrag ? attributes : {})}
+            {...(canDrag ? listeners : {})}
+        >
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+                <span className="project-badge" style={projectStyle}>
+                    {proj.projectName}
+                </span>
+            </div>
+            <div style={{ fontSize: '1rem', color: '#d4af37', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                #{index + 1}
+            </div>
+        </div>
+    );
+}
+
+function ProjectPrioritySection({ canDrag }) {
     const [projects, setProjects] = React.useState([]);
+    const [activeId, setActiveId] = React.useState(null);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        }),
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 250,
+                tolerance: 5,
+            },
+        })
+    );
 
     React.useEffect(() => {
         fetch(`${API_BASE_URL}/api/projects`)
@@ -131,38 +207,97 @@ function ProjectPrioritySection() {
             });
     }, []);
 
+    const handleDragStart = (event) => {
+        setActiveId(event.active.id);
+    };
+
+    const handleDragEnd = async (event) => {
+        const { active, over } = event;
+        setActiveId(null);
+
+        if (over && active.id !== over.id) {
+            const activeId = active.id.toString();
+            const overId = over.id.toString();
+
+            const oldIndex = projects.findIndex(p => (p.id || p._id).toString() === activeId);
+            const newIndex = projects.findIndex(p => (p.id || p._id).toString() === overId);
+
+            if (oldIndex !== -1 && newIndex !== -1) {
+                const reordered = arrayMove(projects, oldIndex, newIndex);
+                
+                let newRank;
+                if (newIndex === 0) {
+                    const nextRank = reordered[1]?.rank || 1.0;
+                    newRank = nextRank / 2.0;
+                } else if (newIndex === reordered.length - 1) {
+                    const prevRank = reordered[newIndex - 1]?.rank || 0.0;
+                    newRank = prevRank + 1.0;
+                } else {
+                    const prevRank = reordered[newIndex - 1].rank || 0.0;
+                    const nextRank = reordered[newIndex + 1].rank || 1.0;
+                    newRank = (prevRank + nextRank) / 2.0;
+                }
+
+                const updatedProjects = reordered.map(p => 
+                    (p.id || p._id).toString() === activeId ? { ...p, rank: newRank } : p
+                );
+                setProjects(updatedProjects);
+
+                try {
+                    await fetch(`${API_BASE_URL}/api/projects/${activeId}/rank`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ rank: newRank })
+                    });
+                } catch (err) {
+                    console.error("Failed to update project rank:", err);
+                }
+            }
+        }
+    };
+
+    const activeProject = projects.find(p => (p.id || p._id).toString() === (activeId || '').toString());
+
     return (
         <div className="backlog-section" style={{ flex: 1, margin: 0, minWidth: '300px', maxWidth: '100%' }}>
             <h2>Project Priority</h2>
             {projects.length === 0 ? (
                 <p className="empty-msg">No projects found.</p>
             ) : (
-                <div className="backlog-list">
-                    {projects.map(proj => {
-                        const projectStyle = {
-                            backgroundColor: hexToRgba(proj.projectColorCode || '#4da3ff', 0.25),
-                            color: '#fff',
-                            border: `1px solid ${proj.projectColorCode || '#4da3ff'}`,
-                            boxShadow: `0 0 12px ${hexToRgba(proj.projectColorCode || '#4da3ff', 0.5)}`,
-                            textShadow: `0 0 5px ${proj.projectColorCode || '#4da3ff'}`,
-                            fontSize: '0.85rem',
-                            padding: '5px 10px',
-                            marginBottom: 0
-                        };
-                        return (
-                            <div key={proj.id || proj._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 5px', borderBottom: '1px solid #1a1a1a' }}>
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <span className="project-badge" style={projectStyle}>
-                                        {proj.projectName}
-                                    </span>
-                                </div>
-                                <div style={{ fontSize: '1rem', color: '#d4af37', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                                    #{proj.rank || 0}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                <DndContext
+                    sensors={canDrag ? sensors : []}
+                    collisionDetection={closestCenter}
+                    onDragStart={canDrag ? handleDragStart : undefined}
+                    onDragEnd={canDrag ? handleDragEnd : undefined}
+                >
+                    <div className="backlog-list">
+                        <SortableContext
+                            items={projects.map(p => (p.id || p._id).toString())}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            {projects.map((proj, idx) => (
+                                <SortableProjectRow 
+                                    key={proj.id || proj._id} 
+                                    proj={proj} 
+                                    index={idx} 
+                                    canDrag={canDrag}
+                                />
+                            ))}
+                        </SortableContext>
+                    </div>
+                    {canDrag && (
+                        <DragOverlay>
+                            {activeProject ? (
+                                <SortableProjectRow 
+                                    proj={activeProject} 
+                                    index={projects.findIndex(p => (p.id || p._id).toString() === activeProject.id)}
+                                    isOverlay 
+                                    canDrag={canDrag}
+                                />
+                            ) : null}
+                        </DragOverlay>
+                    )}
+                </DndContext>
             )}
         </div>
     );
@@ -339,7 +474,7 @@ const TaskDetailModal = ({ task, onClose, onTaskUpdate }) => {
                         <div className="task-modal-prompt" style={{ borderTop: '1px solid #1e1e1e', marginTop: '16px', paddingTop: '16px' }}>
                             <span className="meta-label">Agentic AI Task Summary - {task.project || 'Portfolio Website'}</span>
                             <div className="markdown-content" style={{ color: '#4da3ff', fontStyle: 'italic', marginTop: '8px' }}>
-                                <ReactMarkdown rehypePlugins={[rehypeRaw]}>{task.aiSummary}</ReactMarkdown>
+                                <ReactMarkdown rehypePlugins={[rehypeRaw]}>{task.aiSummary.replace(/\\n/g, '\n')}</ReactMarkdown>
                             </div>
                         </div>
                     )}
@@ -443,7 +578,7 @@ function AISummarySection({ tasks, onOpen }) {
                                     <div className="ai-summary-card-title" style={{ marginBottom: 0 }}>{task.title}</div>
                                 </div>
                                 <div className="ai-summary-card-text markdown-content">
-                                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>{task.aiSummary}</ReactMarkdown>
+                                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>{task.aiSummary.replace(/\\n/g, '\n')}</ReactMarkdown>
                                 </div>
                             </div>
                         );
@@ -635,6 +770,10 @@ export default function Scrum() {
     const [selectedTask, setSelectedTask] = useState(null);
     const [activeTask, setActiveTask] = useState(null);
     const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, task: null });
+    const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
+    const [editTaskId, setEditTaskId] = useState(null);
+    const [allProjects, setAllProjects] = useState([]);
+    const [allUsers, setAllUsers] = useState([]);
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
         return localStorage.getItem('isAuthenticated') === 'true';
     });
@@ -770,6 +909,20 @@ export default function Scrum() {
     }, [loading]);
 
     useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/projects`);
+                if (res.ok) setAllProjects(await res.json());
+            } catch (err) { console.error("Failed to fetch projects", err); }
+        };
+
+        const fetchUsers = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/users`);
+                if (res.ok) setAllUsers(await res.json());
+            } catch (err) { console.error("Failed to fetch users", err); }
+        };
+
         const fetchTasks = async () => {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/tasks`);      
@@ -786,6 +939,8 @@ export default function Scrum() {
             } catch (err) { console.error("Failed to fetch logs", err); }       
         };
 
+        fetchProjects();
+        fetchUsers();
         fetchTasks();
         fetchLogs();
         fetchArchivedCount();
@@ -927,7 +1082,16 @@ export default function Scrum() {
                             <button onClick={handleDeleteTask} style={{ color: '#ff4d4d' }}>Archive</button>
                         )}
                         {contextMenu.task?.status === 'BACKLOG' && (
-                            <button onClick={handleMoveToTodo}>Move to TODO</button>
+                            <>
+                                <button onClick={handleMoveToTodo}>Move to TODO</button>
+                                {userAccess === 'Admin' && (
+                                    <button onClick={() => {
+                                        setEditTaskId(contextMenu.task.id);
+                                        setIsEditPopupOpen(true);
+                                        closeContextMenu();
+                                    }}>Edit Task</button>
+                                )}
+                            </>
                         )}
                     </div>
                 )}
@@ -969,8 +1133,18 @@ export default function Scrum() {
                             closeContextMenu={closeContextMenu} 
                         />
                     </div>
-                    <ProjectPrioritySection />
+                    <ProjectPrioritySection canDrag={canDrag} />
                 </div>
+                
+                <EditTaskModal 
+                    isOpen={isEditPopupOpen} 
+                    onClose={() => { setIsEditPopupOpen(false); setEditTaskId(null); }} 
+                    onSuccess={() => { window.location.reload(); }}
+                    allTasks={tasks} 
+                    allProjects={allProjects} 
+                    allUsers={allUsers} 
+                    initialTaskId={editTaskId} 
+                />
             </div>
 
             <DragOverlay dropAnimation={{
