@@ -5,9 +5,18 @@ import sixtyHourLogo from '../../assets/SixtyHour_Logo.png';
 import snakeLogo from '../../assets/snake_game_logo.png';
 import bookclubLogo from '../../assets/bookclub_logo.png';
 import paintingCanvasLogo from '../../assets/painting_canvas_logo.png';
+import recipeLogo from '../../assets/recipe_logo.png';
 
 const MiniProjects = () => {
     const projects = [
+        {
+            id: 'recipes',
+            title: 'Recipes Repository',
+            description: 'A comprehensive recipe management system featuring detailed preparation steps, nested ingredients, dietary classifications, and nutritional information.',
+            icon: recipeLogo,
+            path: '/recipes',
+            tags: ['React', 'Spring Boot', 'MongoDB']
+        },
         {
             id: 'bookclub',
             title: 'Goodreads Book Club',
@@ -39,6 +48,22 @@ const MiniProjects = () => {
             icon: sixtyHourLogo,
             path: '/clock',
             tags: ['React']
+        },
+        {
+            id: 'pallanguzhi',
+            title: 'Pallanguzhi Analysis',
+            description: 'A mathematical exploration of opening moves and strategy in the traditional Tamil mancala game.',
+            icon: sixtyHourLogo, // Fallback icon
+            path: '/pallanguzhi',
+            tags: ['React', 'Analysis']
+        },
+        {
+            id: 'card-generator',
+            title: 'BoardGame Card Gen',
+            description: 'A React-based UI tool to generate custom desert-themed fantasy boardgame cards with live preview.',
+            icon: sixtyHourLogo, // Fallback icon
+            path: '/card-generator',
+            tags: ['React', 'Generator']
         }
     ];
 

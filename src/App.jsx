@@ -13,6 +13,9 @@ import MiniProjects from './pages/MiniProjects/MiniProjects';
 import LeaderGraph from './pages/LeaderGraph/LeaderGraph';
 import BookClub from './pages/BookClub/BookClub';
 import PaintingCanvasPage from './pages/PaintingCanvas/PaintingCanvasPage';
+import Recipes from './pages/Recipes/Recipes';
+import Pallanguzhi from './pages/Pallanguzhi/Pallanguzhi';
+import CardGenerator from './pages/CardGenerator/CardGenerator';
 
 const App = () => {
     return (
@@ -30,6 +33,9 @@ const App = () => {
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/bookclub" element={<BookClub />} />
                 <Route path="/canvas" element={<PaintingCanvasPage />} />
+                <Route path="/recipes" element={<Recipes />} />
+                <Route path="/pallanguzhi" element={<Pallanguzhi />} />
+                <Route path="/card-generator" element={<CardGenerator />} />
             </Routes>
         </Router>
     );

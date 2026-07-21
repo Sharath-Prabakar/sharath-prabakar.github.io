@@ -400,6 +400,8 @@ const TaskDetailModal = ({ task, onClose, onTaskUpdate }) => {
     if (!task) return null;
     const [newComment, setNewComment] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [reminderDate, setReminderDate] = useState(task.reminderDate ? task.reminderDate.substring(0, 16) : '');
+    const [reminderLoading, setReminderLoading] = useState(false);
 
     const priorityColor = PRIORITY_COLORS[task.priority] || '#888';
     const projectStyle = {
@@ -408,6 +410,27 @@ const TaskDetailModal = ({ task, onClose, onTaskUpdate }) => {
         border: `1px solid ${task.projectColorCode || '#4da3ff'}`,
         boxShadow: `0 0 12px ${hexToRgba(task.projectColorCode, 0.5)}`,
         textShadow: `0 0 5px ${task.projectColorCode || '#4da3ff'}`
+    };
+
+    const handleSetReminder = async () => {
+        if (!reminderDate) return;
+        setReminderLoading(true);
+        try {
+            const userFullName = localStorage.getItem('userFullName') || 'System';
+            const res = await fetch(`${API_BASE_URL}/api/tasks/${task.id}?updatedBy=${encodeURIComponent(userFullName)}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reminderDate })
+            });
+            if (res.ok) {
+                const updatedTask = await res.json();
+                onTaskUpdate(updatedTask);
+            }
+        } catch (err) {
+            console.error("Failed to set reminder", err);
+        } finally {
+            setReminderLoading(false);
+        }
     };
 
     const handleAddComment = async () => {
@@ -462,6 +485,48 @@ const TaskDetailModal = ({ task, onClose, onTaskUpdate }) => {
                         <div className="task-modal-meta-item">
                             <span className="meta-label">Assignee</span>        
                             <span className="meta-value">{task.assignee || '—'}</span>
+                        </div>
+                    </div>
+                    <div className="task-modal-prompt" style={{ borderTop: '1px solid #1e1e1e', marginTop: '16px', paddingTop: '16px' }}>
+                        <span className="meta-label">Reminder</span>
+                        {task.reminderDate && (
+                            <p style={{ color: '#4da3ff', margin: '8px 0', fontSize: '0.95rem' }}>
+                                🔔 {new Date(task.reminderDate).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+                            </p>
+                        )}
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '8px' }}>
+                            <input
+                                type="datetime-local"
+                                value={reminderDate}
+                                onChange={(e) => setReminderDate(e.target.value)}
+                                style={{
+                                    flex: 1,
+                                    padding: '8px 12px',
+                                    borderRadius: '8px',
+                                    border: '1px solid #333',
+                                    backgroundColor: '#181818',
+                                    color: '#fff',
+                                    fontSize: '0.9rem',
+                                    outline: 'none'
+                                }}
+                            />
+                            <button
+                                onClick={handleSetReminder}
+                                disabled={reminderLoading || !reminderDate}
+                                style={{
+                                    padding: '8px 18px',
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    background: reminderLoading || !reminderDate ? '#333' : 'linear-gradient(135deg, #4da3ff, #7b61ff)',
+                                    color: '#fff',
+                                    fontWeight: 600,
+                                    cursor: reminderLoading || !reminderDate ? 'not-allowed' : 'pointer',
+                                    fontSize: '0.9rem',
+                                    whiteSpace: 'nowrap'
+                                }}
+                            >
+                                {reminderLoading ? 'Setting...' : 'Set Reminder'}
+                            </button>
                         </div>
                     </div>
                     {task.prompt && (
@@ -817,8 +882,8 @@ export default function Scrum() {
         e.preventDefault();
         if (isGuest) return;
         
-        // Only show context menu for DONE or BACKLOG tasks
-        if (task.status !== 'DONE' && task.status !== 'BACKLOG') return;
+        // Only show context menu for DONE, BACKLOG, or TODO tasks
+        if (task.status !== 'DONE' && task.status !== 'BACKLOG' && task.status !== 'TODO') return;
 
         setContextMenu({
             visible: true,
@@ -868,6 +933,25 @@ export default function Scrum() {
             }
         } catch (err) {
             console.error("Failed to move task to TODO", err);
+        }
+        closeContextMenu();
+    };
+
+    const handleMoveToBacklog = async () => {
+        if (!contextMenu.task) return;
+        const taskId = contextMenu.task.id;
+        const userFullName = localStorage.getItem('userFullName') || 'System';
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}?updatedBy=${encodeURIComponent(userFullName)}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'BACKLOG' })
+            });
+            if (response.ok) {
+                setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'BACKLOG' } : t));
+            }
+        } catch (err) {
+            console.error("Failed to move task to BACKLOG", err);
         }
         closeContextMenu();
     };
@@ -1092,6 +1176,9 @@ export default function Scrum() {
                                     }}>Edit Task</button>
                                 )}
                             </>
+                        )}
+                        {contextMenu.task?.status === 'TODO' && (
+                            <button onClick={handleMoveToBacklog}>Move to Backlog</button>
                         )}
                     </div>
                 )}
