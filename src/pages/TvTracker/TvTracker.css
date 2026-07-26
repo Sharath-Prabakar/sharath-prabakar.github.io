@@ -1,0 +1,594 @@
+.tv-tracker-container {
+    background-color: #050505;
+    color: #e0e0e0;
+    min-height: 100vh;
+    padding: 110px 20px 60px;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.tv-tracker-header {
+    max-width: 900px;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.tv-tracker-title {
+    font-size: clamp(2rem, 6vw, 3rem);
+    letter-spacing: 3px;
+    color: #fff;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #e50914, #d4af37, #4da3ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.tv-tracker-subtitle {
+    font-size: 1.1rem;
+    color: #a0a0a0;
+    line-height: 1.6;
+}
+
+.tv-tracker-content {
+    width: 100%;
+    max-width: 1150px;
+}
+
+.tv-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.tv-stat-card {
+    background: rgba(20, 20, 20, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 18px 20px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.tv-stat-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(212, 175, 55, 0.3);
+}
+
+.tv-stat-val {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.tv-stat-label {
+    font-size: 0.8rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.tv-controls-panel {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.tv-toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tv-input-search {
+    flex: 1;
+    min-width: 220px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #fff;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.tv-input-search:focus {
+    border-color: #d4af37;
+}
+
+.tv-select-filter {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #fff;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.tv-select-filter:focus {
+    border-color: #d4af37;
+}
+
+.tv-btn {
+    background: #222;
+    color: #fff;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.tv-btn:hover {
+    background: #333;
+    border-color: #555;
+}
+
+.tv-btn-primary {
+    background: linear-gradient(135deg, #e50914, #b20710);
+    border: none;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+}
+
+.tv-btn-primary:hover {
+    background: linear-gradient(135deg, #f40612, #c40712);
+    box-shadow: 0 6px 16px rgba(229, 9, 20, 0.5);
+}
+
+.tv-btn-gold {
+    background: linear-gradient(135deg, #d4af37, #aa820a);
+    border: none;
+    color: #000;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+.tv-btn-gold:hover {
+    background: linear-gradient(135deg, #e5be48, #bb931b);
+}
+
+.tv-btn-outline {
+    background: transparent;
+    border: 1px solid #444;
+    color: #ccc;
+}
+
+.tv-btn-outline:hover {
+    border-color: #888;
+    color: #fff;
+}
+
+.tv-btn-active {
+    background: #d4af37 !important;
+    color: #000 !important;
+    border-color: #d4af37 !important;
+    font-weight: 600;
+}
+
+/* Modal for JSON Import */
+.tv-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+}
+
+.tv-modal-content {
+    background: #141414;
+    border: 1px solid #333;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 650px;
+    padding: 25px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.tv-modal-title {
+    margin: 0;
+    color: #fff;
+    font-size: 1.4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tv-json-textarea {
+    width: 100%;
+    height: 200px;
+    background: #0a0a0a;
+    border: 1px solid #282828;
+    border-radius: 8px;
+    padding: 12px;
+    color: #33ff77;
+    font-family: monospace;
+    font-size: 0.85rem;
+    resize: vertical;
+    outline: none;
+}
+
+.tv-json-textarea:focus {
+    border-color: #d4af37;
+}
+
+.tv-dropzone {
+    border: 2px dashed #444;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    background: #0d0d0d;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.tv-dropzone:hover {
+    border-color: #d4af37;
+    background: #161616;
+}
+
+/* Grid & Cards */
+.tv-items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.tv-card {
+    background: #121212;
+    border: 1px solid #222;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.tv-card:hover {
+    transform: translateY(-5px);
+    border-color: #444;
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.6);
+}
+
+.tv-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.tv-item-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.tv-badge-type {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: #252525;
+    color: #aaa;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.tv-badge-status {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.status-watching {
+    background: rgba(77, 163, 255, 0.15);
+    color: #4da3ff;
+    border: 1px solid rgba(77, 163, 255, 0.3);
+}
+
+.status-completed {
+    background: rgba(82, 196, 26, 0.15);
+    color: #52c41a;
+    border: 1px solid rgba(82, 196, 26, 0.3);
+}
+
+.status-plan {
+    background: rgba(250, 173, 20, 0.15);
+    color: #faad14;
+    border: 1px solid rgba(250, 173, 20, 0.3);
+}
+
+.status-hold {
+    background: rgba(140, 140, 140, 0.15);
+    color: #bfbfbf;
+    border: 1px solid rgba(140, 140, 140, 0.3);
+}
+
+.status-dropped {
+    background: rgba(255, 77, 79, 0.15);
+    color: #ff4d4f;
+    border: 1px solid rgba(255, 77, 79, 0.3);
+}
+
+.tv-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: #999;
+    margin-bottom: 12px;
+}
+
+.tv-card-notes {
+    font-size: 0.85rem;
+    color: #777;
+    line-height: 1.4;
+    font-style: italic;
+    background: #0a0a0a;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+/* Table view */
+.tv-table-wrapper {
+    overflow-x: auto;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 12px;
+    margin-top: 20px;
+}
+
+.tv-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.tv-table th {
+    background: #181818;
+    color: #d4af37;
+    padding: 14px 18px;
+    font-weight: 600;
+    border-bottom: 1px solid #282828;
+    white-space: nowrap;
+}
+
+.tv-table td {
+    padding: 14px 18px;
+    border-bottom: 1px solid #1f1f1f;
+    color: #ccc;
+}
+
+.tv-table tr:hover td {
+    background: #161616;
+}
+
+.tv-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: #111;
+    border: 1px dashed #333;
+    border-radius: 12px;
+    margin-top: 20px;
+}
+
+.tv-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+/* Season Accordion & Episode Tracking */
+.tv-season-accordion {
+    border: 1px solid #222;
+    border-radius: 8px;
+    background: #121212;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.tv-season-summary {
+    cursor: pointer;
+    padding: 12px 16px;
+    background: #181818;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #e0e0e0;
+    user-select: none;
+    transition: background 0.2s ease;
+}
+
+.tv-season-summary:hover {
+    background: #202020;
+    color: #fff;
+}
+
+.tv-episodes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 8px;
+    padding: 12px;
+    background: #0d0d0d;
+}
+
+.tv-episode-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid #222;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    color: #ddd;
+}
+
+.tv-episode-item:hover {
+    border-color: #4da3ff;
+    background: rgba(77, 163, 255, 0.05);
+}
+
+.tv-ep-watched {
+    background: rgba(82, 196, 26, 0.1) !important;
+    border-color: rgba(82, 196, 26, 0.3) !important;
+    color: #52c41a !important;
+}
+
+/* Quick Type Filter Tabs */
+.tv-type-tabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 20px 0 10px 0;
+}
+
+.tv-type-tab {
+    padding: 8px 16px;
+    background: #161616;
+    border: 1px solid #282828;
+    border-radius: 20px;
+    color: #aaa;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tv-type-tab:hover {
+    background: #222;
+    color: #fff;
+    border-color: #444;
+}
+
+.tv-type-tab.active {
+    background: linear-gradient(135deg, #1f3a52 0%, #152433 100%);
+    color: #4da3ff;
+    border-color: #4da3ff;
+    box-shadow: 0 0 12px rgba(77, 163, 255, 0.25);
+}
+
+/* Card Quick Status Bar */
+.tv-card-actions {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tv-action-label {
+    font-size: 0.75rem;
+    color: #777;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tv-status-btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.tv-status-chip {
+    padding: 3px 8px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 14px;
+    color: #999;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.tv-status-chip:hover {
+    background: #252525;
+    color: #fff;
+    border-color: #555;
+    transform: scale(1.04);
+}
+
+.tv-status-chip.active {
+    background: rgba(212, 175, 55, 0.15);
+    color: #d4af37;
+    border-color: #d4af37;
+    font-weight: 600;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+}
+
+/* Table Status Select */
+.tv-table-status-select {
+    background: #121212;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #fff;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.tv-table-status-select:hover, .tv-table-status-select:focus {
+    border-color: #4da3ff;
+}
+
+/* Modal Status Bar */
+.tv-modal-status-bar {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+

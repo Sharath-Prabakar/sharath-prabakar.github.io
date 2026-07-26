@@ -4,8 +4,8 @@ import './MiniProjects.css';
 import sixtyHourLogo from '../../assets/SixtyHour_Logo.png';
 import snakeLogo from '../../assets/snake_game_logo.png';
 import bookclubLogo from '../../assets/bookclub_logo.png';
-import paintingCanvasLogo from '../../assets/painting_canvas_logo.png';
 import recipeLogo from '../../assets/recipe_logo.png';
+import pallanguzhiLogo from '../../assets/pallanguzhi_logo.jpg';
 
 const MiniProjects = () => {
     const projects = [
@@ -24,14 +24,6 @@ const MiniProjects = () => {
             icon: bookclubLogo,
             path: '/bookclub',
             tags: ['React', 'Spring Boot']
-        },
-        {
-            id: 'canvas',
-            title: 'Painting Canvas',
-            description: 'An interactive digital drawing and painting board. Pick your brush color and size, and sketch your thoughts inside Zen state!',
-            icon: paintingCanvasLogo,
-            path: '/canvas',
-            tags: ['React']
         },
         {
             id: 'snake',
@@ -53,17 +45,9 @@ const MiniProjects = () => {
             id: 'pallanguzhi',
             title: 'Pallanguzhi Analysis',
             description: 'A mathematical exploration of opening moves and strategy in the traditional Tamil mancala game.',
-            icon: sixtyHourLogo, // Fallback icon
+            icon: pallanguzhiLogo,
             path: '/pallanguzhi',
             tags: ['React', 'Analysis']
-        },
-        {
-            id: 'card-generator',
-            title: 'BoardGame Card Gen',
-            description: 'A React-based UI tool to generate custom desert-themed fantasy boardgame cards with live preview.',
-            icon: sixtyHourLogo, // Fallback icon
-            path: '/card-generator',
-            tags: ['React', 'Generator']
         }
     ];
 

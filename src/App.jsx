@@ -12,10 +12,11 @@ import SnakeGame from './pages/SnakeGame/SnakeGame';
 import MiniProjects from './pages/MiniProjects/MiniProjects';
 import LeaderGraph from './pages/LeaderGraph/LeaderGraph';
 import BookClub from './pages/BookClub/BookClub';
-import PaintingCanvasPage from './pages/PaintingCanvas/PaintingCanvasPage';
 import Recipes from './pages/Recipes/Recipes';
 import Pallanguzhi from './pages/Pallanguzhi/Pallanguzhi';
 import CardGenerator from './pages/CardGenerator/CardGenerator';
+import TvTracker from './pages/TvTracker/TvTracker';
+import EscapeTheDesert from './pages/EscapeTheDesert/EscapeTheDesert';
 
 const App = () => {
     return (
@@ -32,10 +33,12 @@ const App = () => {
                 <Route path="/leaderGraph" element={<LeaderGraph />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/bookclub" element={<BookClub />} />
-                <Route path="/canvas" element={<PaintingCanvasPage />} />
                 <Route path="/recipes" element={<Recipes />} />
                 <Route path="/pallanguzhi" element={<Pallanguzhi />} />
-                <Route path="/card-generator" element={<CardGenerator />} />
+                <Route path="/card-generator" element={<EscapeTheDesert />} />
+                <Route path="/escape-the-desert" element={<EscapeTheDesert />} />
+                <Route path="/tv-tracker" element={<TvTracker />} />
+                <Route path="/my-entertainment" element={<TvTracker />} />
             </Routes>
         </Router>
     );

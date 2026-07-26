@@ -11,7 +11,9 @@ const NavBar = () => {
             <NavItem to="/books" label="Books" />
             <NavItem to="/scrum" label="Agentic AI Scrum Board" />
             <NavItem to="/playground" label="AI Playground" />
+            <NavItem to="/escape-the-desert" label="Escape The Desert" />
             <NavItem to="/mini-projects" label="Mini Projects" />
+            <NavItem to="/my-entertainment" label="My Entertainment" />
             <NotificationBell />
         </nav>
     );
