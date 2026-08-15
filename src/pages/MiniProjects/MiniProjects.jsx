@@ -123,31 +123,46 @@ const ProjectCard = ({ title, icon, description, tag, iconColor, link }) => {
         opacity: isHovered ? 1 : 0.6
     };
 
-    return (
+    const isExternal = link.startsWith('http');
+    const CardContent = (
+        <>
+            <div style={headerStyle}>
+                <img src={icon} alt="" style={imageStyle} />
+                <h2 style={{ fontSize: '1.25rem', margin: 0, fontWeight: '700' }}>{title}</h2>
+            </div>
+            <p style={{ fontSize: '0.95rem', color: '#888', lineHeight: '1.5', margin: 0 }}>
+                {description}
+            </p>
+            <div style={{ marginTop: 'auto', paddingTop: '20px' }}>
+                <span style={{ fontSize: '0.8rem', color: '#555', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    {tag}
+                </span>
+            </div>
+            <div style={arrowStyle}>
+                {isExternal ? '↗' : '→'}
+            </div>
+        </>
+    );
+
+    return isExternal ? (
+        <a
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={cardStyle}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            {CardContent}
+        </a>
+    ) : (
         <Link
             to={link}
             style={cardStyle}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <div style={headerStyle}>
-                <img
-                    src={icon}
-                    alt="App Logo"
-                    style={imageStyle}
-                />
-                <h3 style={{ margin: 0, letterSpacing: '1px' }}>{title}</h3>
-            </div>
-
-            <p style={{ color: '#bbb', fontSize: '0.95rem', lineHeight: '1.5', marginBottom: '20px' }}>
-                {description}
-            </p>
-
-            <div style={{ marginTop: 'auto' }}>
-                <span style={styles.tag}>{tag}</span>
-            </div>
-
-            <div style={arrowStyle}>→</div>
+            {CardContent}
         </Link>
     );
 };

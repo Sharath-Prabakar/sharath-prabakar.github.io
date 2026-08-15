@@ -5,6 +5,7 @@ import scrumLogo from '../../assets/agentic_ai_scrum_logo.png';
 import gccAppLogo from '../../assets/GCC_App_Logo.png';
 import sixtyHourLogo from '../../assets/SixtyHour_Logo.png';
 import playgroundLogo from '../../assets/ai_playground_logo.png';
+import literatureLogo from '../../assets/literature_logo.jpg';
 
 const Home = () => {
     return (
@@ -12,11 +13,9 @@ const Home = () => {
             {/* 1. HERO SECTION / ABOUT ME */}
             <section style={styles.hero}>
                 <h1 style={styles.name}>SHARATH PRABAKAR</h1>
-                <div style={styles.badge}>SOFTWARE DEVELOPER | AUTHOR</div>
+                <div style={styles.badge}>FULL-STACK ENGINEER | AI DEVELOPER | BOARD GAME DEVELOPER | AUTHOR</div>
                 <p style={styles.bio}>
-                    Sharath Prabakar is an enthusiastic problem-solver with 5+ years of experience in Android and AEM frameworks.
-                    He's currently learning React along with Spring Boot & MongoDB to develop this website using Google Antigravity.
-                    When he’s not writing code, he’ll be writing sci-fi stories.
+                    Sharath Prabakar is a passionate software engineer with 5+ years of experience building scalable applications. Specializing in React, Spring Boot, MongoDB, and Android development, he actively explores the bleeding edge of Agentic AI—building autonomous orchestrators and creative sandboxes with Google Antigravity. He also designs and develops board games on Board Game Arena. When he's not architecting full-stack ecosystems, tinkering with AI workflows, or playtesting board games, he spends his time writing sci-fi stories.
                 </p>
             </section>
 
@@ -26,7 +25,8 @@ const Home = () => {
                 <div style={styles.skillBadge}>Android</div>
                 <div style={styles.skillBadge}>React</div>
                 <div style={styles.skillBadge}>Spring Boot</div>
-                <div style={styles.skillBadge}>Adobe Experience Manager</div>
+                <div style={styles.skillBadge}>MongoDB</div>
+                <div style={styles.skillBadge}>Agentic AI</div>
             </section>
 
             {/* 3. FEATURED PROJECTS SECTION */}
@@ -57,6 +57,14 @@ const Home = () => {
                         description="A dedicated space for AI to relax, experiment its own ideas. It can play games, paint a picture or write a story. Antigravity agents can express themselves here."
                         tag="Antigravity / React / Spring Boot / MongoDB"
                         link="/playground"
+                    />
+                    <ProjectCard
+                        title="Literature"
+                        icon={literatureLogo}
+                        iconColor="#d4af37"
+                        description="Play the classic card game Literature online with friends on Board Game Arena."
+                        tag="BGA / Card Game"
+                        link="https://boardgamearena.com/gamepanel?game=literature"
                     />
                 </div>
             </section>
@@ -135,11 +143,15 @@ const ProjectCard = ({ title, icon, description, tag, iconColor, link }) => {
         opacity: isHovered ? 1 : 0.6
     };
 
-    const Wrapper = link ? Link : 'div';
+    const isExternal = link && link.startsWith('http');
+    const Wrapper = isExternal ? 'a' : (link ? Link : 'div');
+    const linkProps = isExternal 
+        ? { href: link, target: "_blank", rel: "noopener noreferrer" }
+        : { to: link };
 
     return (
         <Wrapper
-            to={link}
+            {...linkProps}
             style={cardStyle}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -179,7 +191,7 @@ const styles = {
         fontFamily: '"Inter", sans-serif',
     },
     hero: {
-        maxWidth: '800px',
+        maxWidth: '1000px',
         textAlign: 'center',
         marginBottom: '10px',
     },
