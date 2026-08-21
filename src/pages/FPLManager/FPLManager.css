@@ -1,0 +1,157 @@
+.fpl-container {
+  min-height: 100vh;
+  background-color: #050505;
+  color: #e0e0e0;
+  padding-top: 120px;
+  padding-bottom: 60px;
+  font-family: 'Inter', sans-serif;
+}
+
+.fpl-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.fpl-header {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.fpl-header h1 {
+  color: #d4af37;
+  margin: 0 0 10px 0;
+  font-size: 2.5rem;
+}
+
+.fpl-header p {
+  color: #888;
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.fpl-tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #222;
+  padding-bottom: 10px;
+}
+
+.fpl-tab {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.fpl-tab:hover {
+  color: #e0e0e0;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.fpl-tab.active {
+  color: #d4af37;
+  border-bottom: 2px solid #d4af37;
+  border-radius: 4px 4px 0 0;
+}
+
+.fpl-card {
+  background-color: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.fpl-stat-card {
+  text-align: center;
+  padding: 15px;
+}
+
+.fpl-stat-card .label {
+  color: #888;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.fpl-stat-card .value {
+  color: #e0e0e0;
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+
+.fpl-stat-card .value.gold {
+  color: #d4af37;
+}
+
+.fpl-pitch {
+  background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
+  border-radius: 8px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #111;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.fpl-pitch::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: 
+    linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 100% 20%;
+  pointer-events: none;
+}
+
+.fpl-player-badge {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 4px 8px;
+  text-align: center;
+  min-width: 80px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.pos-gkp { border-top: 3px solid #d4af37; }
+.pos-def { border-top: 3px solid #4caf50; }
+.pos-mid { border-top: 3px solid #2196f3; }
+.pos-fwd { border-top: 3px solid #f44336; }
+
+.fdr-1 { background-color: #00ff87; color: #000; }
+.fdr-2 { background-color: #00cc66; color: #000; }
+.fdr-3 { background-color: #e2e600; color: #000; }
+.fdr-4 { background-color: #ff8000; color: #fff; }
+.fdr-5 { background-color: #ff0000; color: #fff; }
+
+.fpl-loading, .fpl-error {
+  text-align: center;
+  padding: 50px;
+  color: #888;
+}
+
+.fpl-error {
+  color: #f44336;
+}
+
+@media (max-width: 768px) {
+  .fpl-pitch {
+    min-height: 500px;
+  }
+}

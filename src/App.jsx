@@ -17,6 +17,7 @@ import Pallanguzhi from './pages/Pallanguzhi/Pallanguzhi';
 import CardGenerator from './pages/CardGenerator/CardGenerator';
 import TvTracker from './pages/TvTracker/TvTracker';
 import EscapeTheDesert from './pages/EscapeTheDesert/EscapeTheDesert';
+import FPLManager from './pages/FPLManager/FPLManager';
 
 const ScrollToTop = () => {
     const { pathname } = useLocation();
@@ -48,6 +49,7 @@ const App = () => {
                 <Route path="/escape-the-desert" element={<EscapeTheDesert />} />
                 <Route path="/tv-tracker" element={<TvTracker />} />
                 <Route path="/my-entertainment" element={<TvTracker />} />
+                <Route path="/fpl-manager" element={<FPLManager />} />
             </Routes>
         </Router>
     );
