@@ -12,8 +12,8 @@ const NavBar = () => {
             <NavItem to="/scrum" label="Agentic AI Scrum Board" />
             <NavItem to="/playground" label="AI Playground" />
             <NavItem to="/escape-the-desert" label="Escape The Desert" />
+            <NavItem to="/fpl-manager" label="AI FPL Manager" />
             <NavItem to="/mini-projects" label="Mini Projects" />
-            <NavItem to="/my-entertainment" label="My Entertainment" />
             <NotificationBell />
         </nav>
     );

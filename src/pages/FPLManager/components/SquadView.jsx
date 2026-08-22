@@ -4,7 +4,14 @@ import { fplService } from '../../../services/fplService';
 const POSITION_LABELS = { 1: 'GKP', 2: 'DEF', 3: 'MID', 4: 'FWD' };
 const POSITION_COLORS = { 1: '#d4af37', 2: '#4caf50', 3: '#2196f3', 4: '#f44336' };
 
-const SquadView = ({ managerData, currentGw, bootstrapData, selectedAnalysis }) => {
+const CHIP_CONFIG = [
+  { apiName: 'wildcard', label: 'WC', fullName: 'Wildcard', emoji: '🔄', color: '#d4af37' },
+  { apiName: 'freehit', label: 'FH', fullName: 'Free Hit', emoji: '⚡', color: '#2196f3' },
+  { apiName: 'bboost', label: 'BB', fullName: 'Bench Boost', emoji: '💪', color: '#4caf50' },
+  { apiName: '3xc', label: 'TC', fullName: 'Triple Captain', emoji: '👑', color: '#f44336' },
+];
+
+const SquadView = ({ managerData, currentGw, bootstrapData, selectedAnalysis, chipsUsed = [], freeTransfers = '1', transfersMade = '0' }) => {
   const [picks, setPicks] = useState([]);
 
   useEffect(() => {
@@ -74,9 +81,9 @@ const SquadView = ({ managerData, currentGw, bootstrapData, selectedAnalysis }) 
           background: isBench ? '#1a1a1a' : '#111',
           border: `1px solid ${posColor}33`,
           borderRadius: '8px',
-          padding: '10px 14px',
-          minWidth: '90px',
-          maxWidth: '120px',
+          padding: '8px 10px',
+          minWidth: '82px',
+          maxWidth: '105px',
           textAlign: 'center',
           transition: 'transform 0.2s, box-shadow 0.2s',
           cursor: 'default',
@@ -85,26 +92,26 @@ const SquadView = ({ managerData, currentGw, bootstrapData, selectedAnalysis }) 
         {/* Captain / Vice badge */}
         {pick.is_captain && (
           <div style={{
-            position: 'absolute', top: '-8px', right: '-6px',
+            position: 'absolute', top: '-7px', right: '-5px',
             background: '#d4af37', color: '#000', borderRadius: '50%',
-            width: '22px', height: '22px', fontSize: '11px', fontWeight: 'bold',
+            width: '20px', height: '20px', fontSize: '10px', fontWeight: 'bold',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 2px 6px rgba(212,175,55,0.5)'
+            boxShadow: '0 2px 6px rgba(212,175,55,0.5)', zIndex: 2
           }}>C</div>
         )}
         {pick.is_vice_captain && (
           <div style={{
-            position: 'absolute', top: '-8px', right: '-6px',
+            position: 'absolute', top: '-7px', right: '-5px',
             background: '#666', color: '#fff', borderRadius: '50%',
-            width: '22px', height: '22px', fontSize: '11px', fontWeight: 'bold',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
+            width: '20px', height: '20px', fontSize: '10px', fontWeight: 'bold',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2
           }}>V</div>
         )}
 
         {/* Position tag */}
         <div style={{
-          fontSize: '0.6rem', color: posColor, fontWeight: 'bold',
-          letterSpacing: '1px', marginBottom: '6px'
+          fontSize: '0.58rem', color: posColor, fontWeight: 'bold',
+          letterSpacing: '1px', marginBottom: '4px'
         }}>
           {POSITION_LABELS[player.element_type]}
         </div>
@@ -114,25 +121,25 @@ const SquadView = ({ managerData, currentGw, bootstrapData, selectedAnalysis }) 
           <img 
             src={`https://resources.premierleague.com/premierleague25/badges-alt/${teamCode}.svg`} 
             alt={teamName}
-            style={{ width: '32px', height: '32px', objectFit: 'contain', marginBottom: '6px' }}
+            style={{ width: '28px', height: '28px', objectFit: 'contain', marginBottom: '4px' }}
           />
         )}
 
         {/* Player name */}
         <div style={{
-          fontWeight: 'bold', fontSize: '0.82rem', color: '#e0e0e0',
+          fontWeight: 'bold', fontSize: '0.8rem', color: '#e0e0e0',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
         }}>
           {player.web_name}
         </div>
 
         {/* Team Name */}
-        <div style={{ fontSize: '0.7rem', color: '#888', marginBottom: '4px' }}>
+        <div style={{ fontSize: '0.68rem', color: '#888', marginBottom: '3px' }}>
           {teamName}
         </div>
 
         {/* Price & Points */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', fontSize: '0.7rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', fontSize: '0.68rem' }}>
           <span style={{ color: '#4caf50' }}>£{price}m</span>
           <span style={{ color: '#d4af37' }}>{points}pts</span>
         </div>
@@ -140,14 +147,9 @@ const SquadView = ({ managerData, currentGw, bootstrapData, selectedAnalysis }) 
     );
   };
 
-  const renderRow = (players, label) => (
-    <div style={{ marginBottom: '12px' }}>
-      {label && (
-        <div style={{ textAlign: 'center', fontSize: '0.7rem', color: '#ffffff55', letterSpacing: '2px', marginBottom: '6px', textTransform: 'uppercase' }}>
-          {label}
-        </div>
-      )}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
+  const renderRow = (players) => (
+    <div style={{ marginBottom: '10px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
         {players.map(p => renderPlayerBadge(p))}
       </div>
     </div>
@@ -157,25 +159,40 @@ const SquadView = ({ managerData, currentGw, bootstrapData, selectedAnalysis }) 
 
   return (
     <div className="fpl-squad-view">
-      {/* Formation label */}
-      <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-        <span style={{
-          background: '#d4af3722', color: '#d4af37', padding: '4px 16px',
-          borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', letterSpacing: '2px'
-        }}>
-          {formation}
-        </span>
-      </div>
-
       {/* Pitch */}
       <div className="fpl-pitch" style={{
         background: 'linear-gradient(180deg, #1a4d2e 0%, #143d24 20%, #1a4d2e 40%, #143d24 60%, #1a4d2e 80%, #143d24 100%)',
         borderRadius: '12px',
-        padding: '30px 15px',
+        padding: '16px 12px',
         border: '2px solid #2a6e3f',
         position: 'relative',
         overflow: 'hidden',
+        minHeight: '520px',
       }}>
+        {/* Formation badge inside pitch */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginBottom: '8px',
+          position: 'relative',
+          zIndex: 5
+        }}>
+          <span style={{
+            background: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(4px)',
+            border: '1px solid rgba(212, 175, 55, 0.4)',
+            color: '#d4af37',
+            padding: '3px 14px',
+            borderRadius: '14px',
+            fontSize: '0.75rem',
+            fontWeight: 'bold',
+            letterSpacing: '1.5px',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.4)'
+          }}>
+            FORMATION {formation}
+          </span>
+        </div>
+
         {/* Pitch line decorations */}
         <div style={{
           position: 'absolute', top: '50%', left: '10%', right: '10%',
@@ -186,18 +203,111 @@ const SquadView = ({ managerData, currentGw, bootstrapData, selectedAnalysis }) 
           width: '60px', height: '60px', borderRadius: '50%', border: '1px solid #ffffff15'
         }} />
 
-        {renderRow(fwds, 'Forwards')}
-        {renderRow(mids, 'Midfielders')}
-        {renderRow(defs, 'Defenders')}
-        {renderRow(gks, 'Goalkeeper')}
+        {renderRow(fwds)}
+        {renderRow(mids)}
+        {renderRow(defs)}
+        {renderRow(gks)}
+
+        {/* Chips Available - bottom right corner */}
+        <div style={{
+          position: 'absolute',
+          bottom: '8px',
+          right: '8px',
+          display: 'flex',
+          gap: '5px',
+          zIndex: 5,
+          flexWrap: 'wrap',
+          justifyContent: 'flex-end',
+          maxWidth: '200px'
+        }}>
+          {CHIP_CONFIG.map(chip => {
+            const usedCount = chipsUsed.filter(c => c.name === chip.apiName).length;
+            const totalAvailable = 2;
+            const remaining = totalAvailable - usedCount;
+            
+            if (remaining <= 0) return null;
+
+            return (
+              <div
+                key={chip.apiName}
+                title={`${chip.fullName}: ${remaining}/${totalAvailable} available`}
+                style={{
+                  background: 'rgba(0, 0, 0, 0.7)',
+                  backdropFilter: 'blur(4px)',
+                  border: `1px solid ${chip.color}55`,
+                  borderRadius: '6px',
+                  padding: '3px 7px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  cursor: 'default',
+                }}
+              >
+                <span style={{ fontSize: '0.7rem' }}>{chip.emoji}</span>
+                <span style={{ color: chip.color, fontSize: '0.65rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                  {chip.label}
+                </span>
+                <span style={{
+                  background: chip.color + '33',
+                  color: chip.color,
+                  fontSize: '0.6rem',
+                  fontWeight: 'bold',
+                  borderRadius: '3px',
+                  padding: '0 3px',
+                  lineHeight: '1.3'
+                }}>
+                  x{remaining}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Transfers Info - bottom left corner */}
+        <div style={{
+          position: 'absolute',
+          bottom: '8px',
+          left: '8px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px',
+          zIndex: 5,
+        }}>
+          <div style={{
+            background: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(4px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '6px',
+            padding: '3px 8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}>
+            <span style={{ color: '#aaa', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Free Transfers:</span>
+            <span style={{ color: '#00ff87', fontSize: '0.75rem', fontWeight: 'bold' }}>{freeTransfers || '1'}</span>
+          </div>
+          <div style={{
+            background: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(4px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '6px',
+            padding: '3px 8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}>
+            <span style={{ color: '#aaa', fontSize: '0.65rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Transfers Done:</span>
+            <span style={{ color: '#ffb800', fontSize: '0.75rem', fontWeight: 'bold' }}>{transfersMade || '0'}</span>
+          </div>
+        </div>
       </div>
 
       {/* Bench */}
-      <div className="fpl-card" style={{ marginTop: '20px', backgroundColor: '#0d0d0d', border: '1px solid #222', borderRadius: '12px', padding: '20px' }}>
-        <h3 style={{ marginTop: 0, textAlign: 'center', color: '#666', fontSize: '0.85rem', letterSpacing: '2px', textTransform: 'uppercase' }}>
+      <div className="fpl-card" style={{ marginTop: '16px', backgroundColor: '#0d0d0d', border: '1px solid #222', borderRadius: '12px', padding: '16px' }}>
+        <h3 style={{ marginTop: 0, textAlign: 'center', color: '#666', fontSize: '0.8rem', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '12px' }}>
           Substitutes
         </h3>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
           {bench.map(p => renderPlayerBadge(p, true))}
         </div>
       </div>

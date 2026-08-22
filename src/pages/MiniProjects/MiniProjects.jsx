@@ -6,17 +6,17 @@ import snakeLogo from '../../assets/snake_game_logo.png';
 import bookclubLogo from '../../assets/bookclub_logo.png';
 import recipeLogo from '../../assets/recipe_logo.png';
 import pallanguzhiLogo from '../../assets/pallanguzhi_logo.jpg';
-import fplLogo from '../../assets/fpl_logo.svg';
+import entertainmentLogo from '../../assets/literature_logo.jpg';
 
 const MiniProjects = () => {
     const projects = [
         {
-            id: 'fpl-manager',
-            title: 'FPL AI Manager',
-            description: 'AI-powered Fantasy Premier League manager. Get captain picks, transfer suggestions, lineup optimization, and live gameweek tracking — all powered by algorithmic analysis.',
-            icon: fplLogo,
-            path: '/fpl-manager',
-            tags: ['React', 'Spring Boot', 'AI', 'MongoDB']
+            id: 'my-entertainment',
+            title: 'My Entertainment',
+            description: 'Track and manage your watched TV series, anime, movies, and books. Rate, review, and keep track of episode progress.',
+            icon: entertainmentLogo,
+            path: '/my-entertainment',
+            tags: ['React', 'Spring Boot']
         },
         {
             id: 'recipes',

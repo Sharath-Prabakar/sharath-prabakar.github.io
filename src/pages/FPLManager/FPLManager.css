@@ -150,8 +150,126 @@
   color: #f44336;
 }
 
+/* Loading Overlay & Popup */
+.fpl-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(5, 5, 5, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fpl-fade-in 0.3s ease;
+}
+
+.fpl-loading-popup {
+  background: #0d0d0d;
+  border: 1px solid #2a2a2a;
+  border-radius: 16px;
+  padding: 35px 45px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(212, 175, 55, 0.08);
+  max-width: 380px;
+  width: 85%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.fpl-loading-popup::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #d4af37, #00ff87, transparent);
+  animation: fpl-shimmer 2s infinite linear;
+}
+
+.fpl-spinner-container {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.fpl-spinner {
+  width: 54px;
+  height: 54px;
+  border: 3px solid rgba(212, 175, 55, 0.15);
+  border-top: 3px solid #d4af37;
+  border-right: 3px solid #d4af37;
+  border-radius: 50%;
+  animation: fpl-spin 0.9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+}
+
+.fpl-spinner-inner {
+  position: absolute;
+  font-size: 1.25rem;
+  animation: fpl-pulse 1.8s ease-in-out infinite;
+  line-height: 1;
+}
+
+.fpl-loading-title {
+  color: #d4af37;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  margin: 0 0 8px 0;
+}
+
+.fpl-loading-text {
+  color: #9e9e9e;
+  font-size: 0.85rem;
+  margin: 0;
+  min-height: 20px;
+  transition: opacity 0.3s ease;
+}
+
+@keyframes fpl-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fpl-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+@keyframes fpl-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fpl-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
 @media (max-width: 768px) {
   .fpl-pitch {
     min-height: 500px;
+  }
+  .fpl-header h1 {
+    font-size: 1.8rem;
+  }
+  .fpl-container {
+    padding-top: 90px;
+  }
+  .fpl-header {
+    text-align: left;
   }
 }
