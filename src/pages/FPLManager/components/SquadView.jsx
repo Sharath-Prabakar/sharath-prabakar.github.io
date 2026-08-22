@@ -214,11 +214,10 @@ const SquadView = ({ managerData, currentGw, bootstrapData, selectedAnalysis, ch
           bottom: '8px',
           right: '8px',
           display: 'flex',
+          flexDirection: 'column',
           gap: '5px',
           zIndex: 5,
-          flexWrap: 'wrap',
-          justifyContent: 'flex-end',
-          maxWidth: '200px'
+          alignItems: 'flex-end',
         }}>
           {CHIP_CONFIG.map(chip => {
             const usedCount = chipsUsed.filter(c => c.name === chip.apiName).length;
@@ -239,13 +238,12 @@ const SquadView = ({ managerData, currentGw, bootstrapData, selectedAnalysis, ch
                   padding: '3px 7px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '4px',
+                  gap: '6px',
                   cursor: 'default',
                 }}
               >
-                <span style={{ fontSize: '0.7rem' }}>{chip.emoji}</span>
                 <span style={{ color: chip.color, fontSize: '0.65rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                  {chip.label}
+                  {chip.fullName}
                 </span>
                 <span style={{
                   background: chip.color + '33',

@@ -50,12 +50,10 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, la
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '1rem' }}>👑</span>
             <span style={{ color: '#888', fontSize: '0.85rem' }}>Captain:</span>
             <span style={{ color: '#d4af37', fontWeight: 'bold', fontSize: '1rem' }}>{cap}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '1rem' }}>🥈</span>
             <span style={{ color: '#888', fontSize: '0.85rem' }}>Vice-Captain:</span>
             <span style={{ color: '#e0e0e0', fontWeight: 'bold', fontSize: '1rem' }}>{vice}</span>
           </div>
@@ -69,14 +67,14 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, la
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
           {parts.map((p, i) => (
             <div key={i} style={{ color: i === 0 ? '#d4af37' : '#e0e0e0', fontWeight: 'bold', fontSize: '0.95rem' }}>
-              {p}
+              {p.replace(/👑|🥈|\(C\)|\(V\)/g, '').trim()}
             </div>
           ))}
         </div>
       );
     }
 
-    return <p style={{ color: '#e0e0e0', fontSize: '1rem', margin: 0 }}>{rec}</p>;
+    return <p style={{ color: '#e0e0e0', fontSize: '1rem', margin: 0 }}>{rec.replace(/👑|🥈|\(C\)|\(V\)/g, '').trim()}</p>;
   };
 
   const renderDashboard = () => (
@@ -114,13 +112,13 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, la
         <div style={{ marginTop: '18px', paddingTop: '16px', borderTop: '1px solid #333', display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
           {latestAnalysis.captainRecommendation && (
             <div style={{ flex: '1', minWidth: '180px' }}>
-              <h3 style={{ color: '#d4af37', margin: '0 0 6px 0', fontSize: '0.85rem', textTransform: 'uppercase' }}>👑 Suggested Captaincy</h3>
+              <h3 style={{ color: '#d4af37', margin: '0 0 6px 0', fontSize: '0.85rem', textTransform: 'uppercase' }}>Suggested Captaincy</h3>
               {renderCaptaincyDetails(latestAnalysis.captainRecommendation)}
             </div>
           )}
 
           <div style={{ flex: '1.2', minWidth: '220px', borderLeft: '1px solid #222', paddingLeft: '20px' }}>
-            <h3 style={{ color: '#d4af37', margin: '0 0 8px 0', fontSize: '0.85rem', textTransform: 'uppercase' }}>🏥 Squad Health</h3>
+            <h3 style={{ color: '#d4af37', margin: '0 0 8px 0', fontSize: '0.85rem', textTransform: 'uppercase' }}>Squad Health</h3>
             {latestAnalysis.injuries && latestAnalysis.injuries.length > 0 ? (
               <ul style={{ color: '#e0e0e0', paddingLeft: '18px', margin: 0, fontSize: '0.85rem' }}>
                 {latestAnalysis.injuries.map((inj, i) => (
@@ -135,7 +133,7 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, la
       </div>
 
       <div className="fpl-card" style={{ padding: '20px', flex: '1', minWidth: '260px' }}>
-        <h3 style={{ color: '#d4af37', margin: '0 0 10px 0', fontSize: '0.9rem', textTransform: 'uppercase' }}>🔄 Suggested Transfers</h3>
+        <h3 style={{ color: '#d4af37', margin: '0 0 10px 0', fontSize: '0.9rem', textTransform: 'uppercase' }}>Suggested Transfers</h3>
         <div style={{ color: '#e0e0e0', fontSize: '0.95rem', margin: '0 0 20px 0', lineHeight: '1.6' }}>
           {latestAnalysis.transferRecommendation ? (
             latestAnalysis.transferRecommendation.split(' | ').map((transfer, index) => (
@@ -148,7 +146,7 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, la
           )}
         </div>
 
-        <h3 style={{ color: '#d4af37', margin: '0 0 10px 0', fontSize: '0.9rem', textTransform: 'uppercase' }}>🃏 Power Chip Strategy</h3>
+        <h3 style={{ color: '#d4af37', margin: '0 0 10px 0', fontSize: '0.9rem', textTransform: 'uppercase' }}>Power Chip Strategy</h3>
         <div style={{ color: '#e0e0e0', fontSize: '0.95rem', margin: 0, lineHeight: '1.6' }}>
           {latestAnalysis.chipRecommendation && latestAnalysis.chipRecommendation !== 'NONE' ? (
             <div>
@@ -167,7 +165,7 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, la
     {latestAnalysis.explanation && (
       <div className="fpl-card" style={{ padding: '20px', marginTop: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-          <h3 style={{ color: '#d4af37', margin: 0, fontSize: '0.95rem', textTransform: 'uppercase' }}>🧠 Current Strategy</h3>
+          <h3 style={{ color: '#d4af37', margin: 0, fontSize: '0.95rem', textTransform: 'uppercase' }}>Current Strategy</h3>
           <span style={{ color: '#888', fontSize: '0.8rem' }}>
             {latestAnalysis.analyzedAt ? new Date(latestAnalysis.analyzedAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : ''}
           </span>
@@ -176,7 +174,7 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, la
         
         {latestAnalysis.chipForecast && (
           <div style={{ marginTop: '20px', borderTop: '1px solid #333', paddingTop: '20px' }}>
-            <h3 style={{ color: '#d4af37', margin: '0 0 15px 0', fontSize: '0.85rem', textTransform: 'uppercase' }}>🔮 Chip Forecast (Season Outlook)</h3>
+            <h3 style={{ color: '#d4af37', margin: '0 0 15px 0', fontSize: '0.85rem', textTransform: 'uppercase' }}>Chip Forecast (Season Outlook)</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
               
               {/* Half 1 */}
@@ -213,7 +211,7 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, la
         
         {gameweekHistory && gameweekHistory.length > 0 && (
           <div style={{ marginTop: '30px', borderTop: '1px solid #333', paddingTop: '20px' }}>
-            <h3 style={{ color: '#888', margin: '0 0 15px 0', fontSize: '0.85rem', textTransform: 'uppercase' }}>⏳ Strategy Timeline (Updates)</h3>
+            <h3 style={{ color: '#888', margin: '0 0 15px 0', fontSize: '0.85rem', textTransform: 'uppercase' }}>Strategy Timeline (Updates)</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               {gameweekHistory.length === 1 ? (
                 <div style={{ color: '#666', fontSize: '0.85rem', fontStyle: 'italic' }}>
