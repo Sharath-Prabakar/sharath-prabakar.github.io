@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fplService } from '../../../services/fplService';
 
-const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, layoutMode = 'all', gameweekHistory }) => {
+const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, liveData, layoutMode = 'all', gameweekHistory }) => {
   if (!selectedAnalysis) {
     return (
       <div className="fpl-card">
@@ -40,41 +40,37 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, la
     return team?.short_name;
   };
 
-  const renderCaptaincyDetails = (rec) => {
-    if (!rec) return null;
+  const renderCaptaincyDetails = (text) => {
+    if (!text) return null;
+    const isHaaland = text.toLowerCase().includes('haaland');
+    const isSalah = text.toLowerCase().includes('salah');
+    const isPalmer = text.toLowerCase().includes('palmer');
+    const isSaka = text.toLowerCase().includes('saka');
+    
+    let highlightColor = '#d4af37';
+    if (isHaaland) highlightColor = '#6CABDD'; // City Blue
+    else if (isSalah) highlightColor = '#C8102E'; // Liverpool Red
+    else if (isPalmer) highlightColor = '#034694'; // Chelsea Blue
+    else if (isSaka) highlightColor = '#EF0107'; // Arsenal Red
 
-    const matchV = rec.match(/^(.*?)\s*\((?:V|Vice|Vice-Captain):\s*(.*?)\)$/i);
-    if (matchV) {
-      const cap = matchV[1].replace(/👑|\(C\)/g, '').trim();
-      const vice = matchV[2].replace(/🥈|\(V\)/g, '').trim();
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: '#888', fontSize: '0.85rem' }}>Captain:</span>
-            <span style={{ color: '#d4af37', fontWeight: 'bold', fontSize: '1rem' }}>{cap}</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: '#888', fontSize: '0.85rem' }}>Vice-Captain:</span>
-            <span style={{ color: '#e0e0e0', fontWeight: 'bold', fontSize: '1rem' }}>{vice}</span>
-          </div>
-        </div>
-      );
-    }
-
-    if (rec.includes('\n') || rec.includes(' | ')) {
-      const parts = rec.split(/\n| \| /);
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-          {parts.map((p, i) => (
-            <div key={i} style={{ color: i === 0 ? '#d4af37' : '#e0e0e0', fontWeight: 'bold', fontSize: '0.95rem' }}>
-              {p.replace(/👑|🥈|\(C\)|\(V\)/g, '').trim()}
+    const parts = text.split('\n');
+    return (
+      <div style={{ padding: '12px', background: 'rgba(212, 175, 55, 0.05)', borderRadius: '8px', border: `1px solid rgba(212, 175, 55, 0.2)` }}>
+        {parts.map((p, i) => {
+          const isMainCaptain = p.toLowerCase().includes('captain:') && !p.toLowerCase().includes('vice');
+          return (
+            <div key={i} style={{ 
+              marginBottom: i < parts.length - 1 ? '6px' : '0',
+              fontWeight: isMainCaptain ? 'bold' : 'normal',
+              color: isMainCaptain ? highlightColor : '#ccc',
+              fontSize: isMainCaptain ? '1.1rem' : '0.9rem'
+            }}>
+              {p.replace(/^(Captain:|Vice-Captain:)/i, (match) => match)}
             </div>
-          ))}
-        </div>
-      );
-    }
-
-    return <p style={{ color: '#e0e0e0', fontSize: '1rem', margin: 0 }}>{rec.replace(/👑|🥈|\(C\)|\(V\)/g, '').trim()}</p>;
+          );
+        })}
+      </div>
+    );
   };
 
   const renderDashboard = () => (
@@ -177,7 +173,6 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, la
             <h3 style={{ color: '#d4af37', margin: '0 0 15px 0', fontSize: '0.85rem', textTransform: 'uppercase' }}>Chip Forecast (Season Outlook)</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
               
-              {/* Half 1 */}
               <div style={{ background: '#111', padding: '12px', borderRadius: '8px', border: '1px solid #222' }}>
                 <h4 style={{ color: '#888', margin: '0 0 10px 0', fontSize: '0.75rem', textTransform: 'uppercase' }}>Half 1 (GW1-19)</h4>
                 {latestAnalysis.chipForecast.half1 && Object.entries(latestAnalysis.chipForecast.half1).map(([chipKey, data]) => (
@@ -191,7 +186,6 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, la
                 ))}
               </div>
 
-              {/* Half 2 */}
               <div style={{ background: '#111', padding: '12px', borderRadius: '8px', border: '1px solid #222' }}>
                 <h4 style={{ color: '#888', margin: '0 0 10px 0', fontSize: '0.75rem', textTransform: 'uppercase' }}>Half 2 (GW20-38)</h4>
                 {latestAnalysis.chipForecast.half2 && Object.entries(latestAnalysis.chipForecast.half2).map(([chipKey, data]) => (
@@ -330,17 +324,143 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, la
     </div>
   );
 
+  const renderEndOfGwAnalysis = () => {
+    if (!latestAnalysis.endOfGwAnalysis) return null;
+    
+    // Basic markdown parser for bold text and newlines
+    const formatText = (text) => {
+      return text.split('\n').map((line, i) => {
+        if (!line.trim()) return <br key={i} />;
+        
+        // Handle basic bold **text**
+        const parts = line.split(/(\*\*.*?\*\*)/g);
+        const formattedLine = parts.map((part, j) => {
+          if (part.startsWith('**') && part.endsWith('**')) {
+            return <strong key={j} style={{ color: '#fff' }}>{part.slice(2, -2)}</strong>;
+          }
+          return part;
+        });
+
+        // Add bullet point styling if it starts with a dash
+        if (line.trim().startsWith('- ')) {
+          return <div key={i} style={{ marginBottom: '8px', paddingLeft: '15px', position: 'relative' }}>
+            <span style={{ position: 'absolute', left: 0 }}>•</span>
+            {formattedLine.slice(1)} {/* Skip the first part which is '- ' if we handled it, but split doesn't drop it. Actually, string replace is easier */}
+          </div>;
+        }
+
+        return <div key={i} style={{ marginBottom: '10px' }}>{formattedLine}</div>;
+      });
+    };
+
+    return (
+      <div className="fpl-card" style={{ padding: '20px', marginTop: '20px' }}>
+        <h3 style={{ color: '#d4af37', margin: '0 0 15px 0', fontSize: '1.1rem', textTransform: 'uppercase' }}>End of Gameweek Analysis</h3>
+        <div style={{ color: '#e0e0e0', fontSize: '0.95rem', lineHeight: '1.6', margin: 0 }}>
+          {formatText(latestAnalysis.endOfGwAnalysis.replace(/^- /gm, '• '))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderPlayerAnalysis = () => {
+    if (!latestAnalysis.squad || !latestAnalysis.endOfGwAnalysis) return null;
+
+    const generatePlayerActions = (player) => {
+      if (!liveData || !liveData.elements) return null;
+      const liveStats = liveData.elements.find(e => e.id === player.id)?.stats;
+      if (!liveStats) return null;
+      
+      const actions = [];
+      if (liveStats.minutes > 0) actions.push(`${liveStats.minutes} mins`);
+      if (liveStats.goals_scored > 0) actions.push(`${liveStats.goals_scored} Goal${liveStats.goals_scored > 1 ? 's' : ''}`);
+      if (liveStats.assists > 0) actions.push(`${liveStats.assists} Assist${liveStats.assists > 1 ? 's' : ''}`);
+      if (liveStats.clean_sheets > 0) actions.push(`Clean Sheet`);
+      if (liveStats.saves >= 3) actions.push(`${liveStats.saves} Saves`);
+      if (liveStats.penalties_saved > 0) actions.push(`Pen Saved`);
+      if (liveStats.penalties_missed > 0) actions.push(`Pen Missed`);
+      if (liveStats.yellow_cards > 0) actions.push(`Yellow Card`);
+      if (liveStats.red_cards > 0) actions.push(`Red Card`);
+      if (liveStats.own_goals > 0) actions.push(`Own Goal`);
+      if (liveStats.bonus > 0) actions.push(`${liveStats.bonus} Bonus`);
+      
+      if (actions.length === 0) return "Did not play";
+      return actions.join(', ');
+    };
+
+    return (
+      <div className="fpl-card" style={{ padding: '20px', marginTop: '20px' }}>
+        <h3 style={{ color: '#d4af37', margin: '0 0 15px 0', fontSize: '1rem', textTransform: 'uppercase' }}>
+          Player-by-Player Post-Match Analysis
+        </h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '15px' }}>
+          {latestAnalysis.squad.sort((a, b) => {
+            const actualA = getPlayerActualPoints(a) * (a.is_captain ? 2 : 1);
+            const actualB = getPlayerActualPoints(b) * (b.is_captain ? 2 : 1);
+            return actualB - actualA;
+          }).map(player => {
+            const actual = getPlayerActualPoints(player) * (player.is_captain ? 2 : 1);
+            const expected = (player.expected || 0) * (player.is_captain ? 2 : 1);
+            const diff = actual - expected;
+            
+            let verdict = '';
+            let color = '#aaa';
+            if (actual >= 10) {
+              color = '#00ff87';
+            } else if (diff >= 3 || actual >= 5) {
+              color = '#4caf50';
+            } else if (actual >= 2) {
+              color = '#e0e0e0';
+            } else {
+              color = '#ff4444';
+            }
+            
+            verdict = generatePlayerActions(player) || (actual >= 5 ? "Strong performance" : actual >= 2 ? "Played minutes" : "Blanked");
+
+            return (
+              <div key={player.id} style={{ background: '#111', padding: '12px', borderRadius: '8px', borderLeft: `3px solid ${color}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontWeight: 'bold', color: '#fff' }}>{player.name} {player.is_captain ? '(C)' : ''}</span>
+                  <span style={{ color: color, fontWeight: 'bold' }}>{actual} pts</span>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '4px' }}>
+                  Projected: {expected.toFixed(1)} | Difference: {diff > 0 ? '+' : ''}{diff.toFixed(1)}
+                </div>
+                <div style={{ fontSize: '0.85rem', color: '#ccc', lineHeight: '1.4' }}>
+                  {verdict}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="fpl-ai-advisor">
       {layoutMode === 'all' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {renderDashboard()}
           {renderInsights()}
+          {renderEndOfGwAnalysis()}
+          {renderPlayerAnalysis()}
         </div>
       )}
       {layoutMode === 'dashboard' && renderDashboard()}
-      {layoutMode === 'insights' && renderInsights()}
+      {layoutMode === 'insights' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: '100%' }}>
+          {renderInsights()}
+        </div>
+      )}
+      {layoutMode === 'player_analysis' && (
+        <>
+          {renderEndOfGwAnalysis()}
+          {renderPlayerAnalysis()}
+        </>
+      )}
     </div>
   );
 };
+
 export default AiAdvisor;

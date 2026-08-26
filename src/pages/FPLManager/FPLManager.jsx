@@ -17,6 +17,7 @@ const FPLManager = () => {
   const [selectedGw, setSelectedGw] = useState(1);
   const [chipsUsed, setChipsUsed] = useState([]);
   const [gwFixtures, setGwFixtures] = useState([]);
+  const [liveData, setLiveData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -61,15 +62,17 @@ const FPLManager = () => {
   }, []);
 
   useEffect(() => {
-    const fetchFixtures = async () => {
+    const fetchGwSpecificData = async () => {
       if (selectedGw) {
-        const fixtures = await fplService.getFixtures(selectedGw);
-        if (fixtures) {
-          setGwFixtures(fixtures);
-        }
+        const [fixtures, live] = await Promise.all([
+          fplService.getFixtures(selectedGw),
+          fplService.getLiveEvent(selectedGw)
+        ]);
+        if (fixtures) setGwFixtures(fixtures);
+        if (live) setLiveData(live);
       }
     };
-    fetchFixtures();
+    fetchGwSpecificData();
   }, [selectedGw]);
 
   if (loading) {
@@ -171,6 +174,7 @@ const FPLManager = () => {
                 selectedAnalysis={analysisHistory.find(h => h.gameweek === selectedGw)}
                 gameweekHistory={analysisHistory.filter(h => h.gameweek === selectedGw)}
                 bootstrapData={bootstrapData}
+                liveData={liveData}
                 layoutMode="insights"
               />
             </div>
@@ -195,7 +199,20 @@ const FPLManager = () => {
               selectedAnalysis={analysisHistory.find(h => h.gameweek === selectedGw)}
               gameweekHistory={analysisHistory.filter(h => h.gameweek === selectedGw)}
               bootstrapData={bootstrapData}
+              liveData={liveData}
               layoutMode="dashboard"
+            />
+          </div>
+
+          <div>
+            <AiAdvisor 
+              managerData={managerData} 
+              currentGw={currentGw} 
+              selectedAnalysis={analysisHistory.find(h => h.gameweek === selectedGw)}
+              gameweekHistory={analysisHistory.filter(h => h.gameweek === selectedGw)}
+              bootstrapData={bootstrapData}
+              liveData={liveData}
+              layoutMode="player_analysis"
             />
           </div>
 
