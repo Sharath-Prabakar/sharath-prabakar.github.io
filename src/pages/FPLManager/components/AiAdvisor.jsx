@@ -212,16 +212,22 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
           </div>
         )}
         
-        {gameweekHistory && gameweekHistory.length > 0 && (
+        {gameweekHistory && gameweekHistory.length > 0 && (() => {
+          const uniqueHistory = gameweekHistory.slice(1).filter((item, index, self) => {
+            if (index === 0) return true;
+            return item.explanation !== self[index - 1].explanation;
+          });
+          
+          return (
           <div style={{ marginTop: '30px', borderTop: '1px solid #333', paddingTop: '20px' }}>
             <h3 style={{ color: '#888', margin: '0 0 15px 0', fontSize: '0.85rem', textTransform: 'uppercase' }}>Strategy Timeline (Updates)</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              {gameweekHistory.length === 1 ? (
+              {uniqueHistory.length === 0 ? (
                 <div style={{ color: '#666', fontSize: '0.85rem', fontStyle: 'italic' }}>
                   No previous updates for this gameweek.
                 </div>
               ) : (
-                gameweekHistory.slice(1).map((historyItem, index) => {
+                uniqueHistory.map((historyItem, index) => {
                   const date = historyItem.analyzedAt ? new Date(historyItem.analyzedAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'Unknown Date';
                   
                   return (
@@ -238,7 +244,8 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
               )}
             </div>
           </div>
-        )}
+          );
+        })()}
       </div>
     )}
     </>
