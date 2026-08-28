@@ -73,6 +73,15 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
     );
   };
 
+  const isGwStarted = () => {
+    if (!bootstrapData || !bootstrapData.events) return true;
+    const event = bootstrapData.events.find(e => e.id === latestAnalysis.gameweek);
+    if (!event) return true;
+    return new Date(event.deadline_time) < new Date();
+  };
+
+  const isStarted = isGwStarted();
+
   const renderDashboard = () => (
     <>
     <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
@@ -89,7 +98,7 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
           </div>
           <div style={{ background: '#111', padding: '12px 8px', borderRadius: '8px', flex: 1, minWidth: '60px', textAlign: 'center' }}>
             <div style={{ color: '#888', fontSize: '0.72rem' }}>XI Actual</div>
-            <div style={{ color: xiActual > 0 ? '#00ff87' : '#e0e0e0', fontSize: '1.4rem', fontWeight: 'bold' }}>{xiActual}</div>
+            <div style={{ color: (isStarted && xiActual > 0) ? '#00ff87' : '#e0e0e0', fontSize: '1.4rem', fontWeight: 'bold' }}>{isStarted ? xiActual : '-'}</div>
           </div>
           <div style={{ background: '#111', padding: '12px 8px', borderRadius: '8px', flex: 1, minWidth: '60px', textAlign: 'center' }}>
             <div style={{ color: '#888', fontSize: '0.72rem' }}>Squad Total</div>
@@ -97,7 +106,7 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
           </div>
           <div style={{ background: '#111', padding: '12px 8px', borderRadius: '8px', flex: 1, minWidth: '60px', textAlign: 'center' }}>
             <div style={{ color: '#888', fontSize: '0.72rem' }}>Squad Actual</div>
-            <div style={{ color: totalActual > 0 ? '#00ff87' : '#e0e0e0', fontSize: '1.4rem', fontWeight: 'bold' }}>{totalActual}</div>
+            <div style={{ color: (isStarted && totalActual > 0) ? '#00ff87' : '#e0e0e0', fontSize: '1.4rem', fontWeight: 'bold' }}>{isStarted ? totalActual : '-'}</div>
           </div>
           <div style={{ background: '#111', padding: '12px 8px', borderRadius: '8px', flex: 1, minWidth: '60px', textAlign: 'center' }}>
             <div style={{ color: '#888', fontSize: '0.72rem' }}>Bank</div>
@@ -241,7 +250,7 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
         <span style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Player</span>
         <div style={{ display: 'flex', gap: '12px', textAlign: 'right' }}>
           <span style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 'bold', minWidth: '45px', textAlign: 'right' }}>Exp</span>
-          <span style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 'bold', minWidth: '45px', textAlign: 'right' }}>Actual</span>
+          {isStarted && <span style={{ color: '#888', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 'bold', minWidth: '45px', textAlign: 'right' }}>Actual</span>}
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', flex: 1, paddingRight: '5px' }}>
@@ -301,15 +310,17 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
                   <span style={{ color: '#d4af37', fontWeight: 'bold', fontSize: '0.9rem', minWidth: '45px', textAlign: 'right' }}>
                     {player.expected}
                   </span>
-                  <span style={{ 
-                    color: actualPts > 0 ? '#00ff87' : '#aaa', 
-                    fontWeight: 'bold', 
-                    fontSize: '0.9rem', 
-                    minWidth: '45px', 
-                    textAlign: 'right' 
-                  }}>
-                    {actualPts}
-                  </span>
+                  {isStarted && (
+                    <span style={{ 
+                      color: actualPts > 0 ? '#00ff87' : '#aaa', 
+                      fontWeight: 'bold', 
+                      fontSize: '0.9rem', 
+                      minWidth: '45px', 
+                      textAlign: 'right' 
+                    }}>
+                      {actualPts}
+                    </span>
+                  )}
                 </div>
               </div>
               {player.reasoning && (

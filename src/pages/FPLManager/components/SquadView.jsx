@@ -61,6 +61,15 @@ const SquadView = ({ managerData, currentGw, bootstrapData, selectedAnalysis, ch
   const mids = startingXI.filter(p => getPlayer(p.element)?.element_type === 3);
   const fwds = startingXI.filter(p => getPlayer(p.element)?.element_type === 4);
 
+  const isGwStarted = () => {
+    if (!bootstrapData || !bootstrapData.events || !selectedAnalysis) return true;
+    const event = bootstrapData.events.find(e => e.id === selectedAnalysis.gameweek);
+    if (!event) return true;
+    return new Date(event.deadline_time) < new Date();
+  };
+
+  const isStarted = isGwStarted();
+
   const renderPlayerBadge = (pick, isBench = false) => {
     const player = getPlayer(pick.element);
     if (!player) return null;
@@ -141,7 +150,7 @@ const SquadView = ({ managerData, currentGw, bootstrapData, selectedAnalysis, ch
         {/* Price & Points */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', fontSize: '0.68rem' }}>
           <span style={{ color: '#4caf50' }}>£{price}m</span>
-          <span style={{ color: '#d4af37' }}>{points}pts</span>
+          {isStarted && <span style={{ color: '#d4af37' }}>{points}pts</span>}
         </div>
       </div>
     );
