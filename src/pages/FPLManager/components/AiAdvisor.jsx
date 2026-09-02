@@ -261,7 +261,7 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', flex: 1, paddingRight: '5px' }}>
-        {latestAnalysis.squad && latestAnalysis.squad.sort((a, b) => b.expected - a.expected).map(player => {
+        {latestAnalysis.squad && [...latestAnalysis.squad].sort((a, b) => b.expected - a.expected).map(player => {
           const teamCode = getTeamCode(player.team);
           const teamShort = getTeamShortName(player.team);
           
@@ -412,7 +412,7 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
           Player-by-Player Post-Match Analysis
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '15px' }}>
-          {latestAnalysis.squad.sort((a, b) => {
+          {[...latestAnalysis.squad].sort((a, b) => {
             const actualA = getPlayerActualPoints(a) * (a.is_captain ? 2 : 1);
             const actualB = getPlayerActualPoints(b) * (b.is_captain ? 2 : 1);
             return actualB - actualA;
