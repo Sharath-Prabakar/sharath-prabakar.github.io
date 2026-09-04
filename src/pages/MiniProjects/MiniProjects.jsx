@@ -7,9 +7,18 @@ import bookclubLogo from '../../assets/bookclub_logo.png';
 import recipeLogo from '../../assets/recipe_logo.png';
 import pallanguzhiLogo from '../../assets/pallanguzhi_logo.jpg';
 import entertainmentLogo from '../../assets/literature_logo.jpg';
+import habitStackerLogo from '../../assets/habit_stacker_logo.jpg';
 
 const MiniProjects = () => {
     const projects = [
+        {
+            id: 'habit-stacker',
+            title: 'Habit Stacker',
+            description: 'Build and track daily, weekly, and monthly habits on a visual calendar with streaks, heat maps, and completion stats.',
+            icon: habitStackerLogo,
+            path: '/habit-stacker',
+            tags: ['React', 'Tracker']
+        },
         {
             id: 'my-entertainment',
             title: 'My Entertainment',
