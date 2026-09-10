@@ -30,15 +30,33 @@ const Dashboard = ({ managerData, currentGw, bootstrapData, selectedAnalysis, la
     displayBank = bank.toFixed(1);
   }
 
+  // Calculate GW points and Overall points based on selected gameweek
+  let overallPoints = managerData.summary_overall_points;
+  let gwPoints = managerData.summary_event_points;
+  
+  if (selectedAnalysis) {
+    const historicalGw = historyData.find(g => g.event === selectedAnalysis.gameweek);
+    if (historicalGw) {
+      overallPoints = historicalGw.total_points;
+      gwPoints = historicalGw.points;
+    } else {
+      // Gameweek is current or future - check if it has started
+      const event = bootstrapData?.events?.find(e => e.id === selectedAnalysis.gameweek);
+      if (event && new Date() < new Date(event.deadline_time)) {
+        gwPoints = 0;
+      }
+    }
+  }
+
   const renderStats = () => (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px' }}>
       <div className="fpl-card fpl-stat-card">
         <div className="label">Overall Points</div>
-        <div className="value gold">{managerData.summary_overall_points}</div>
+        <div className="value gold">{overallPoints}</div>
       </div>
       <div className="fpl-card fpl-stat-card">
         <div className="label">GW Points</div>
-        <div className="value">{managerData.summary_event_points}</div>
+        <div className="value">{gwPoints}</div>
       </div>
       <div className="fpl-card fpl-stat-card">
         <div className="label">Team Value</div>

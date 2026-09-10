@@ -11,7 +11,7 @@ const CHIP_CONFIG = [
   { apiName: '3xc', label: 'TC', fullName: 'Triple Captain', emoji: '👑', color: '#f44336' },
 ];
 
-const SquadView = ({ managerData, currentGw, bootstrapData, selectedAnalysis, chipsUsed = [], freeTransfers = '1', transfersMade = '0' }) => {
+const SquadView = ({ managerData, currentGw, bootstrapData, liveData, selectedAnalysis, chipsUsed = [], freeTransfers = '1', transfersMade = '0' }) => {
   const [picks, setPicks] = useState([]);
 
   useEffect(() => {
@@ -65,7 +65,7 @@ const SquadView = ({ managerData, currentGw, bootstrapData, selectedAnalysis, ch
     if (!bootstrapData || !bootstrapData.events || !selectedAnalysis) return true;
     const event = bootstrapData.events.find(e => e.id === selectedAnalysis.gameweek);
     if (!event) return true;
-    return new Date(event.deadline_time) < new Date();
+    return new Date() > new Date(event.deadline_time);
   };
 
   const isStarted = isGwStarted();
@@ -76,7 +76,25 @@ const SquadView = ({ managerData, currentGw, bootstrapData, selectedAnalysis, ch
 
     const posColor = POSITION_COLORS[player.element_type] || '#888';
     const teamName = getTeamShortName(player.team);
-    const points = player.event_points ?? player.total_points ?? 0;
+    
+    // Prioritize historical live data if available, otherwise fallback
+    let points = 0;
+    if (!isStarted) {
+      points = 0;
+    } else if (liveData && liveData.elements) {
+      const livePlayer = liveData.elements.find(e => e.id === pick.element);
+      if (livePlayer && livePlayer.stats) {
+        points = livePlayer.stats.total_points;
+      }
+    } else {
+      points = player.event_points ?? player.total_points ?? 0;
+    }
+    
+    // Apply captain multiplier
+    if (pick.is_captain && !isBench) {
+      points *= 2;
+    }
+
     const price = (player.now_cost / 10).toFixed(1);
 
     const teamCode = bootstrapData?.teams?.find(t => t.id === player.team)?.code;

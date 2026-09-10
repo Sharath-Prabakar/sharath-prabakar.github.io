@@ -184,6 +184,7 @@ const FPLManager = () => {
                 managerData={managerData} 
                 currentGw={currentGw} 
                 bootstrapData={bootstrapData} 
+                liveData={liveData}
                 selectedAnalysis={analysisHistory.find(h => h.gameweek === selectedGw)}
                 chipsUsed={chipsUsed}
                 freeTransfers={freeTransfers}

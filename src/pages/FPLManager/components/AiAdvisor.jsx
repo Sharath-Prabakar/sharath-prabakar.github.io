@@ -15,11 +15,31 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
 
   const latestAnalysis = selectedAnalysis;
   const squad = latestAnalysis?.squad || [];
+
+  const isGwStarted = () => {
+    if (!bootstrapData || !bootstrapData.events || !latestAnalysis) return true;
+    const event = bootstrapData.events.find(e => e.id === latestAnalysis.gameweek);
+    if (!event) return true;
+    return new Date(event.deadline_time) < new Date();
+  };
+
+  const isStarted = isGwStarted();
+  
   const top11 = [...squad].sort((a, b) => b.expected - a.expected).slice(0, 11);
   const xiExpected = top11.reduce((sum, p) => sum + (p.expected || 0) * (p.is_captain ? 2 : 1), 0).toFixed(1);
   const totalExpected = squad.reduce((sum, p) => sum + (p.expected || 0), 0).toFixed(1);
 
   const getPlayerActualPoints = (p) => {
+    if (!isStarted) return 0;
+    if (liveData && liveData.elements) {
+      const elId = p.id || bootstrapData?.elements?.find(e => e.web_name === p.name)?.id;
+      if (elId) {
+        const liveEl = liveData.elements.find(e => e.id === elId);
+        if (liveEl && liveEl.stats) {
+          return Number(liveEl.stats.total_points);
+        }
+      }
+    }
     const el = bootstrapData?.elements?.find(e => e.id === p.id || e.web_name === p.name);
     const raw = p.actual ?? p.actual_points ?? el?.event_points ?? 0;
     return Number(raw);
@@ -73,14 +93,7 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
     );
   };
 
-  const isGwStarted = () => {
-    if (!bootstrapData || !bootstrapData.events) return true;
-    const event = bootstrapData.events.find(e => e.id === latestAnalysis.gameweek);
-    if (!event) return true;
-    return new Date(event.deadline_time) < new Date();
-  };
 
-  const isStarted = isGwStarted();
 
   const renderDashboard = () => (
     <>
@@ -114,15 +127,8 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
           </div>
         </div>
 
-        <div style={{ marginTop: '18px', paddingTop: '16px', borderTop: '1px solid #333', display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-          {latestAnalysis.captainRecommendation && (
-            <div style={{ flex: '1', minWidth: '180px' }}>
-              <h3 style={{ color: '#d4af37', margin: '0 0 6px 0', fontSize: '0.85rem', textTransform: 'uppercase' }}>Suggested Captaincy</h3>
-              {renderCaptaincyDetails(latestAnalysis.captainRecommendation)}
-            </div>
-          )}
-
-          <div style={{ flex: '1.2', minWidth: '220px', borderLeft: '1px solid #222', paddingLeft: '20px' }}>
+        <div style={{ marginTop: '18px', paddingTop: '16px', borderTop: '1px solid #333' }}>
+          <div style={{ minWidth: '220px' }}>
             <h3 style={{ color: '#d4af37', margin: '0 0 8px 0', fontSize: '0.85rem', textTransform: 'uppercase' }}>Squad Health</h3>
             {latestAnalysis.injuries && latestAnalysis.injuries.length > 0 ? (
               <ul style={{ color: '#e0e0e0', paddingLeft: '18px', margin: 0, fontSize: '0.85rem' }}>
@@ -138,14 +144,91 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
       </div>
 
       <div className="fpl-card" style={{ padding: '20px', flex: '1', minWidth: '260px' }}>
+        {latestAnalysis.captainRecommendation && (() => {
+          let isCaptainVerified = false;
+          if (latestAnalysis.squad) {
+            const actualCaptain = latestAnalysis.squad.find(p => p.is_captain);
+            if (actualCaptain) {
+              // check if the suggested string contains the actual captain's name
+              // removing any special characters just to be safe
+              const cleanActual = actualCaptain.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+              const cleanSuggested = latestAnalysis.captainRecommendation.normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(' (')[0].split(' V:')[0].trim();
+              isCaptainVerified = cleanSuggested.includes(cleanActual) || cleanActual.includes(cleanSuggested);
+            }
+          }
+          return (
+            <div style={{ marginBottom: '25px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <h3 style={{ color: '#d4af37', margin: 0, fontSize: '0.9rem', textTransform: 'uppercase' }}>Suggested Captaincy</h3>
+                {isCaptainVerified && (
+                  <span style={{ 
+                    color: '#00ff87', 
+                    fontSize: '0.75rem', 
+                    padding: '2px 6px', 
+                    background: 'rgba(0, 255, 135, 0.1)', 
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontWeight: 'bold'
+                  }}>
+                    ✓ Captain Verified
+                  </span>
+                )}
+              </div>
+              {renderCaptaincyDetails(latestAnalysis.captainRecommendation)}
+            </div>
+          );
+        })()}
+
         <h3 style={{ color: '#d4af37', margin: '0 0 10px 0', fontSize: '0.9rem', textTransform: 'uppercase' }}>Suggested Transfers</h3>
         <div style={{ color: '#e0e0e0', fontSize: '0.95rem', margin: '0 0 20px 0', lineHeight: '1.6' }}>
           {latestAnalysis.transferRecommendation ? (
-            latestAnalysis.transferRecommendation.split(' | ').map((transfer, index) => (
-              <div key={index} style={{ marginBottom: index < latestAnalysis.transferRecommendation.split(' | ').length - 1 ? '10px' : '0', paddingBottom: index < latestAnalysis.transferRecommendation.split(' | ').length - 1 ? '10px' : '0', borderBottom: index < latestAnalysis.transferRecommendation.split(' | ').length - 1 ? '1px solid #333' : 'none' }}>
-                {transfer}
-              </div>
-            ))
+            latestAnalysis.transferRecommendation.split(' | ').map((transfer, index, arr) => {
+              let isCompleted = false;
+              if (transfer.includes('IN: ')) {
+                const parts = transfer.split('IN: ');
+                if (parts.length > 1) {
+                  const namePart = parts[1].split(' (')[0].trim();
+                  if (latestAnalysis.squad && latestAnalysis.squad.some(p => p.name.includes(namePart) || namePart.includes(p.name))) {
+                    isCompleted = true;
+                  }
+                }
+              }
+
+              return (
+                <div key={index} style={{ 
+                  marginBottom: index < arr.length - 1 ? '10px' : '0', 
+                  paddingBottom: index < arr.length - 1 ? '10px' : '0', 
+                  borderBottom: index < arr.length - 1 ? '1px solid #333' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '10px',
+                  flexWrap: 'wrap'
+                }}>
+                  <span style={{ color: isCompleted ? '#aaa' : '#e0e0e0', textDecoration: isCompleted ? 'line-through' : 'none' }}>
+                    {transfer}
+                  </span>
+                  {isCompleted && (
+                    <span style={{ 
+                      color: '#00ff87', 
+                      fontSize: '0.75rem', 
+                      padding: '2px 6px', 
+                      background: 'rgba(0, 255, 135, 0.1)', 
+                      borderRadius: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontWeight: 'bold',
+                      textDecoration: 'none'
+                    }}>
+                      ✓ Squad Verified
+                    </span>
+                  )}
+                </div>
+              );
+            })
           ) : (
             "HOLD"
           )}
@@ -212,40 +295,7 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
           </div>
         )}
         
-        {gameweekHistory && gameweekHistory.length > 0 && (() => {
-          const uniqueHistory = gameweekHistory.slice(1).filter((item, index, self) => {
-            if (index === 0) return true;
-            return item.explanation !== self[index - 1].explanation;
-          });
-          
-          return (
-          <div style={{ marginTop: '30px', borderTop: '1px solid #333', paddingTop: '20px' }}>
-            <h3 style={{ color: '#888', margin: '0 0 15px 0', fontSize: '0.85rem', textTransform: 'uppercase' }}>Strategy Timeline (Updates)</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              {uniqueHistory.length === 0 ? (
-                <div style={{ color: '#666', fontSize: '0.85rem', fontStyle: 'italic' }}>
-                  No previous updates for this gameweek.
-                </div>
-              ) : (
-                uniqueHistory.map((historyItem, index) => {
-                  const date = historyItem.analyzedAt ? new Date(historyItem.analyzedAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'Unknown Date';
-                  
-                  return (
-                    <div key={index} style={{ paddingLeft: '15px', borderLeft: '2px solid #444', opacity: 0.6 }}>
-                      <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '5px', fontWeight: 'bold' }}>
-                        {date}
-                      </div>
-                      <div style={{ color: '#ccc', fontSize: '0.85rem', lineHeight: '1.4' }}>
-                        {historyItem.explanation}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-          );
-        })()}
+
       </div>
     )}
     </>
