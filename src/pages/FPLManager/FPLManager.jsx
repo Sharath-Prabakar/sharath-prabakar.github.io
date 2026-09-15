@@ -10,6 +10,24 @@ import PlayerExplorer from './components/PlayerExplorer';
 import LoadingPopup from './components/LoadingPopup';
 
 const FPLManager = () => {
+  // Helper: find the best analysis record for a given GW.
+  // Prefers records with squad data; falls back to any record if none have squad.
+  // Also merges endOfGwAnalysis from a separate end-of-GW record if available.
+  const findBestAnalysis = (history, gw) => {
+    const gwRecords = history.filter(h => h.gameweek === gw);
+    if (gwRecords.length === 0) return undefined;
+    const withSquad = gwRecords.find(h => h.squad && h.squad.length > 0);
+    const base = withSquad || gwRecords[0];
+    
+    // If the selected record doesn't have endOfGwAnalysis, find it from another record
+    if (!base.endOfGwAnalysis) {
+      const endOfGwRecord = gwRecords.find(h => h.endOfGwAnalysis);
+      if (endOfGwRecord) {
+        return { ...base, endOfGwAnalysis: endOfGwRecord.endOfGwAnalysis };
+      }
+    }
+    return base;
+  };
   const [managerData, setManagerData] = useState(null);
   const [bootstrapData, setBootstrapData] = useState(null);
   const [currentGw, setCurrentGw] = useState(null);
@@ -161,7 +179,7 @@ const FPLManager = () => {
               managerData={managerData} 
               currentGw={currentGw} 
               bootstrapData={bootstrapData} 
-              selectedAnalysis={analysisHistory.find(h => h.gameweek === selectedGw)}
+              selectedAnalysis={findBestAnalysis(analysisHistory, selectedGw)}
               layoutMode="stats" 
             />
           </div>
@@ -171,7 +189,7 @@ const FPLManager = () => {
               <AiAdvisor 
                 managerData={managerData} 
                 currentGw={currentGw} 
-                selectedAnalysis={analysisHistory.find(h => h.gameweek === selectedGw)}
+                selectedAnalysis={findBestAnalysis(analysisHistory, selectedGw)}
                 gameweekHistory={analysisHistory.filter(h => h.gameweek === selectedGw)}
                 bootstrapData={bootstrapData}
                 liveData={liveData}
@@ -185,7 +203,7 @@ const FPLManager = () => {
                 currentGw={currentGw} 
                 bootstrapData={bootstrapData} 
                 liveData={liveData}
-                selectedAnalysis={analysisHistory.find(h => h.gameweek === selectedGw)}
+                selectedAnalysis={findBestAnalysis(analysisHistory, selectedGw)}
                 chipsUsed={chipsUsed}
                 freeTransfers={freeTransfers}
                 transfersMade={transfersMade}
@@ -197,7 +215,7 @@ const FPLManager = () => {
             <AiAdvisor 
               managerData={managerData} 
               currentGw={currentGw} 
-              selectedAnalysis={analysisHistory.find(h => h.gameweek === selectedGw)}
+              selectedAnalysis={findBestAnalysis(analysisHistory, selectedGw)}
               gameweekHistory={analysisHistory.filter(h => h.gameweek === selectedGw)}
               bootstrapData={bootstrapData}
               liveData={liveData}
@@ -209,7 +227,7 @@ const FPLManager = () => {
             <AiAdvisor 
               managerData={managerData} 
               currentGw={currentGw} 
-              selectedAnalysis={analysisHistory.find(h => h.gameweek === selectedGw)}
+              selectedAnalysis={findBestAnalysis(analysisHistory, selectedGw)}
               gameweekHistory={analysisHistory.filter(h => h.gameweek === selectedGw)}
               bootstrapData={bootstrapData}
               liveData={liveData}
