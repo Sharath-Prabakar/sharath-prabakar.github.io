@@ -193,6 +193,7 @@ const FPLManager = () => {
                 gameweekHistory={analysisHistory.filter(h => h.gameweek === selectedGw)}
                 bootstrapData={bootstrapData}
                 liveData={liveData}
+                chipsUsed={chipsUsed}
                 layoutMode="insights"
               />
             </div>
@@ -219,7 +220,8 @@ const FPLManager = () => {
               gameweekHistory={analysisHistory.filter(h => h.gameweek === selectedGw)}
               bootstrapData={bootstrapData}
               liveData={liveData}
-              layoutMode="dashboard"
+                chipsUsed={chipsUsed}
+                layoutMode="dashboard"
             />
           </div>
 
@@ -231,7 +233,8 @@ const FPLManager = () => {
               gameweekHistory={analysisHistory.filter(h => h.gameweek === selectedGw)}
               bootstrapData={bootstrapData}
               liveData={liveData}
-              layoutMode="player_analysis"
+                chipsUsed={chipsUsed}
+                layoutMode="player_analysis"
             />
           </div>
 

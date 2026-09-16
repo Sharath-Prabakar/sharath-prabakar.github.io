@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fplService } from '../../../services/fplService';
 
-const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, liveData, layoutMode = 'all', gameweekHistory }) => {
+const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, liveData, layoutMode = 'all', gameweekHistory, chipsUsed }) => {
   if (!selectedAnalysis) {
     return (
       <div className="fpl-card">
@@ -234,19 +234,52 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
           )}
         </div>
 
-        <h3 style={{ color: '#d4af37', margin: '0 0 10px 0', fontSize: '0.9rem', textTransform: 'uppercase' }}>Power Chip Strategy</h3>
-        <div style={{ color: '#e0e0e0', fontSize: '0.95rem', margin: 0, lineHeight: '1.6' }}>
-          {latestAnalysis.chipRecommendation && latestAnalysis.chipRecommendation !== 'NONE' ? (
-            <div>
-              <div style={{ color: '#00ff87', fontWeight: 'bold', marginBottom: '5px' }}>
-                {latestAnalysis.chipRecommendation} RECOMMENDED
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <h3 style={{ color: '#d4af37', margin: 0, fontSize: '0.9rem', textTransform: 'uppercase' }}>Power Chip Strategy</h3>
+            {(() => {
+              if (latestAnalysis.chipRecommendation && latestAnalysis.chipRecommendation !== 'NONE' && chipsUsed) {
+                const chipMap = {
+                  'TRIPLE_CAPTAIN': '3xc',
+                  'BENCH_BOOST': 'bboost',
+                  'FREE_HIT': 'freehit',
+                  'WILDCARD': 'wildcard'
+                };
+                const expectedChip = chipMap[latestAnalysis.chipRecommendation];
+                const isChipVerified = chipsUsed.some(c => c.name === expectedChip && c.event === currentGw);
+                
+                if (isChipVerified) {
+                  return (
+                    <span style={{ 
+                      color: '#00ff87', 
+                      fontSize: '0.75rem', 
+                      padding: '2px 6px', 
+                      background: 'rgba(0, 255, 135, 0.1)', 
+                      borderRadius: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontWeight: 'bold'
+                    }}>
+                      ✓ Chip Verified
+                    </span>
+                  );
+                }
+              }
+              return null;
+            })()}
+          </div>
+          <div style={{ color: '#e0e0e0', fontSize: '0.95rem', margin: 0, lineHeight: '1.6' }}>
+            {latestAnalysis.chipRecommendation && latestAnalysis.chipRecommendation !== 'NONE' ? (
+              <div>
+                <div style={{ color: '#00ff87', fontWeight: 'bold', marginBottom: '5px' }}>
+                  {latestAnalysis.chipRecommendation} RECOMMENDED
+                </div>
+                <div style={{ fontSize: '0.85rem', color: '#aaa' }}>{latestAnalysis.chipReason}</div>
               </div>
-              <div style={{ fontSize: '0.85rem', color: '#aaa' }}>{latestAnalysis.chipReason}</div>
-            </div>
-          ) : (
-            <div style={{ color: '#888' }}>No chip recommended for this Gameweek.</div>
-          )}
-        </div>
+            ) : (
+              <div style={{ color: '#888' }}>No chip recommended for this Gameweek.</div>
+            )}
+          </div>
       </div>
     </div>
     
