@@ -273,3 +273,15 @@
     text-align: left;
   }
 }
+
+/* Advanced Management Suite */
+.fpl-advanced-suite button:hover {
+  filter: brightness(1.15);
+}
+
+.fpl-advanced-suite select:focus,
+.fpl-advanced-suite input:focus {
+  outline: none;
+  border-color: #38bdf8 !important;
+}
+

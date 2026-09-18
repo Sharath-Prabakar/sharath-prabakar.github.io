@@ -8,6 +8,9 @@ import LiveGameweek from './components/LiveGameweek';
 import LeagueStandings from './components/LeagueStandings';
 import PlayerExplorer from './components/PlayerExplorer';
 import LoadingPopup from './components/LoadingPopup';
+import LineupSimulator from './components/LineupSimulator';
+import MultiGwRoadmap from './components/MultiGwRoadmap';
+import PressNewsDigest from './components/PressNewsDigest';
 
 const FPLManager = () => {
   // Helper: find the best analysis record for a given GW.
@@ -39,6 +42,7 @@ const FPLManager = () => {
   const [liveData, setLiveData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [suiteActiveTab, setSuiteActiveTab] = useState('all');
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -269,6 +273,125 @@ const FPLManager = () => {
                 chipsUsed={chipsUsed}
                 layoutMode="player_analysis"
             />
+          </div>
+
+          {/* Advanced FPL Management Suite */}
+          <div className="fpl-advanced-suite" style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '30px' }}>
+            {/* Section Header & View Filter Bar */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '15px',
+              borderBottom: '1px solid #222',
+              paddingBottom: '15px'
+            }}>
+              <div>
+                <h2 style={{ color: '#d4af37', margin: 0, fontSize: '1.6rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span>⚡</span> Advanced Management Suite
+                </h2>
+                <p style={{ margin: '4px 0 0 0', color: '#888', fontSize: '0.9rem' }}>
+                  Interactive lineup simulation, multi-gameweek transfer planning, and live Premier League press briefings.
+                </p>
+              </div>
+
+              {/* Segmented Filter Pills */}
+              <div style={{ display: 'flex', gap: '6px', background: '#111', padding: '4px', borderRadius: '8px', border: '1px solid #222' }}>
+                <button
+                  onClick={() => setSuiteActiveTab('all')}
+                  style={{
+                    background: suiteActiveTab === 'all' ? '#d4af37' : 'none',
+                    color: suiteActiveTab === 'all' ? '#000' : '#aaa',
+                    border: 'none',
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '0.82rem',
+                    fontWeight: suiteActiveTab === 'all' ? 'bold' : 'normal',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  🌟 All Tools
+                </button>
+                <button
+                  onClick={() => setSuiteActiveTab('simulator')}
+                  style={{
+                    background: suiteActiveTab === 'simulator' ? '#00ff87' : 'none',
+                    color: suiteActiveTab === 'simulator' ? '#000' : '#aaa',
+                    border: 'none',
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '0.82rem',
+                    fontWeight: suiteActiveTab === 'simulator' ? 'bold' : 'normal',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  🎮 Lineup Simulator
+                </button>
+                <button
+                  onClick={() => setSuiteActiveTab('roadmap')}
+                  style={{
+                    background: suiteActiveTab === 'roadmap' ? '#38bdf8' : 'none',
+                    color: suiteActiveTab === 'roadmap' ? '#000' : '#aaa',
+                    border: 'none',
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '0.82rem',
+                    fontWeight: suiteActiveTab === 'roadmap' ? 'bold' : 'normal',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  🗺️ Multi-GW Roadmap
+                </button>
+                <button
+                  onClick={() => setSuiteActiveTab('news')}
+                  style={{
+                    background: suiteActiveTab === 'news' ? '#818cf8' : 'none',
+                    color: suiteActiveTab === 'news' ? '#000' : '#aaa',
+                    border: 'none',
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '0.82rem',
+                    fontWeight: suiteActiveTab === 'news' ? 'bold' : 'normal',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  📰 Press & Team News
+                </button>
+              </div>
+            </div>
+
+            {/* Tool 1: Interactive Lineup & Auto-Sub Simulator */}
+            {(suiteActiveTab === 'all' || suiteActiveTab === 'simulator') && (
+              <LineupSimulator 
+                selectedAnalysis={selectedAnalysisRecord}
+                bootstrapData={bootstrapData}
+                liveData={liveData}
+              />
+            )}
+
+            {/* Tool 2: Multi-Gameweek Transfer Roadmap & Sandbox */}
+            {(suiteActiveTab === 'all' || suiteActiveTab === 'roadmap') && (
+              <MultiGwRoadmap 
+                selectedAnalysis={selectedAnalysisRecord}
+                bootstrapData={bootstrapData}
+                chipsUsed={chipsUsed}
+                currentGw={currentGw}
+                selectedGw={selectedGw}
+              />
+            )}
+
+            {/* Tool 3: Press Conference Digest & Team News Feed */}
+            {(suiteActiveTab === 'all' || suiteActiveTab === 'news') && (
+              <PressNewsDigest 
+                selectedAnalysis={selectedAnalysisRecord}
+                bootstrapData={bootstrapData}
+              />
+            )}
           </div>
 
         </div>
