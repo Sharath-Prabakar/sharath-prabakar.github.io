@@ -34,6 +34,7 @@ const FPLManager = () => {
   const [analysisHistory, setAnalysisHistory] = useState([]);
   const [selectedGw, setSelectedGw] = useState(1);
   const [chipsUsed, setChipsUsed] = useState([]);
+  const [teamHistoryData, setTeamHistoryData] = useState(null);
   const [gwFixtures, setGwFixtures] = useState([]);
   const [liveData, setLiveData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -128,15 +129,47 @@ const FPLManager = () => {
     gwEndStr = lastMatch.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
 
-  // Calculate transfers (placeholders until auth API is available)
+  // Calculate transfers dynamically from live analysis or FPL history
+  const selectedAnalysisRecord = findBestAnalysis(analysisHistory, selectedGw);
   let freeTransfers = '1';
   let transfersMade = '0';
+
   if (selectedGw === 1) {
     freeTransfers = 'Unlimited';
     transfersMade = '0';
   } else {
-    freeTransfers = '1 (Est)';
-    transfersMade = '0 (Est)';
+    const transfersInfo = selectedAnalysisRecord?.chipForecast?.transfersInfo || selectedAnalysisRecord?.transfersInfo;
+    if (transfersInfo) {
+      freeTransfers = String(transfersInfo.freeTransfers ?? 0);
+      transfersMade = String(transfersInfo.made ?? transfersInfo.transfersMade ?? 0);
+    } else if (teamHistoryData && teamHistoryData.current) {
+      const pastGw = teamHistoryData.current.find(h => h.event === selectedGw);
+      if (pastGw) {
+        transfersMade = String(pastGw.event_transfers);
+        let accumulated = 1;
+        for (let g = 2; g <= selectedGw; g++) {
+          const entry = teamHistoryData.current.find(h => h.event === g);
+          if (g === selectedGw) {
+            freeTransfers = String(accumulated);
+            break;
+          }
+          const made = entry ? entry.event_transfers : 0;
+          accumulated = Math.min(5, Math.max(0, accumulated - made) + 1);
+        }
+      } else {
+        let accumulated = 1;
+        for (let g = 2; g <= selectedGw; g++) {
+          const entry = teamHistoryData.current.find(h => h.event === g);
+          if (g === selectedGw) {
+            freeTransfers = String(accumulated);
+            break;
+          }
+          const made = entry ? entry.event_transfers : 0;
+          accumulated = Math.min(5, Math.max(0, accumulated - made) + 1);
+        }
+        transfersMade = '0';
+      }
+    }
   }
 
   return (

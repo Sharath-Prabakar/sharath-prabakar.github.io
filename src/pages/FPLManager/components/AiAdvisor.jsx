@@ -130,15 +130,71 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
         <div style={{ marginTop: '18px', paddingTop: '16px', borderTop: '1px solid #333' }}>
           <div style={{ minWidth: '220px' }}>
             <h3 style={{ color: '#d4af37', margin: '0 0 8px 0', fontSize: '0.85rem', textTransform: 'uppercase' }}>Squad Health</h3>
-            {latestAnalysis.injuries && latestAnalysis.injuries.length > 0 ? (
-              <ul style={{ color: '#e0e0e0', paddingLeft: '18px', margin: 0, fontSize: '0.85rem' }}>
-                {latestAnalysis.injuries.map((inj, i) => (
-                  <li key={i} style={{ marginBottom: '4px' }}>{inj}</li>
-                ))}
-              </ul>
-            ) : (
-              <p style={{ color: '#4caf50', margin: 0, fontSize: '0.85rem' }}>Fully fit squad! No injuries or suspensions reported.</p>
-            )}
+            {(() => {
+              const allInjuries = [];
+              const seenInjuries = new Set();
+
+              const addInjury = (inj) => {
+                if (!inj || typeof inj !== 'string') return;
+                if (inj.toLowerCase().includes('not our player')) return;
+                const playerName = inj.split(' (')[0].split(':')[0].trim();
+                if (!seenInjuries.has(playerName)) {
+                  seenInjuries.add(playerName);
+                  allInjuries.push(inj);
+                }
+              };
+
+              if (latestAnalysis.injuries) {
+                latestAnalysis.injuries.forEach(addInjury);
+              }
+
+              if (gameweekHistory && gameweekHistory.length > 0) {
+                gameweekHistory.forEach(item => {
+                  if (item.injuries) {
+                    item.injuries.forEach(addInjury);
+                  }
+                });
+              }
+
+              if (allInjuries.length === 0) {
+                return (
+                  <p style={{ color: '#4caf50', margin: 0, fontSize: '0.85rem' }}>
+                    Fully fit squad! No injuries or suspensions reported.
+                  </p>
+                );
+              }
+
+              return (
+                <ul style={{ color: '#e0e0e0', paddingLeft: '18px', margin: 0, fontSize: '0.85rem' }}>
+                  {allInjuries.map((inj, i) => {
+                    const playerName = inj.split(' (')[0].split(':')[0].trim();
+                    const isTransferredOut = latestAnalysis.squad && !latestAnalysis.squad.some(p => p.name.includes(playerName) || playerName.includes(p.name));
+
+                    return (
+                      <li key={i} style={{ marginBottom: '6px', color: isTransferredOut ? '#888' : '#e0e0e0' }}>
+                        <span style={{ textDecoration: isTransferredOut ? 'line-through' : 'none' }}>
+                          {inj}
+                        </span>
+                        {isTransferredOut && (
+                          <span style={{ 
+                            color: '#00ff87', 
+                            fontSize: '0.7rem', 
+                            padding: '1px 6px', 
+                            background: 'rgba(0, 255, 135, 0.1)', 
+                            borderRadius: '3px', 
+                            marginLeft: '8px',
+                            fontWeight: 'bold',
+                            display: 'inline-block'
+                          }}>
+                            Transferred Out
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -181,58 +237,88 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
           );
         })()}
 
-        <h3 style={{ color: '#d4af37', margin: '0 0 10px 0', fontSize: '0.9rem', textTransform: 'uppercase' }}>Suggested Transfers</h3>
-        <div style={{ color: '#e0e0e0', fontSize: '0.95rem', margin: '0 0 20px 0', lineHeight: '1.6' }}>
-          {latestAnalysis.transferRecommendation ? (
-            latestAnalysis.transferRecommendation.split(' | ').map((transfer, index, arr) => {
-              let isCompleted = false;
-              if (transfer.includes('IN: ')) {
-                const parts = transfer.split('IN: ');
-                if (parts.length > 1) {
-                  const namePart = parts[1].split(' (')[0].trim();
-                  if (latestAnalysis.squad && latestAnalysis.squad.some(p => p.name.includes(namePart) || namePart.includes(p.name))) {
-                    isCompleted = true;
+        {(() => {
+          const allTransfers = [];
+          if (latestAnalysis.transferRecommendation && !latestAnalysis.transferRecommendation.startsWith('HOLD')) {
+            allTransfers.push(...latestAnalysis.transferRecommendation.split(' | '));
+          }
+
+          if (gameweekHistory && gameweekHistory.length > 0) {
+            gameweekHistory.forEach(item => {
+              if (item.transferRecommendation && !item.transferRecommendation.startsWith('HOLD')) {
+                item.transferRecommendation.split(' | ').forEach(t => {
+                  const clean = t.trim();
+                  if (clean && !allTransfers.some(existing => existing.trim() === clean)) {
+                    allTransfers.push(clean);
                   }
+                });
+              }
+            });
+          }
+
+          const checkCompleted = (transfer) => {
+            if (transfer.includes('IN: ')) {
+              const parts = transfer.split('IN: ');
+              if (parts.length > 1) {
+                const namePart = parts[1].split(' (')[0].trim();
+                if (latestAnalysis.squad && latestAnalysis.squad.some(p => p.name.includes(namePart) || namePart.includes(p.name))) {
+                  return true;
                 }
               }
+            }
+            return false;
+          };
 
-              return (
-                <div key={index} style={{ 
-                  marginBottom: index < arr.length - 1 ? '10px' : '0', 
-                  paddingBottom: index < arr.length - 1 ? '10px' : '0', 
-                  borderBottom: index < arr.length - 1 ? '1px solid #333' : 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '10px',
-                  flexWrap: 'wrap'
-                }}>
-                  <span style={{ color: isCompleted ? '#aaa' : '#e0e0e0', textDecoration: isCompleted ? 'line-through' : 'none' }}>
-                    {transfer}
+          const isSquadVerified = allTransfers.length > 0 && allTransfers.some(t => checkCompleted(t));
+
+          return (
+            <div style={{ marginBottom: '25px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <h3 style={{ color: '#d4af37', margin: 0, fontSize: '0.9rem', textTransform: 'uppercase' }}>Suggested Transfers</h3>
+                {isSquadVerified && (
+                  <span style={{ 
+                    color: '#00ff87', 
+                    fontSize: '0.75rem', 
+                    padding: '2px 6px', 
+                    background: 'rgba(0, 255, 135, 0.1)', 
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontWeight: 'bold'
+                  }}>
+                    ✓ Squad Verified
                   </span>
-                  {isCompleted && (
-                    <span style={{ 
-                      color: '#00ff87', 
-                      fontSize: '0.75rem', 
-                      padding: '2px 6px', 
-                      background: 'rgba(0, 255, 135, 0.1)', 
-                      borderRadius: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      fontWeight: 'bold',
-                      textDecoration: 'none'
-                    }}>
-                      ✓ Squad Verified
-                    </span>
-                  )}
-                </div>
-              );
-            })
-          ) : (
-            "HOLD"
-          )}
-        </div>
+                )}
+              </div>
+              <div style={{ color: '#e0e0e0', fontSize: '0.95rem', margin: 0, lineHeight: '1.6' }}>
+                {allTransfers.length === 0 ? (
+                  "HOLD"
+                ) : (
+                  allTransfers.map((transfer, index, arr) => {
+                    const isCompleted = checkCompleted(transfer);
+                    return (
+                      <div key={index} style={{ 
+                        marginBottom: index < arr.length - 1 ? '10px' : '0', 
+                        paddingBottom: index < arr.length - 1 ? '10px' : '0', 
+                        borderBottom: index < arr.length - 1 ? '1px solid #333' : 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                        flexWrap: 'wrap'
+                      }}>
+                        <span style={{ color: isCompleted ? '#888' : '#e0e0e0', textDecoration: isCompleted ? 'line-through' : 'none' }}>
+                          {transfer}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <h3 style={{ color: '#d4af37', margin: 0, fontSize: '0.9rem', textTransform: 'uppercase' }}>Power Chip Strategy</h3>
@@ -327,12 +413,132 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
             </div>
           </div>
         )}
-        
+
+        {(() => {
+          if (!gameweekHistory || gameweekHistory.length <= 1) return null;
+
+          const getCleanKey = (item) => {
+            const trans = (item.transferRecommendation || 'HOLD').trim();
+            const cleanTrans = trans.toUpperCase().startsWith('HOLD') ? 'HOLD' : trans;
+            const cap = (item.captainRecommendation || '').trim();
+            return cleanTrans + ' | ' + cap;
+          };
+
+          const latestTime = new Date(latestAnalysis.analyzedAt).getTime();
+          // Filter out intermediate script runs within 3 minutes of the latest record
+          const candidateHistory = gameweekHistory.slice(1).filter(item => {
+            const itemTime = new Date(item.analyzedAt).getTime();
+            return Math.abs(latestTime - itemTime) > 3 * 60 * 1000;
+          });
+
+          const seenDecisions = new Set();
+          seenDecisions.add(getCleanKey(latestAnalysis));
+
+          const previousUpdates = candidateHistory.filter(item => {
+            const key = getCleanKey(item);
+            if (seenDecisions.has(key)) {
+              return false;
+            }
+            seenDecisions.add(key);
+            return true;
+          });
+
+          if (previousUpdates.length === 0) return null;
+
+          return (
+            <div style={{ marginTop: '30px', borderTop: '1px solid #333', paddingTop: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <h3 style={{ color: '#d4af37', margin: 0, fontSize: '0.9rem', textTransform: 'uppercase' }}>
+                  ⏳ Strategy Timeline (Previous Decisions)
+                </h3>
+                <span style={{ color: '#888', fontSize: '0.75rem' }}>
+                  {previousUpdates.length} previous decision{previousUpdates.length > 1 ? 's' : ''} recorded
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                {previousUpdates.map((historyItem, index) => {
+                  const date = historyItem.analyzedAt ? new Date(historyItem.analyzedAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'Unknown Date';
+                  return (
+                    <div key={index} style={{ 
+                      padding: '14px 16px', 
+                      background: 'rgba(255, 255, 255, 0.02)', 
+                      borderLeft: '3px solid #d4af37', 
+                      borderRadius: '0 8px 8px 0',
+                      borderTop: '1px solid #222',
+                      borderRight: '1px solid #222',
+                      borderBottom: '1px solid #222'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#888', fontWeight: 'bold' }}>
+                          📅 {date}
+                        </span>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          {historyItem.transferRecommendation && (
+                            <span style={{ 
+                              fontSize: '0.75rem', 
+                              background: '#1a1a1a', 
+                              border: '1px solid #333',
+                              color: historyItem.transferRecommendation.includes('OUT') ? '#ff7070' : '#00ff87', 
+                              padding: '2px 8px', 
+                              borderRadius: '4px',
+                              fontWeight: 'bold'
+                            }}>
+                              {historyItem.transferRecommendation}
+                            </span>
+                          )}
+                          {historyItem.captainRecommendation && (
+                            <span style={{ 
+                              fontSize: '0.75rem', 
+                              background: '#1a1a1a', 
+                              border: '1px solid #333',
+                              color: '#d4af37', 
+                              padding: '2px 8px', 
+                              borderRadius: '4px' 
+                            }}>
+                              👑 {historyItem.captainRecommendation}
+                            </span>
+                          )}
+                          {historyItem.chipRecommendation && historyItem.chipRecommendation !== 'NONE' && (
+                            <span style={{ 
+                              fontSize: '0.75rem', 
+                              background: '#1a1a1a', 
+                              border: '1px solid rgba(0, 255, 135, 0.3)',
+                              color: '#00ff87', 
+                              padding: '2px 8px', 
+                              borderRadius: '4px' 
+                            }}>
+                              ⚡ {historyItem.chipRecommendation}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div style={{ color: '#aaa', fontSize: '0.85rem', lineHeight: '1.5' }}>
+                        {historyItem.explanation}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
 
       </div>
     )}
     </>
   );
+
+  const formatReasoning = (text) => {
+    if (!text) return '';
+    return text
+      .replace(/\.?\s*xGI\/90:\s*[\d.]+(\s+from\s+[A-Za-z]+\s+is\s+elite)?\.?/gi, '.')
+      .replace(/\.?\s*xGI:\s*[\d.]+\.?/gi, '.')
+      .replace(/\s*\.\s*\./g, '.')
+      .replace(/^\.\s*/, '')
+      .replace(/\s*\.\s*$/, '.')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  };
 
   const renderInsights = () => (
     <div className="fpl-card" style={{ padding: '10px', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -415,7 +621,7 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
               </div>
               {player.reasoning && (
                 <div style={{ marginTop: '2px', fontSize: '0.75rem', color: '#777', fontStyle: 'italic', lineHeight: '1.2' }}>
-                  {player.reasoning}
+                  {formatReasoning(player.reasoning)}
                 </div>
               )}
             </div>
