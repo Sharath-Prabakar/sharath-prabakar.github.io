@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import './HabitStacker.css';
 
 const STORAGE_KEY = 'habit_stacker_data';
@@ -130,6 +130,9 @@ const DAY_NAMES_SHORT = ['S','M','T','W','T','F','S'];
 
 const HabitStacker = () => {
     const [data, setData] = useState({ habits: [], completions: {} });
+    const dataRef = useRef(data);
+    dataRef.current = data;
+
     const [isLoading, setIsLoading] = useState(true);
     const [viewMonth, setViewMonth] = useState(() => { const n = new Date(); return { year: n.getFullYear(), month: n.getMonth() }; });
     const [activeView, setActiveView] = useState('calendar');
@@ -154,15 +157,20 @@ const HabitStacker = () => {
             apiHabits.forEach(h => {
                 const habitObj = { ...h };
                 if (!habitObj.targetDays) habitObj.targetDays = [];
+                if (!habitObj.completions) habitObj.completions = [];
                 habits.push(habitObj);
-                if (h.completions) {
+                if (h.completions && Array.isArray(h.completions)) {
                     h.completions.forEach(dateStr => {
                         if (!completions[dateStr]) completions[dateStr] = [];
-                        completions[dateStr].push(h.id);
+                        if (!completions[dateStr].includes(h.id)) {
+                            completions[dateStr].push(h.id);
+                        }
                     });
                 }
             });
-            setData({ habits, completions });
+            const nextData = { habits, completions };
+            dataRef.current = nextData;
+            setData(nextData);
         } catch (e) {
             console.error('Failed to fetch habits', e);
         } finally {
@@ -178,29 +186,62 @@ const HabitStacker = () => {
     const completions = data.completions;
 
     const toggleCompletion = async (habitId, dateKey) => {
-        let newHabitComps = [];
-        setData(prev => {
-            const newCompletions = { ...prev.completions };
-            const dayList = newCompletions[dateKey] ? [...newCompletions[dateKey]] : [];
-            const idx = dayList.indexOf(habitId);
-            if (idx >= 0) dayList.splice(idx, 1);
-            else dayList.push(habitId);
-            newCompletions[dateKey] = dayList;
-            
-            Object.keys(newCompletions).forEach(k => {
-                if (newCompletions[k].includes(habitId)) newHabitComps.push(k);
+        const currentData = dataRef.current;
+        const habit = currentData.habits.find(h => h.id === habitId);
+        if (!habit) return;
+
+        const currentDayComps = currentData.completions[dateKey] || [];
+        const isDone = currentDayComps.includes(habitId);
+
+        // Compute new completed dates array for this habit
+        const existingComps = (habit.completions && habit.completions.length > 0)
+            ? habit.completions
+            : Object.keys(currentData.completions).filter(k =>
+                (currentData.completions[k] || []).includes(habitId)
+            );
+
+        const newHabitComps = isDone
+            ? existingComps.filter(d => d !== dateKey)
+            : Array.from(new Set([...existingComps, dateKey]));
+
+        // Construct new completions map for calendar/stats views
+        const newCompletionsMap = { ...currentData.completions };
+        const newDayList = isDone
+            ? currentDayComps.filter(id => id !== habitId)
+            : [...currentDayComps, habitId];
+        newCompletionsMap[dateKey] = newDayList;
+
+        const newHabitsList = currentData.habits.map(h =>
+            h.id === habitId ? { ...h, completions: newHabitComps } : h
+        );
+
+        const nextData = { habits: newHabitsList, completions: newCompletionsMap };
+        dataRef.current = nextData;
+        setData(nextData);
+
+        // Sync to MongoDB backend
+        const payload = {
+            id: habit.id,
+            name: habit.name,
+            emoji: habit.emoji,
+            frequency: habit.frequency,
+            targetDays: habit.targetDays || [],
+            color: habit.color,
+            createdAt: habit.createdAt,
+            completions: newHabitComps
+        };
+
+        try {
+            const res = await fetch(`${API_URL}/${habitId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
-
-            return { ...prev, completions: newCompletions };
-        });
-
-        // The state isn't immediately updated here, but we compute newHabitComps inline
-        const habit = habits.find(h => h.id === habitId);
-        if (habit) {
-            const payload = { ...habit, completions: newHabitComps };
-            try {
-                await fetch(`${API_URL}/${habitId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            } catch (e) { console.error(e); }
+            if (!res.ok) {
+                console.error('Failed to sync habit completion to MongoDB:', res.status, res.statusText);
+            }
+        } catch (e) {
+            console.error('Failed to sync habit completion to MongoDB:', e);
         }
     };
 
@@ -239,8 +280,8 @@ const HabitStacker = () => {
         if (editingHabit) {
             payload.id = editingHabit.id;
             payload.createdAt = editingHabit.createdAt;
-            const habitComps = Object.keys(data.completions).filter(k => data.completions[k].includes(editingHabit.id));
-            payload.completions = habitComps;
+            const currentHabit = dataRef.current.habits.find(h => h.id === editingHabit.id);
+            payload.completions = currentHabit?.completions || editingHabit.completions || [];
             
             try {
                 await fetch(`${API_URL}/${editingHabit.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -268,13 +309,15 @@ const HabitStacker = () => {
 
     // Derived
     const tk = todayKey();
+    const today = new Date();
     const todayCompletions = completions[tk] || [];
     const dailyHabits = habits.filter(h => h.frequency === 'daily');
     const weeklyHabits = habits.filter(h => h.frequency === 'weekly');
     const biweeklyHabits = habits.filter(h => h.frequency === 'biweekly');
+    const todayDueHabits = habits.filter(h => h.frequency === 'daily' || (h.frequency === 'weekly' && (h.targetDays || [1]).includes(today.getDay())) || h.frequency === 'biweekly');
 
-    const todayDone = dailyHabits.filter(h => todayCompletions.includes(h.id)).length;
-    const todayTotal = dailyHabits.length;
+    const todayDone = todayDueHabits.filter(h => todayCompletions.includes(h.id)).length;
+    const todayTotal = todayDueHabits.length;
 
     const bestStreak = useMemo(() => {
         if (!habits.length) return 0;
@@ -433,7 +476,7 @@ const HabitStacker = () => {
                             <div className={`habit-weekly-day-label ${isToday ? 'today-label' : ''}`}>
                                 {DAY_NAMES[wd.date.getDay()]} {wd.date.getDate()}
                             </div>
-                            {filteredHabits.filter(h => h.frequency === 'daily' || (h.frequency === 'weekly' && (h.targetDays || [1]).includes(wd.date.getDay()))).map(h => {
+                            {filteredHabits.filter(h => h.frequency === 'daily' || h.frequency === 'biweekly' || (h.frequency === 'weekly' && (h.targetDays || [1]).includes(wd.date.getDay()))).map(h => {
                                 const done = dayComps.includes(h.id);
                                 return (
                                     <div key={h.id}
