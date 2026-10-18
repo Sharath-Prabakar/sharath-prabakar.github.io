@@ -257,8 +257,15 @@ const FPLManager = () => {
               gameweekHistory={analysisHistory.filter(h => h.gameweek === selectedGw)}
               bootstrapData={bootstrapData}
               liveData={liveData}
-                chipsUsed={chipsUsed}
-                layoutMode="dashboard"
+              chipsUsed={chipsUsed}
+              layoutMode="dashboard"
+            />
+          </div>
+
+          <div>
+            <LeagueStandings 
+              managerData={managerData} 
+              selectedAnalysis={findBestAnalysis(analysisHistory, selectedGw)} 
             />
           </div>
 
@@ -270,12 +277,13 @@ const FPLManager = () => {
               gameweekHistory={analysisHistory.filter(h => h.gameweek === selectedGw)}
               bootstrapData={bootstrapData}
               liveData={liveData}
-                chipsUsed={chipsUsed}
-                layoutMode="player_analysis"
+              chipsUsed={chipsUsed}
+              layoutMode="player_analysis"
             />
           </div>
 
-          {/* Advanced FPL Management Suite */}
+          {/* Advanced FPL Management Suite (Hidden for now) */}
+          {false && (
           <div className="fpl-advanced-suite" style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '30px' }}>
             {/* Section Header & View Filter Bar */}
             <div style={{
@@ -393,6 +401,7 @@ const FPLManager = () => {
               />
             )}
           </div>
+          )}
 
         </div>
       </div>

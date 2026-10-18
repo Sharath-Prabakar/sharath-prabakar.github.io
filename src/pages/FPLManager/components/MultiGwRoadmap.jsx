@@ -14,52 +14,78 @@ const MultiGwRoadmap = ({ selectedAnalysis, bootstrapData, chipsUsed = [], curre
   const [plans, setPlans] = useState({});
   const [saveStatus, setSaveStatus] = useState('');
   const [targetSearch, setTargetSearch] = useState('');
+  const [totwOnlyFilter, setTotwOnlyFilter] = useState(false);
   const [activeGwModal, setActiveGwModal] = useState(null);
   const [selectedOutId, setSelectedOutId] = useState('');
   const [selectedInId, setSelectedInId] = useState('');
 
-  // Pre-load default AI Recommended Roadmap
+  // Helper: TOTW-Weighted Composite Transfer Score for forming a better team
+  const getTotwCompositeScore = (p) => {
+    if (!p) return 0;
+    const ep = parseFloat(p.ep_next) || 0;
+    const form = parseFloat(p.form) || 0;
+    const ppg = parseFloat(p.points_per_game) || 0;
+    const xgi90 = parseFloat(p.expected_goal_involvements_per_90) || 0;
+    const dtCount = p.dreamteam_count || 0;
+    const inSeasonDt = p.in_dreamteam ? 1 : 0;
+    const totwBonus = (dtCount * 2.2) + (inSeasonDt * 3.0);
+    const setPieceBonus = (p.penalties_order === 1 ? 1.5 : 0) + (p.corners_and_indirect_freekicks_order === 1 ? 0.6 : 0);
+    const minutesFactor = (p.minutes || 0) >= 270 ? 1.0 : (p.minutes || 0) >= 120 ? 0.8 : 0.35;
+    return +(((ep * 1.4) + (form * 0.9) + (ppg * 0.6) + (xgi90 * 3.0) + totwBonus + setPieceBonus) * minutesFactor).toFixed(1);
+  };
+
+  // Pre-load default AI Recommended Roadmap (Prioritizing Team of the Week stars)
   const loadAiPlan = () => {
     const aiPlans = {};
-    const gwNext = currentGwId + 1; // GW6
-    const gwRoll = currentGwId + 2; // GW7
-    const gwWc = currentGwId + 3;   // GW8
+    const gwNext = currentGwId + 1;
+    const gwRoll = currentGwId + 2;
+    const gwWc = currentGwId + 3;
 
-    // GW6: Replace Burrowes (4.5m) with Semenyo / Rogers / Minteh using bank
-    const burrowes = selectedAnalysis?.squad?.find(p => p.name?.toLowerCase().includes('burrowes'));
-    const targetIn = bootstrapData?.elements?.find(e => e.web_name === 'Semenyo' || e.web_name === 'Rogers') || {
-      id: 9999,
-      web_name: 'Semenyo',
-      now_cost: 57,
-      element_type: 3
-    };
+    const squadIds = new Set((selectedAnalysis?.squad || []).map(s => s.id));
+    const elements = bootstrapData?.elements || [];
+
+    // Find weakest Midfielder (e.g. Burrowes or Szoboszlai) and best affordable TOTW Midfielder
+    const outMid = selectedAnalysis?.squad?.find(p => p.name?.toLowerCase().includes('burrowes')) ||
+                   selectedAnalysis?.squad?.find(p => p.pos === 3);
+    const maxMidBudget = (outMid?.cost || 4.5) + baseBank;
+
+    const bestTotwMid = elements
+      .filter(e => e.status === 'a' && e.element_type === 3 && !squadIds.has(e.id) && (e.now_cost / 10) <= maxMidBudget && (e.dreamteam_count > 0 || e.in_dreamteam))
+      .sort((a, b) => getTotwCompositeScore(b) - getTotwCompositeScore(a))[0] || {
+        id: 9999,
+        web_name: 'Groß',
+        now_cost: 61,
+        element_type: 3,
+        dreamteam_count: 3,
+        in_dreamteam: true
+      };
 
     aiPlans[gwNext] = {
       chip: 'none',
-      note: 'Deploy £3.3m bank to replace Burrowes (loaned to Wigan) with a guaranteed starter.',
+      note: `Deploy £${baseBank.toFixed(1)}m bank to upgrade ${outMid?.name || 'Burrowes'} to Team of the Week star ${bestTotwMid.web_name} (${bestTotwMid.dreamteam_count || 1}x TOTW${bestTotwMid.in_dreamteam ? ', Season Dream Team' : ''}).`,
       transfers: [
         {
-          outId: burrowes?.id || 15,
-          outName: burrowes?.name || 'Burrowes',
-          outCost: burrowes?.cost || 4.5,
-          inId: targetIn.id,
-          inName: targetIn.web_name,
-          inCost: (targetIn.now_cost / 10).toFixed(1)
+          outId: outMid?.id || 15,
+          outName: outMid?.name || 'Burrowes',
+          outCost: outMid?.cost || 4.5,
+          inId: bestTotwMid.id,
+          inName: `${bestTotwMid.web_name} ⭐`,
+          inCost: (bestTotwMid.now_cost / 10).toFixed(1)
         }
       ]
     };
 
-    // GW7: Roll transfer
+    // Next+1: Roll transfer
     aiPlans[gwRoll] = {
       chip: 'none',
-      note: 'Roll free transfer into international break. Accumulate 2 FTs for safety buffer.',
+      note: 'Roll free transfer to accumulate 2 FTs and target multi-time Team of the Week performers.',
       transfers: []
     };
 
-    // GW8: Planned Wildcard
+    // Next+2: Planned Wildcard / TOTW Double Upgrade
     aiPlans[gwWc] = {
       chip: 'wildcard',
-      note: 'Targeted Wildcard window: full squad restructure to capitalize on Arsenal & Chelsea fixture swings.',
+      note: 'Targeted Wildcard window: restructure around Season Dream Team & repeat Team of the Week assets.',
       transfers: []
     };
 
@@ -204,12 +230,18 @@ const MultiGwRoadmap = ({ selectedAnalysis, bootstrapData, chipsUsed = [], curre
 
   const horizonMetrics = getHorizonMetrics();
 
-  // Search filtered candidates for Transfer Modal
-  const candidatePlayers = (bootstrapData?.elements || []).filter(e => {
-    if (!targetSearch) return e.total_points > 15;
-    const q = targetSearch.toLowerCase();
-    return e.web_name.toLowerCase().includes(q) || (bootstrapData?.teams?.find(t => t.id === e.team)?.name.toLowerCase().includes(q));
-  }).slice(0, 15);
+  // Search & TOTW-scored filtered candidates for Transfer Modal
+  const selectedOutPlayer = (selectedAnalysis?.squad || []).find(p => String(p.id) === String(selectedOutId));
+  const candidatePlayers = (bootstrapData?.elements || [])
+    .filter(e => {
+      if (selectedOutPlayer && e.element_type !== selectedOutPlayer.pos) return false;
+      if (totwOnlyFilter && !e.in_dreamteam && !(e.dreamteam_count > 0)) return false;
+      if (!targetSearch) return e.total_points > 10 || e.dreamteam_count > 0 || e.in_dreamteam;
+      const q = targetSearch.toLowerCase();
+      return e.web_name.toLowerCase().includes(q) || (bootstrapData?.teams?.find(t => t.id === e.team)?.name.toLowerCase().includes(q));
+    })
+    .sort((a, b) => getTotwCompositeScore(b) - getTotwCompositeScore(a))
+    .slice(0, 25);
 
   return (
     <div className="fpl-card" style={{ border: '1px solid #1a3a5a', borderRadius: '12px', background: '#0a0e14', padding: '24px' }}>
@@ -519,9 +551,20 @@ const MultiGwRoadmap = ({ selectedAnalysis, bootstrapData, chipsUsed = [], curre
 
             {/* Target Search & Incoming Player */}
             <div style={{ marginBottom: '18px' }}>
-              <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.8rem', marginBottom: '6px' }}>
-                Transfer In Target:
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
+                  Transfer In Target (Ranked by AI + TOTW Score):
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#fbbf24', fontSize: '0.76rem', cursor: 'pointer', fontWeight: 'bold' }}>
+                  <input
+                    type="checkbox"
+                    checked={totwOnlyFilter}
+                    onChange={(e) => setTotwOnlyFilter(e.target.checked)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  ⭐ Team of the Week Only
+                </label>
+              </div>
               <input
                 type="text"
                 placeholder="Search player or team..."
@@ -553,11 +596,18 @@ const MultiGwRoadmap = ({ selectedAnalysis, bootstrapData, chipsUsed = [], curre
                 }}
               >
                 <option value="">-- Select Target Player --</option>
-                {candidatePlayers.map(p => (
-                  <option key={p.id} value={p.id}>
-                    {p.web_name} ({POSITION_NAMES[p.element_type]}) · £{(p.now_cost / 10).toFixed(1)}m · {bootstrapData?.teams?.find(t => t.id === p.team)?.short_name} · {p.total_points}pts
-                  </option>
-                ))}
+                {candidatePlayers.map(p => {
+                  const totwLabel = p.in_dreamteam
+                    ? ` · 🏆 Dream Team (${p.dreamteam_count}x TOTW)`
+                    : p.dreamteam_count > 0
+                      ? ` · ⭐ ${p.dreamteam_count}x TOTW`
+                      : '';
+                  return (
+                    <option key={p.id} value={p.id}>
+                      {p.web_name} ({POSITION_NAMES[p.element_type]}) · £{(p.now_cost / 10).toFixed(1)}m · {bootstrapData?.teams?.find(t => t.id === p.team)?.short_name} · {p.total_points}pts{totwLabel} · AI:{getTotwCompositeScore(p)}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 

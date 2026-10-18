@@ -384,30 +384,72 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
             <h3 style={{ color: '#d4af37', margin: '0 0 15px 0', fontSize: '0.85rem', textTransform: 'uppercase' }}>Chip Forecast (Season Outlook)</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
               
+              {/* Half 1 (GW1-19) */}
               <div style={{ background: '#111', padding: '12px', borderRadius: '8px', border: '1px solid #222' }}>
                 <h4 style={{ color: '#888', margin: '0 0 10px 0', fontSize: '0.75rem', textTransform: 'uppercase' }}>Half 1 (GW1-19)</h4>
-                {latestAnalysis.chipForecast.half1 && Object.entries(latestAnalysis.chipForecast.half1).map(([chipKey, data]) => (
-                  <div key={chipKey} style={{ marginBottom: '8px', fontSize: '0.85rem' }}>
-                    <span style={{ color: '#d4af37', fontWeight: 'bold', textTransform: 'capitalize' }}>
-                      {chipKey.replace(/([A-Z])/g, ' $1').trim()}:
-                    </span>{' '}
-                    <span style={{ color: '#00ff87' }}>GW{data.bestGw}</span>
-                    <div style={{ color: '#aaa', fontSize: '0.75rem', marginTop: '2px' }}>{data.reason}</div>
-                  </div>
-                ))}
+                {latestAnalysis.chipForecast.half1 && Object.entries(latestAnalysis.chipForecast.half1).map(([chipKey, data]) => {
+                  const fplNameMap = { benchBoost: 'bboost', tripleCaptain: '3xc', freeHit: 'freehit', wildcard: 'wildcard' };
+                  const fplName = fplNameMap[chipKey] || chipKey;
+                  const isAvailable = latestAnalysis.chipForecast.chipsAvailable?.[fplName]?.[0] !== false;
+                  const usedChip = !isAvailable ? (latestAnalysis.chipForecast.chipsUsed || []).find(c => c.name === fplName && c.event <= 19) : null;
+                  
+                  return (
+                    <div key={chipKey} style={{ marginBottom: '8px', fontSize: '0.85rem', opacity: isAvailable ? 1 : 0.4 }}>
+                      <span style={{ 
+                        color: isAvailable ? '#d4af37' : '#888', 
+                        fontWeight: 'bold', 
+                        textTransform: 'capitalize',
+                        textDecoration: isAvailable ? 'none' : 'line-through'
+                      }}>
+                        {chipKey.replace(/([A-Z])/g, ' $1').trim()}:
+                      </span>{' '}
+                      {isAvailable ? (
+                        <>
+                          <span style={{ color: '#00ff87' }}>GW{data.bestGw}</span>
+                          <div style={{ color: '#aaa', fontSize: '0.75rem', marginTop: '2px' }}>{data.reason}</div>
+                        </>
+                      ) : (
+                        <span style={{ color: '#ff4444', fontStyle: 'italic' }}>
+                          USED {usedChip ? `GW${usedChip.event}` : ''}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
+              {/* Half 2 (GW20-38) */}
               <div style={{ background: '#111', padding: '12px', borderRadius: '8px', border: '1px solid #222' }}>
                 <h4 style={{ color: '#888', margin: '0 0 10px 0', fontSize: '0.75rem', textTransform: 'uppercase' }}>Half 2 (GW20-38)</h4>
-                {latestAnalysis.chipForecast.half2 && Object.entries(latestAnalysis.chipForecast.half2).map(([chipKey, data]) => (
-                  <div key={chipKey} style={{ marginBottom: '8px', fontSize: '0.85rem' }}>
-                    <span style={{ color: '#d4af37', fontWeight: 'bold', textTransform: 'capitalize' }}>
-                      {chipKey.replace(/([A-Z])/g, ' $1').trim()}:
-                    </span>{' '}
-                    <span style={{ color: '#00ff87' }}>GW{data.bestGw}</span>
-                    <div style={{ color: '#aaa', fontSize: '0.75rem', marginTop: '2px' }}>{data.reason}</div>
-                  </div>
-                ))}
+                {latestAnalysis.chipForecast.half2 && Object.entries(latestAnalysis.chipForecast.half2).map(([chipKey, data]) => {
+                  const fplNameMap = { benchBoost: 'bboost', tripleCaptain: '3xc', freeHit: 'freehit', wildcard: 'wildcard' };
+                  const fplName = fplNameMap[chipKey] || chipKey;
+                  const isAvailable = latestAnalysis.chipForecast.chipsAvailable?.[fplName]?.[1] !== false;
+                  const usedChip = !isAvailable ? (latestAnalysis.chipForecast.chipsUsed || []).find(c => c.name === fplName && c.event > 19) : null;
+
+                  return (
+                    <div key={chipKey} style={{ marginBottom: '8px', fontSize: '0.85rem', opacity: isAvailable ? 1 : 0.4 }}>
+                      <span style={{ 
+                        color: isAvailable ? '#d4af37' : '#888', 
+                        fontWeight: 'bold', 
+                        textTransform: 'capitalize',
+                        textDecoration: isAvailable ? 'none' : 'line-through'
+                      }}>
+                        {chipKey.replace(/([A-Z])/g, ' $1').trim()}:
+                      </span>{' '}
+                      {isAvailable ? (
+                        <>
+                          <span style={{ color: '#00ff87' }}>GW{data.bestGw}</span>
+                          <div style={{ color: '#aaa', fontSize: '0.75rem', marginTop: '2px' }}>{data.reason}</div>
+                        </>
+                      ) : (
+                        <span style={{ color: '#ff4444', fontStyle: 'italic' }}>
+                          USED {usedChip ? `GW${usedChip.event}` : ''}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
             </div>
@@ -634,38 +676,256 @@ const AiAdvisor = ({ managerData, currentGw, selectedAnalysis, bootstrapData, li
   const renderEndOfGwAnalysis = () => {
     if (!latestAnalysis.endOfGwAnalysis) return null;
     
-    // Basic markdown parser for bold text and newlines
-    const formatText = (text) => {
-      return text.split('\n').map((line, i) => {
-        if (!line.trim()) return <br key={i} />;
-        
-        // Handle basic bold **text**
-        const parts = line.split(/(\*\*.*?\*\*)/g);
-        const formattedLine = parts.map((part, j) => {
-          if (part.startsWith('**') && part.endsWith('**')) {
-            return <strong key={j} style={{ color: '#fff' }}>{part.slice(2, -2)}</strong>;
-          }
-          return part;
-        });
+    // Parse if stored as string
+    let data = latestAnalysis.endOfGwAnalysis;
+    if (typeof data === 'string') {
+      try { data = JSON.parse(data); } catch (e) {
+        // Fallback: render older gameweeks (GW1-GW4) using the original markdown parser
+        const formatText = (text) => {
+          return text.split('\n').map((line, i) => {
+            if (!line.trim()) return <br key={i} />;
+            
+            // Handle basic bold **text**
+            const parts = line.split(/(\*\*.*?\*\*)/g);
+            const formattedLine = parts.map((part, j) => {
+              if (part.startsWith('**') && part.endsWith('**')) {
+                return <strong key={j} style={{ color: '#fff' }}>{part.slice(2, -2)}</strong>;
+              }
+              return part;
+            });
 
-        // Add bullet point styling if it starts with a dash
-        if (line.trim().startsWith('- ')) {
-          return <div key={i} style={{ marginBottom: '8px', paddingLeft: '15px', position: 'relative' }}>
-            <span style={{ position: 'absolute', left: 0 }}>•</span>
-            {formattedLine.slice(1)} {/* Skip the first part which is '- ' if we handled it, but split doesn't drop it. Actually, string replace is easier */}
-          </div>;
-        }
+            // Handle headers
+            if (line.trim().startsWith('### ')) {
+              return <h4 key={i} style={{ color: '#38bdf8', marginTop: '15px', marginBottom: '8px' }}>{line.replace('### ', '')}</h4>;
+            } else if (line.trim().startsWith('## ')) {
+              return <h3 key={i} style={{ color: '#d4af37', marginTop: '20px', marginBottom: '10px' }}>{line.replace('## ', '')}</h3>;
+            } else if (line.trim().startsWith('# ')) {
+              return <h2 key={i} style={{ color: '#fff', marginTop: '20px', marginBottom: '10px' }}>{line.replace('# ', '')}</h2>;
+            }
 
-        return <div key={i} style={{ marginBottom: '10px' }}>{formattedLine}</div>;
-      });
-    };
+            // Add bullet point styling if it starts with a dash
+            if (line.trim().startsWith('- ')) {
+              return <div key={i} style={{ marginBottom: '8px', paddingLeft: '15px', position: 'relative' }}>
+                <span style={{ position: 'absolute', left: 0 }}>•</span>
+                {formattedLine.slice(1)} 
+              </div>;
+            }
+
+            return <div key={i} style={{ marginBottom: '10px' }}>{formattedLine}</div>;
+          });
+        };
+
+        return (
+          <div className="fpl-card" style={{ padding: '24px', marginTop: '20px', border: '1px solid #2a1f00', background: '#0c0a05' }}>
+            <h3 style={{ color: '#d4af37', margin: '0 0 15px 0', fontSize: '1.2rem', textTransform: 'uppercase' }}>End of Gameweek Analysis</h3>
+            <div style={{ color: '#e0e0e0', fontSize: '0.95rem', lineHeight: '1.6' }}>
+              {formatText(data)}
+            </div>
+          </div>
+        );
+      }
+    }
+
+    const deltaColor = data.delta >= 0 ? '#00ff87' : '#ff4444';
+    const vsAvg = data.actualPoints - data.averagePoints;
+    const vsAvgColor = vsAvg >= 0 ? '#00ff87' : '#ff4444';
 
     return (
-      <div className="fpl-card" style={{ padding: '20px', marginTop: '20px' }}>
-        <h3 style={{ color: '#d4af37', margin: '0 0 15px 0', fontSize: '1.1rem', textTransform: 'uppercase' }}>End of Gameweek Analysis</h3>
-        <div style={{ color: '#e0e0e0', fontSize: '0.95rem', lineHeight: '1.6', margin: 0 }}>
-          {formatText(latestAnalysis.endOfGwAnalysis.replace(/^- /gm, '• '))}
+      <div className="fpl-card" style={{ padding: '24px', marginTop: '20px', border: '1px solid #2a1f00', background: '#0c0a05' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '20px', borderBottom: '1px solid #222', paddingBottom: '16px' }}>
+          <div>
+            <h3 style={{ color: '#d4af37', margin: '0 0 6px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              📊 End of Gameweek Analysis
+            </h3>
+            {data.chipUsed && data.chipUsed !== 'none' && (
+              <span style={{ background: data.chipUsed === '3xc' ? '#f44336' : '#d4af37', color: '#000', fontSize: '0.72rem', fontWeight: 'bold', padding: '2px 8px', borderRadius: '4px' }}>
+                {data.chipUsed === '3xc' ? '👑 TRIPLE CAPTAIN' : data.chipUsed === 'bboost' ? '💪 BENCH BOOST' : data.chipUsed === 'freehit' ? '⚡ FREE HIT' : data.chipUsed === 'wildcard' ? '🔄 WILDCARD' : data.chipUsed.toUpperCase()} ACTIVE
+              </span>
+            )}
+          </div>
         </div>
+
+        {/* Metrics Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginBottom: '22px' }}>
+          <div style={{ background: '#111', border: '1px solid #222', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+            <div style={{ color: '#888', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>GW Points</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: vsAvgColor, marginTop: '4px' }}>
+              {data.actualPoints}
+            </div>
+            <div style={{ fontSize: '0.72rem', color: vsAvgColor }}>
+              {vsAvg >= 0 ? `+${vsAvg}` : vsAvg} vs avg ({data.averagePoints})
+            </div>
+          </div>
+
+          <div style={{ background: '#111', border: '1px solid #222', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+            <div style={{ color: '#888', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Overall Rank</div>
+            <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#e0e0e0', marginTop: '4px' }}>
+              {data.overallRank?.toLocaleString()}
+            </div>
+          </div>
+
+          <div style={{ background: '#111', border: '1px solid #222', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+            <div style={{ color: '#888', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Points</div>
+            <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#d4af37', marginTop: '4px' }}>
+              {data.totalPoints}
+            </div>
+          </div>
+
+          <div style={{ background: '#111', border: '1px solid #222', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+            <div style={{ color: '#888', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>xP vs Actual</div>
+            <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: deltaColor, marginTop: '4px' }}>
+              {data.delta >= 0 ? `+${data.delta}` : data.delta}
+            </div>
+            <div style={{ fontSize: '0.72rem', color: '#888' }}>
+              xP: {data.expectedPoints}
+            </div>
+          </div>
+
+          <div style={{ background: '#111', border: '1px solid #222', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+            <div style={{ color: '#888', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bank</div>
+            <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#00ff87', marginTop: '4px' }}>
+              £{data.bank}m
+            </div>
+          </div>
+        </div>
+
+        {/* Captaincy Verdict */}
+        {data.captaincyVerdict && (
+          <div style={{
+            background: data.captaincyVerdict.includes('CORRECT') ? 'rgba(0, 255, 135, 0.06)' : 'rgba(255, 68, 68, 0.06)',
+            border: `1px solid ${data.captaincyVerdict.includes('CORRECT') ? 'rgba(0, 255, 135, 0.2)' : 'rgba(255, 68, 68, 0.2)'}`,
+            borderRadius: '8px',
+            padding: '12px 16px',
+            marginBottom: '18px'
+          }}>
+            <div style={{ fontWeight: 'bold', fontSize: '0.85rem', color: '#d4af37', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              👑 Captaincy Verdict
+            </div>
+            <div style={{ color: '#e0e0e0', fontSize: '0.88rem', lineHeight: '1.5' }}>
+              <div style={{ marginBottom: '4px' }}><strong style={{ color: '#fff' }}>{data.captainPick}</strong></div>
+              <div style={{ color: '#ccc' }}>{data.captaincyVerdict}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Key Findings */}
+        {data.keyFindings && data.keyFindings.length > 0 && (
+          <div style={{ marginBottom: '20px' }}>
+            <h4 style={{ color: '#d4af37', margin: '0 0 10px 0', fontSize: '0.92rem' }}>🔑 Key Findings</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {data.keyFindings.map((finding, idx) => (
+                <div key={idx} style={{
+                  display: 'flex',
+                  gap: '8px',
+                  alignItems: 'flex-start',
+                  fontSize: '0.84rem',
+                  lineHeight: '1.5',
+                  color: '#ccc',
+                  padding: '6px 0',
+                  borderBottom: idx < data.keyFindings.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none'
+                }}>
+                  <span style={{ color: finding.includes('DISASTER') || finding.includes('WASTED') || finding.includes('COLLAPSE') ? '#ff4444' : finding.includes('STAR') || finding.includes('BOGLE') ? '#00ff87' : '#888', flexShrink: 0 }}>•</span>
+                  <span>{finding}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Lessons Learned */}
+        {data.lessonsLearned && data.lessonsLearned.length > 0 && (
+          <div style={{ marginBottom: '20px' }}>
+            <h4 style={{ color: '#38bdf8', margin: '0 0 10px 0', fontSize: '0.92rem' }}>📚 Lessons Learned</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {data.lessonsLearned.map((lesson, idx) => (
+                <div key={idx} style={{
+                  background: '#0d131f',
+                  border: '1px solid #1e293b',
+                  borderRadius: '6px',
+                  padding: '10px 12px',
+                  fontSize: '0.82rem',
+                  lineHeight: '1.5',
+                  color: '#cbd5e1'
+                }}>
+                  {lesson}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Transfers Made */}
+        {data.transfersMade && data.transfersMade.length > 0 && (
+          <div style={{ marginBottom: '20px' }}>
+            <h4 style={{ color: '#a855f7', margin: '0 0 10px 0', fontSize: '0.92rem' }}>🔄 Transfers Made This GW</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {data.transfersMade.map((transfer, idx) => (
+                <div key={idx} style={{
+                  background: '#111',
+                  border: '1px solid #222',
+                  borderRadius: '6px',
+                  padding: '8px 12px',
+                  fontSize: '0.84rem',
+                  color: '#e0e0e0',
+                  lineHeight: '1.5'
+                }}>
+                  {transfer}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Squad Ratings Table */}
+        {data.squadRatings && Object.keys(data.squadRatings).length > 0 && (
+          <div>
+            <h4 style={{ color: '#d4af37', margin: '0 0 10px 0', fontSize: '0.92rem' }}>📋 Squad Player Ratings</h4>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #333' }}>
+                    <th style={{ textAlign: 'left', padding: '8px', color: '#888' }}>Player</th>
+                    <th style={{ textAlign: 'center', padding: '8px', color: '#888' }}>Pts</th>
+                    <th style={{ textAlign: 'center', padding: '8px', color: '#888' }}>xP</th>
+                    <th style={{ textAlign: 'center', padding: '8px', color: '#888' }}>Rating</th>
+                    <th style={{ textAlign: 'left', padding: '8px', color: '#888' }}>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(data.squadRatings).map(([name, info]) => {
+                    const ratingColor = info.rating === 'A' || info.rating === 'A+' ? '#00ff87'
+                      : info.rating === 'B' || info.rating === 'B+' ? '#4ade80'
+                      : info.rating === 'C' || info.rating === 'C+' ? '#fbbf24'
+                      : info.rating === 'D' ? '#f97316'
+                      : info.rating === 'F' ? '#ff4444'
+                      : '#888';
+                    return (
+                      <tr key={name} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                        <td style={{ padding: '8px', color: '#fff', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{name}</td>
+                        <td style={{ padding: '8px', textAlign: 'center', color: '#e0e0e0' }}>{info.pts}</td>
+                        <td style={{ padding: '8px', textAlign: 'center', color: '#888' }}>{info.xP}</td>
+                        <td style={{ padding: '8px', textAlign: 'center' }}>
+                          <span style={{
+                            background: ratingColor,
+                            color: '#000',
+                            fontWeight: 'bold',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontSize: '0.78rem'
+                          }}>
+                            {info.rating}
+                          </span>
+                        </td>
+                        <td style={{ padding: '8px', color: '#aaa', fontSize: '0.8rem' }}>{info.note}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
